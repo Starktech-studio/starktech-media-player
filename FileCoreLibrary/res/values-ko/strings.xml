@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="file_info_label_name">이름:</string>
+    <string name="file_info_label_size">크기:</string>
+    <string name="file_info_label_size_internal">크기(내장):</string>
+    <string name="file_info_label_size_sd">크기(SD):</string>
+    <string name="file_info_label_permission">권한:</string>
+    <string name="file_info_label_can_read">읽기</string>
+    <string name="file_info_label_cannot_read">읽기 금지</string>
+    <string name="file_info_label_can_write">쓰기</string>
+    <string name="file_info_label_cannot_write">쓰기 금지</string>
+    <string name="file_info_label_last_modified">최종 수정:</string>
+    <string name="file_info_label_mime_type">Mime 형식:</string>
+    <string name="file_info_directory_empty">빈 폴더</string>
+    <string name="file_info_one_directory">1 폴더</string>
+    <string name="file_info_directories">폴더</string>
+    <string name="file_info_one_file">1 파일</string>
+    <string name="file_info_files">파일</string>
+    <string name="usbhost_ptp_storage">외부 카메라</string>
+    <string name="network_media_servers">미디어 서버 (UPnP)</string>
+    <string name="network_shared_folders">공유폴더 (SMB)</string>
+    <!-- Archos file manager core -->
+    <string name="file_copy_pattern">복사</string>
+    <string name="fast_scroll_numeric_alphabet">\u00200123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ</string>
+    <!-- Samba share settings -->
+    <string name="samba_settings_title">공유 폴더 설정</string>
+    <string name="samba_loading">공유폴더에 로딩중입니다</string>
+    <string name="samba_reloading">공유폴더에 다시 로딩하는 동안 기다려주십시오.</string>
+    <string name="samba_password_request_title">공유 폴더 비밀번호 요청</string>
+    <string name="samba_domain">도메인</string>
+    <string name="samba_show_password">비밀번호 표시</string>
+    <!-- WiFi Direct strings-->
+    <string name="server_wait">클라이언트의 연결 및 파일 전송 대기 중</string>
+    <string name="no_network_title">네트워크 연결 없음</string>
+    <!-- FileManager strings -->
+    <string name="storage_busy_message">USB연결중에는 내부메모리를 이용할 수 없습니다.</string>
+    <string name="network_storage">네트워크</string>
+    <string name="external_storage">외부메모리</string>
+    <string name="internal_storage">내부메모리</string>
+    <string name="directory_empty">빈 폴더</string>
+    <string name="no_server">미디어 서버 없음</string>
+    <string name="loading">로딩중</string>
+    <string name="ssh_password">비밀번호</string>
+    <string name="cannot_list">콘텐츠를 표시할 수 없습니다.</string>
+    <string name="error_listing">오류가 발생하였습니다.</string>
+    <string name="error_file_not_found">파일을 찾을 수 없음</string>
+    <string name="pasting_copy_one">파일이 복사됨 (%1$s/%2$s)</string>
+    <string name="pasting_copy_many">복사됨: %1$d/%2$d 파일이 (%3$s/%4$s)</string>
+    <string name="pasting_cut_one">파일이 이동됨 (%1$s/%2$s)</string>
+    <string name="pasting_cut_many">이동됨: %1$d/%2$d 파일이 (%3$s/%4$s)</string>
+    <string name="delete">삭제</string>
+    <string name="rename">이름바꾸기</string>
+    <string name="details">정보</string>
+    <string name="refresh_directory">폴더 새로고침</string>
+    <string name="new_directory">새폴더</string>
+    <string name="refresh_servers_list">서버목록 새로고침</string>
+    <string name="go_top">맨위로 이동</string>
+    <string name="confirm_delete_one">삭제하시겠습니까?</string>
+    <string name="confirm_delete_many">삭제하시겠습니까?</string>
+    <string name="enter_new_name">폴더 이름:</string>
+    <string name="confirm_deleting_cancellation">삭제를 취소하겠습니까?</string>
+    <string name="confirm_copying_cancellation">복사를 취소하겠습니까?</string>
+    <string name="confirm_moving_cancellation">이동을 취소하겠습니까?</string>
+    <string name="cannot_create_directory">새 폴더를 만들 수 없습니다.</string>
+    <string name="cannot_delete_directory">폴더를 삭제할 수 없습니다.</string>
+    <string name="cannot_delete_file">파일을 삭제할 수 없습니다.</string>
+    <string name="directory_deleted">삭제된 폴더입니다.</string>
+    <string name="file_deleted">파일이 삭제되었습니다.</string>
+    <string name="files_deleted">파일이 삭제되었습니다.</string>
+    <string name="cannot_rename">이름을 변경할 수 없습니다.</string>
+    <string name="copy_directory_success_one">폴더가 복사되었습니다.</string>
+    <string name="copy_directory_success_many">폴더들이 복사되었습니다.</string>
+    <string name="copy_file_success_one">파일이 복사되었습니다.</string>
+    <string name="copy_file_success_many">파일들이 복사되었습니다.</string>
+    <string name="copy_directory_failed_one">폴더가 복사되지 않았습니다.</string>
+    <string name="copy_directory_failed_many">폴더들이 복사되지 않았습니다.</string>
+    <string name="copy_file_failed_one">파일이 복사되지 않았습니다.</string>
+    <string name="copy_file_failed_many">파일들이 복사되지 않았습니다.</string>
+    <string name="cut_directory_success_one">폴더가 이동되었습니다.</string>
+    <string name="cut_directory_success_many">폴더들이 이동되었습니다.</string>
+    <string name="cut_file_success_one">파일이 이동되었습니다.</string>
+    <string name="cut_file_success_many">파일들이 이동되었습니다.</string>
+    <string name="cut_directory_failed_one">파일이 이동되지 않았습니다.</string>
+    <string name="cut_directory_failed_many">폴더들이 이동되지 않았습니다.</string>
+    <string name="cut_file_failed_one">파일이 이동되지 않았습니다.</string>
+    <string name="cut_file_failed_many">파일들이 이동되지 않았습니다.</string>
+    <string name="cannot_open_file">파일이 열리지 않습니다.</string>
+    <string name="delete_still_ongoing">백그라운드에서 삭제가 진행되고 있습니다.</string>
+    <string name="yes">"예"</string>
+    <string name="no">"아니오"</string>
+    <string name="share">공유</string>
+    <!-- Displayed in the title of the dialog for things to do with a picture that is to be sent to another application: -->
+    <string name="send_file">공유 파일을 통해</string>
+    <!-- Toast after trying to share a file indicating that there are no applications which are capable of so doing. -->
+    <string name="no_way_to_share_file">파일을 공유할 수 있는 어플리케이션이 없습니다.</string>
+    <string name="upnp_not_allowed">UPNP 서버에 액세스할 수 없습니다. 먼저 액세스 설정을 변경하십시오.</string>
+    <!-- Shortcuts -->
+    <!-- DLNA -->
+    <!-- ZIP -->
+    <!-- Notifications -->
+    <!-- Network Scanning -->
+    <!-- Hiding from media scanning -->
+    <!-- Folder Picker -->
+</resources>

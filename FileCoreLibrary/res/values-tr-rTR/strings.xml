@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="file_info_label_name">İsim:</string>
+    <string name="file_info_label_size">Boyut:</string>
+    <string name="file_info_label_size_internal">Boyut (Dahili):</string>
+    <string name="file_info_label_size_sd">Boyut (SD):</string>
+    <string name="file_info_label_permission">İzin:</string>
+    <string name="file_info_label_can_read">Okuma</string>
+    <string name="file_info_label_cannot_read">okunamıyor</string>
+    <string name="file_info_label_can_write">yazma</string>
+    <string name="file_info_label_cannot_write">yazılamıyor</string>
+    <string name="file_info_label_last_modified">Son değişiklik:</string>
+    <string name="file_info_label_mime_type">MIME türü:</string>
+    <string name="file_info_directory_empty">Boş Klasör</string>
+    <string name="file_info_one_directory">1 klasör</string>
+    <string name="file_info_directories">klasör</string>
+    <string name="file_info_one_file">1 dosya</string>
+    <string name="file_info_files">dosyalar</string>
+    <string name="usbhost_ptp_storage">Harici kamera</string>
+    <string name="network_media_servers">Medya Sunucusu (UPnP)</string>
+    <string name="network_shared_folders">Paylaşılan Klasörler (SMB)</string>
+    <!-- Archos file manager core -->
+    <string name="file_copy_pattern">kopyala</string>
+    <string name="fast_scroll_numeric_alphabet">\u00200123456789ABCÇDEFGHIİJKLMNOÖPQRSŞTUÜVWXYZ</string>
+    <!-- Samba share settings -->
+    <string name="samba_settings_title">Paylaşılan Klasör Ayarları (Smb)</string>
+    <string name="samba_settings_summary">Özel ağınızdaki paylaşılan klasörler için kullanıcı adı ve şifre ayarlama</string>
+    <string name="samba_profiles">Paylaşılan klasör profilleri</string>
+    <string name="samba_delete_settings">Bu ayarı gerçekten silmek istiyor musunuz?</string>
+    <string name="samba_add_server">Sunucu Ekle</string>
+    <string name="samba_server">Sunucu Tanımla (SMB)</string>
+    <string name="samba_share">Paylaşım Tanımla (SMB)</string>
+    <string name="refresh">Yenile</string>
+    <string name="network_timeout">Maalesef uzak klasöre bağlanılamıyor.\nİnternet bağlantınızı kontrol edin.</string>
+    <string name="samba_loading">Paylaşılan klasör yüklenirken lütfen bekleyin&#8230;</string>
+    <string name="samba_reloading">Paylaşılan klasör yeniden yükleniyor lütfen bekleyin&#8230;</string>
+    <string name="samba_password_request_title">Paylaşılan Klasör Şifre İsteği (SMB)</string>
+    <string name="samba_domain">IP veya Domain (SMB)</string>
+    <string name="samba_username">Kullanıcı Adı</string>
+    <string name="samba_password">Parola</string>
+    <string name="samba_show_password">Parolayı göster</string>
+    <string name="samba_wrong_password">Kullanıcı adı veya parola yanlış</string>
+    <string name="preferences">Tercihler</string>
+    <string name="shared_folder_credentials">Şifreler</string>
+    <string name="no_saved_passwords">Kayıtlı şifre yok</string>
+    <!-- WiFi Direct strings-->
+    <string name="wifi_direct">Wifi Direct</string>
+    <string name="receive_p2p_here">Wifi Direkt ile Alın</string>
+    <string name="empty_message">Kullanılabilir cihazlar&#8230;&lt;br/&gt; Hedef Cihaz &lt;b&gt;&lt;i&gt;%s&lt;/i&gt;&lt;/b&gt; seçeneğini etkinleştirmeli.</string>
+    <string name="wifip2p_waiting">WiFi Direct aktarımı kısa süre içinde başlayacak</string>
+    <string name="connect_to_target">Hedefe bağlanılıyor</string>
+    <string name="upload_in_progress">Yükleme devam ediyor&#8230;</string>
+    <string name="file_uploading">Dosyanız yükleniyor</string>
+    <string name="back_cancel">İptal etmek için geri tuşuna basın</string>
+    <string name="server_wait">İstemcinin bağlanıp dosya göndermesi bekleniyor</string>
+    <string name="download_in_progress">İndirme devam ediyor&#8230;</string>
+    <string name="file_downloading">Dosya indiriliyor</string>
+    <string name="server_ready">Almaya hazır</string>
+    <string name="nonetwork_title" comment="deprecated">Kablosuz bağlantı yok</string>
+    <string name="no_network_title">Ağ bağlantısı yok</string>
+    <string name="nonetwork_message">Bu özelliği kullanmak için Kablosuz Ağ bağlantısını etkinleştirmeniz gerekir</string>
+    <!-- FileManager strings -->
+    <string name="storage_busy_message">Dahili depolama birimini USB üzerinden bağlı ve takılıyken kullanamazsınız.</string>
+    <string name="ssh_storage">FTP</string>
+    <string name="network_storage">Ağ</string>
+    <string name="external_storage">Harici</string>
+    <string name="internal_storage">Dahili</string>
+    <string name="internal_storage_unified">Depolama</string>
+    <string name="sd_card_storage">SD kart</string>
+    <string name="usb_host_storage">USB</string>
+    <string name="other_storage">Sürücü</string>
+    <string name="usb_ptp_storage">PTP</string>
+    <string name="cloud_storage">Bulut</string>
+    <string name="directory_empty">Boş Klasör</string>
+    <string name="no_server">Hiç bir sunucu bulunamadı</string>
+    <string name="loading">Yükleniyor&#8230;</string>
+    <string name="ssh_error">Bağlanılamıyor: Lütfen bağlantınızı ve bilgilerinizi kontrol edin</string>
+    <string name="ssh_remote_address">Uzak adres</string>
+    <string name="ssh_remote_address_error">Geçerli bir uzak adres belirtmelisiniz</string>
+    <string name="ssh_password">Şifre</string>
+    <string name="ssh_username">Kullanıcı Adı</string>
+    <string name="ssh_port">Bağlantı Noktası (isteğe bağlı)</string>
+    <string name="ssh_path">Dosya yolu (isteğe bağlı)</string>
+    <string name="save_password">Şifreyi kaydet</string>
+    <string name="ssh_prompt">FTP türü</string>
+    <string name="download_prompt">Dosyayı şu klasöre indir:</string>
+    <string name="browse_ftp_server">Sunucu</string>
+    <string name="cannot_list">İçerik listelenemiyor</string>
+    <string name="error_listing">Hata oluştu</string>
+    <string name="error_host_not_found">Sunucu bulunamadı</string>
+    <string name="error_unknown_host">Bilinmeyen sunucu</string>
+    <string name="error_no_connection">Sunucuya bağlanılamıyor</string>
+    <string name="error_credentials">Dizin listelenemiyor: bilgilerinizi kontrol edin</string>
+    <string name="error_no_permission">Bu hesabın bu dizini listelemesine izin verilmiyor</string>
+    <string name="error_file_not_found">Dosya bulunamadı</string>
+    <string name="error_time_out">Zaman aşımı</string>
+    <string name="deleting">Siliniyor</string>
+    <string name="deleting_many">silinen dosyalar %1$d/%2$d</string>
+    <string name="deleting_one">Bir dosya silme</string>
+    <string name="copying">Kopyalama&#8230;</string>
+    <string name="moving">Taşınıyor&#8230;</string>
+    <string name="open_file">Dosyayı aç</string>
+    <string name="open_file_after_download">Kopyalama tamamlandıktan sonra dosyayı aç</string>
+    <string name="pasting_copy_one">Bir dosya kopyalanıyor (%1$s/%2$s)</string>
+    <string name="pasting_copy_many">Kopyalama: %1$d/%2$d dosyalar (%3$s/%4$s)</string>
+    <string name="pasting_cut_one">Bir dosya taşınıyor (%1$s/%2$s)</string>
+    <string name="pasting_cut_many">Taşınıyor: %1$d/%2$d dosyalar (%3$s/%4$s)</string>
+    <string name="pasting_copy_speed">&#160;&#160;%1$s kB/s</string>
+    <string name="delete">Sil</string>
+    <string name="rename">Yeniden Adlandır</string>
+    <string name="details">Ayrıntılar</string>
+    <string name="refresh_directory">Klasörü yenile</string>
+    <string-array name="folder_or_file">
+        <item>Klasör oluştur</item>
+        <item>Boş bir dosya oluştur</item>
+    </string-array>
+    <string name="new_directory">Yeni klasör</string>
+    <string name="new_file">Yeni dosya</string>
+    <string name="new_folder_or_file">Yeni klasör veya dosya</string>
+    <string name="refresh_servers_list">Sunucu listesini yenile</string>
+    <string name="enable_network_shares">Ağ paylaşımlarını etkinleştir</string>
+    <string name="go_top">Başa dön</string>
+    <string name="uncheck_impossible">Üst klasör seçiliyken seçimi değiştirmek mümkün değil</string>
+    <string name="confirm_delete_one">Gerçekten silmek istiyor musunuz?</string>
+    <string name="confirm_delete_parent_folder">Görünüşe göre ana klasörde başka video yok; silinsin mi?</string>
+    <string name="confirm_delete_many">Gerçekten silmek istiyor musunuz?</string>
+    <string name="enter_new_name">İsim:</string>
+    <string name="file_name">Dosya adı</string>
+    <string name="folder_name">Klasör adı</string>
+    <string name="run_in_background">Küçült</string>
+    <string name="confirm_deleting_cancellation">Silmeyi gerçekten iptal etmek istiyor musunuz?</string>
+    <string name="confirm_copying_cancellation">Kopyalamayı gerçekten iptal etmek istiyor musunuz?</string>
+    <string name="confirm_moving_cancellation">Taşınmayı gerçekten iptal etmek istiyor musunuz?</string>
+    <string name="cannot_create_directory">Yeni klasör oluşturulamıyor</string>
+    <string name="cannot_create_file">Yeni dosya oluşturulamıyor</string>
+    <string name="cannot_delete_directory">Klasör silinemiyor</string>
+    <string name="cannot_delete_file">Dosya silinemiyor</string>
+    <string name="cannot_delete_files">Dosyalar silinemiyor</string>
+    <string name="directory_deleted">Klasör silindi</string>
+    <string name="file_deleted">Dosya silindi</string>
+    <string name="files_deleted">Dosyalar silindi</string>
+    <string name="cannot_rename">Yeniden adlandırılamıyor</string>
+    <string name="cannot_paste_folder_into_itself">Klasörler, kendilerinin içine veya alt klasörlerinden birine kopyalanamaz ya da taşınamaz</string>
+    <string name="cannot_paste_file_same_location">Dosyalar orijinal konumlarına yapıştırılamıyor</string>
+    <string name="cannot_paste_over_network">Ağ üzerinden dosya yapıştırılamıyor</string>
+    <string name="copy_directory_success_one">Klasör kopyalandı</string>
+    <string name="copy_directory_success_many">Klasörler kopyalandı</string>
+    <string name="copy_file_success_one">Dosya kopyalandı</string>
+    <string name="copy_file_success_many">Dosyalar kopyalandı</string>
+    <string name="copy_directory_failed_one">Klasör kopyalanmadı</string>
+    <string name="copy_directory_failed_many">Klasörler kopyalanmadı</string>
+    <string name="copy_file_failed_one">Dosya kopyalanmadı</string>
+    <string name="copy_file_failed_many">Dosyalar kopyalanmadı</string>
+    <string name="cut_directory_success_one">Klasör taşındı</string>
+    <string name="cut_directory_success_many">Klasörler taşındı</string>
+    <string name="cut_file_success_one">Dosya taşındı</string>
+    <string name="cut_file_success_many">Dosyalar taşındı</string>
+    <string name="cut_directory_failed_one">Klasör taşınmadı</string>
+    <string name="cut_directory_failed_many">Klasörler taşınmadı</string>
+    <string name="cut_file_failed_one">Dosya taşınmadı</string>
+    <string name="cut_file_failed_many">Dosyalar taşınmadı</string>
+    <string name="pasting_done">Yapıştırma işlemi tamamlandı</string>
+    <string name="copy_done">Kopyalama başarılı</string>
+    <string name="copy_canceled">Kopyalama iptal edildi</string>
+    <string name="cut_done">Kesme başarılı</string>
+    <string name="cut_canceled">Kesme iptal edildi</string>
+    <string name="delete_done">Silme başarılı</string>
+    <string name="delete_canceled">Silme iptal edildi</string>
+    <string name="cannot_open_file">Dosya açılamıyor</string>
+    <string name="no_application_to_open_file">Bu cihazda bu dosyayı açabilecek hiçbir uygulama yok</string>
+    <string name="delete_still_ongoing">Silme işlemi arka planda devam ediyor</string>
+    <string name="copy_on_device">Videoyu cihaza indir</string>
+    <string name="copy_on_device_multi">Cihaza indir</string>
+    <string name="storage_swapped_primary">ana</string>
+    <string name="storage_swapped_secondary">ikincil</string>
+    <string name="yes">"Evet"</string>
+    <string name="no">"Hayır"</string>
+    <string name="share">Paylaş</string>
+    <!-- Displayed in the title of the dialog for things to do with a picture that is to be sent to another application: -->
+    <string name="send_file">Dosyayı şununla paylaş</string>
+    <!-- Toast after trying to share a file indicating that there are no applications which are capable of so doing. -->
+    <string name="no_way_to_share_file">Dosyayı paylaşmak için kullanılabilir uygulama yok</string>
+    <string name="upnp_not_allowed">Bu UPNP sunucusuna erişiminiz yasaktır. Lütfen önce erişim ayarlarınızı değiştirin.</string>
+    <string name="single_mode">Tek</string>
+    <string name="double_mode">Çift</string>
+    <string name="swap_panel">Değiştir</string>
+    <string name="move">Taşı</string>
+    <!-- Shortcuts -->
+    <string name="shortcuts">Kısayollar</string>
+    <string name="add_to_shortcuts">Kısayol oluştur</string>
+    <string name="remove_from_shortcuts">Kısayolu kaldır</string>
+    <string name="shortcut_added" comment="deprecated">%s kısayol oluşturuldu</string>
+    <string name="shortcut_removed" comment="deprecated">%s kısayol kaldırıldı</string>
+    <string name="shortcut_created">\"%1$s\" kısayolu oluşturuldu</string>
+    <string name="one_shortcut_removed">Bir kısayol silindi</string>
+    <string name="n_shortcut_removed">%1$d kısayol silindi</string>
+    <string name="server_not_available" comment="deprecated">Sunucu şu anda kullanılamıyor</string>
+    <string name="server_not_available_2" comment="deprecated">%1$s\' şu anda kullanılamıyor</string>
+    <string name="cannot_open_shortcut">Bu kısayolun içeriği şu anda kullanılamıyor.\nLütfen gerekli izinlere sahip olup olmadığınızı kontrol edin.</string>
+    <string name="network_shortcuts">Ağ kısayolları</string>
+    <string name="media_servers">Medya sunucuları</string>
+    <string name="shortcut_list_empty">Favori uzak klasörlerinize kısayollar oluşturmak için hedef klasörlere uzun basın ve üstteki eylem çubuğundan “%s” seçeneğini seçin.</string>
+    <!-- DLNA -->
+    <string name="dlna_share">Medya paylaşımı</string>
+    <string name="video">Video</string>
+    <string name="audio">Ses</string>
+    <string name="picture">Resim</string>
+    <string name="share_types">Paylaşım türleri</string>
+    <!-- ZIP -->
+    <string name="zip_extract_action">Buraya çıkar</string>
+    <string name="zip_extract_success_message">Çıkarma başarılı</string>
+    <string name="zip_compress_action">Zip arşivi olarak sıkıştır</string>
+    <string name="zip_extracting_message">ZIP arşivinden dosyalar çıkarılıyor..</string>
+    <string name="zip_compressing_message">Dosyalar Zip arşivi olarak sıkıştırılıyor</string>
+    <string name="zip_compressing_many">%1$d/%2$d sıkıştırılmış dosya</string>
+    <string name="zip_compressing_one">Dosya sıkıştırılıyor</string>
+    <string name="zip_compressing_success">Sıkıştırma başarılı</string>
+    <string name="zip_compressing_canceled">Sıkıştırılma iptal edildi</string>
+    <string name="zip_extracting_many">%1$d/%2$d dosya çıkarıldı</string>
+    <string name="zip_extracting_one">Dosya çıkarılıyor: (%1$s/%2$s)</string>
+    <string name="zip_extract_error_message">Arşivinizi çıkarırken bir hata oluştu.\nArşiviniz bozuk olabilir veya disk alanınızda yeterli boş alan olmayabilir.</string>
+    <string name="zip_extract_canceled">Çıkarma işlemi iptal edildi</string>
+    <string name="zip_compress_error_message">Arşiviniz oluşturulurken bir hata oluştu.\nBelki de disk alanınızda yeterli boş alan yoktur.</string>
+    <string name="zip_cannot_open_inner_entry">Arşivdeki dosya açılamıyor. Önce dosyayı çıkarın.</string>
+    <string name="zip_size_limit">Zip dosyalarını tarama işlemi, 20 MB\'den küçük dosyalarla sınırlıdır</string>
+    <!-- Notifications -->
+    <string name="copy_error">Kopyalama başarısız</string>
+    <string name="cut_error">Kesme işlemi başarısız</string>
+    <string name="delete_error">Silme işlemi başarısız</string>
+    <!-- Network Scanning -->
+    <string name="scan_network_index">Medya dosyalarını indeksle</string>
+    <string name="scan_network_remove">Medyayı dizinden kaldır</string>
+    <string name="debug_browse_to_root">Cihazın kök dizinine git (yalnızca hata ayıklama)</string>
+    <!-- Hiding from media scanning -->
+    <string name="nomedia_create">Medya Kütüphanesinden kaldır</string>
+    <string name="nomedia_remove">Medya Kütüphanesine ekle</string>
+    <string name="nomedia_fail">Hata: Bu klasör medya kütüphanesinden kaldırılamıyor</string>
+    <string name="nomedia_warning">Bu klasördeki multimedya içerikleri artık multimedya uygulamalarında görünmeyecek.\nDevam etmek istediğinizden emin misiniz?</string>
+    <!-- Folder Picker -->
+    <string name="choose_a_folder">Bir klasör seçin</string>
+    <string name="choose_a_folder_help">Seçmek istediğiniz klasöre gidin ve Tamam düğmesine basın. Bir üst düzeye çıkmak için GERİ düğmesini kullanın.</string>
+    <string name="current_choice">Mevcut seçim:</string>
+    <string name="no_selection">seçim yok</string>
+    <string name="external_storage_fake_name">Cihaz Belleği</string>
+    <string name="sdcard_fake_name">SD kart</string>
+    <string name="usb_host_fake_name">USB</string>
+    <string name="no_directory">(klasör yok)</string>
+    <string name="navigation_drawer_open">Gezinme çekmecesini aç</string>
+    <string name="navigation_drawer_close">Gezinme çekmecesini kapat</string>
+    <string name="listing_sort_mode">Sıralama modu</string>
+    <string name="listing_sort_by_name">İsme göre sırala</string>
+    <string name="listing_sort_by_size">Boyuta göre sırala</string>
+    <string name="listing_sort_by_date">Tarihe göre sırala</string>
+    <string name="listing_ascending">Artan</string>
+    <string name="listing_descending">Azalan</string>
+    <string name="acquire_external_usb_permission">Dosya yöneticisinin harici depolama birimine erişmek için özel izne ihtiyacı var. Lütfen bir sonraki ekranda depolama alanınızı seçin</string>
+</resources>

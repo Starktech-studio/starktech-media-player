@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The phone dialog's content: the sample strip, then the rows of the shared model (SubtitleSettingsPhoneRows). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/subtitles_settings_dialog_margin_outerframe">
+
+    <!-- Shown on the color page only: the dialog has no up arrow of its own. Back / the gesture do the same. -->
+    <TextView
+        android:id="@+id/sp_back"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="?attr/subtitleRowMinHeight"
+        android:gravity="center_vertical"
+        android:paddingStart="?attr/subtitleRowPaddingH"
+        android:paddingEnd="?attr/subtitleRowPaddingH"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textSize="?attr/subtitleLabelTextSize"
+        android:background="?android:attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone" />
+
+    <com.archos.mediacenter.video.player.SubtitlePreviewView
+        android:id="@+id/sp_preview"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/subtitles_settings_dialog_sample_min_height"
+        android:layout_marginBottom="@dimen/subtitles_settings_dialog_margin_small"
+        android:background="@drawable/subtitle_preview_bg" />
+
+    <ScrollView
+        android:id="@+id/sp_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:id="@+id/sp_rows"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </ScrollView>
+</LinearLayout>

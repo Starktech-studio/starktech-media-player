@@ -1,0 +1,3 @@
+# Sem conversão de fim de linha: os arquivos do Nova ficam byte a byte como vieram
+# e os scripts .sh continuam com LF mesmo no Git do Windows (core.autocrlf=true).
+* -text

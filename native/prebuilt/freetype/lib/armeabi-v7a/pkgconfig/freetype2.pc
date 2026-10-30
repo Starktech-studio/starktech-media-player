@@ -1,0 +1,14 @@
+prefix=/Users/marc/Documents/git/nova-libass/native/prebuilt/freetype
+exec_prefix=/Users/marc/Documents/git/nova-libass/native/prebuilt/freetype
+libdir=/Users/marc/Documents/git/nova-libass/native/prebuilt/freetype/lib/armeabi-v7a
+includedir=/Users/marc/Documents/git/nova-libass/native/prebuilt/freetype/include
+
+Name: FreeType 2
+URL: https://freetype.org
+Description: A free, high-quality, and portable font engine.
+Version: 26.7.20
+Requires: zlib, libpng
+Requires.private: 
+Libs: -L/Users/marc/Documents/git/nova-libass/native/prebuilt/freetype/lib/armeabi-v7a -lfreetype 
+Libs.private: 
+Cflags: -I${includedir}/freetype2

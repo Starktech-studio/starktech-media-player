@@ -1,0 +1,83 @@
+#!/bin/bash
+
+set -e
+
+while getopts "a:" opt; do
+  case $opt in
+    a)
+      ARCH=$OPTARG ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
+
+if [[ -z "${ARCH}" ]] ; then
+  echo 'You need to input arch with -a ARCH.'
+  echo 'Supported archs are:'
+  echo -e '\tarm arm64 x86 x86_64'
+  exit 1
+fi
+
+source ../../AVP/android-setup-light.sh
+
+LOCAL_PATH=$($READLINK -f .)
+
+if [ -z "${REPO_TOP_DIR}" ]; then
+  REPO_TOP_DIR=$($READLINK -f ../..)
+fi
+
+case "${ARCH}" in
+  'arm')
+    ABI='armeabi-v7a' ;;
+  'arm64')
+    ABI='arm64-v8a' ;;
+  'x86')
+    ABI='x86' ;;
+  'x86_64')
+    ABI='x86_64' ;;
+  *)
+    echo "Arch ${ARCH} is not supported."
+    exit 1 ;;
+esac
+
+if [ ! -d libtorrent ]; then
+  git clone --recursive https://github.com/arvidn/libtorrent -b v2.1.2
+fi
+
+cd libtorrent
+
+export BOOST_VERSION=1.92.0
+
+export BOOST_ROOT=${REPO_TOP_DIR}/native/boost/boost-${BOOST_VERSION}
+BOOST=boost-${BOOST_VERSION}
+
+echo BOOST_ROOT $BOOST_ROOT
+
+export BOOST_BUILD_PATH=$REPO_TOP_DIR/native/boost/boost-${BOOST_VERSION}-${ABI}
+
+echo BOOST_BUILD_PATH $BOOST_BUILD_PATH
+
+$BOOST_ROOT/b2 \
+    --build-dir=../../boost/${BOOST}-${ABI} \
+    --stagedir=../../boost/${BOOST}-${ABI}/stage \
+    --user-config=../../boost/${BOOST}-${ABI}/user-config.jam \
+    openssl-lib=${REPO_TOP_DIR}/native/prebuilt/openssl/dist-${ABI}/lib \
+    openssl-include=${REPO_TOP_DIR}/native/prebuilt/openssl/dist-${ABI}/include \
+    crypto=openssl \
+    webtorrent=off \
+    cxxstd=17 \
+    binary-format=elf \
+    variant=release \
+    threading=multi \
+    threadapi=pthread \
+    toolset=clang-android \
+    link=static \
+    runtime-link=static \
+    linkflags="-Wl,--page-size=16384" \
+    target-os=android \
+    release \
+    -j${CORES}
+
+echo "Done!"

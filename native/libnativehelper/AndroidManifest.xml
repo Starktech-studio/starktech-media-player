@@ -1,0 +1,5 @@
+<!-- dummy AndroidManifest.xml, used only for gradle build !-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.archos.libnativehelper" >
+ <application />
+</manifest>

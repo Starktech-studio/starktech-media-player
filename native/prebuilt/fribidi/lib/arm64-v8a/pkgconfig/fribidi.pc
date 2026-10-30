@@ -1,0 +1,9 @@
+prefix=/Users/marc/Documents/git/nova-libass/native/prebuilt/fribidi
+includedir=${prefix}/include
+libdir=${prefix}/lib/arm64-v8a
+
+Name: GNU FriBidi
+Description: Unicode Bidirectional Algorithm Library
+Version: 1.0.17
+Libs: -L${libdir} -lfribidi
+Cflags: -I${includedir}/fribidi

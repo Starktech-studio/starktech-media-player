@@ -1,0 +1,189 @@
+diff --git a/libavfilter/af_atempo.c b/libavfilter/af_atempo.c
+index 768840d99c..2c6e3fd29b 100644
+--- a/libavfilter/af_atempo.c
++++ b/libavfilter/af_atempo.c
+@@ -152,6 +152,12 @@ typedef struct ATempoContext {
+     uint8_t *dst_end;
+     uint64_t nsamples_in;
+     uint64_t nsamples_out;
++
++    // Input/media position represented by the output frontier. Unlike
++    // nsamples_in - size, this advances only when samples are actually emitted.
++    int64_t media_position_out;
++    int media_position_out_valid;
++    int64_t media_position_published;
+ } ATempoContext;
+ 
+ #define YAE_ATEMPO_MIN 0.5
+@@ -219,6 +225,9 @@ static void yae_clear(ATempoContext *atempo)
+ 
+     atempo->nsamples_in       = 0;
+     atempo->nsamples_out      = 0;
++    atempo->media_position_out = 0;
++    atempo->media_position_out_valid = 0;
++    atempo->media_position_published = -1;
+ }
+ 
+ /**
+@@ -784,6 +793,7 @@ static int yae_overlap_add(ATempoContext *atempo,
+ 
+     const int64_t ia = start_here - prev->position[1];
+     const int64_t ib = start_here - frag->position[1];
++    const int64_t output_position_before = atempo->position[1];
+ 
+     const float *wa = atempo->hann + ia;
+     const float *wb = atempo->hann + ib;
+@@ -809,6 +819,35 @@ static int yae_overlap_add(ATempoContext *atempo,
+         yae_blend(double);
+     }
+ 
++    if (atempo->position[1] > output_position_before) {
++        // The last emitted overlap sample is a Hann-weighted mixture of one
++        // sample from each fragment. Use the same weights to place its media
++        // position, then publish the exclusive frontier (+1). This follows
++        // actual output production instead of the input history-ring tail.
++        int64_t out_last = atempo->position[1] - 1;
++        int64_t ia_last = out_last - prev->position[1];
++        int64_t ib_last = out_last - frag->position[1];
++        double w0 = atempo->hann[ia_last];
++        double w1 = atempo->hann[ib_last];
++        double wsum = w0 + w1;
++        double media_last;
++
++        if (wsum > 0.0) {
++            media_last = ((double)(prev->position[0] + ia_last) * w0 +
++                          (double)(frag->position[0] + ib_last) * w1) / wsum;
++        } else {
++            media_last = (double)(frag->position[0] + ib_last);
++        }
++
++        int64_t media_frontier = (int64_t)(media_last >= 0.0 ?
++                                            media_last + 1.5 : media_last + 0.5);
++        if (!atempo->media_position_out_valid ||
++            media_frontier > atempo->media_position_out) {
++            atempo->media_position_out = media_frontier;
++        }
++        atempo->media_position_out_valid = 1;
++    }
++
+     // pass-back the updated destination buffer pointer:
+     *dst_ref = dst;
+ 
+@@ -977,6 +1016,15 @@ static int yae_flush(ATempoContext *atempo,
+     dst += nbytes;
+ 
+     atempo->position[1] += (nbytes / atempo->stride);
++    if (nbytes > 0) {
++        int64_t media_frontier = frag->position[0] +
++            (atempo->position[1] - frag->position[1]);
++        if (!atempo->media_position_out_valid ||
++            media_frontier > atempo->media_position_out) {
++            atempo->media_position_out = media_frontier;
++        }
++        atempo->media_position_out_valid = 1;
++    }
+ 
+     // pass-back the updated destination buffer pointer:
+     *dst_ref = (uint8_t *)dst;
+@@ -1046,6 +1094,10 @@ static int push_samples(ATempoContext *atempo,
+     if (ret < 0)
+         return ret;
+ 
++    // Publish only the frontier carried by the frame just delivered. Samples
++    // in a partially filled dst_buffer are not visible to downstream yet.
++    if (atempo->media_position_out_valid)
++        atempo->media_position_published = atempo->media_position_out;
+     atempo->nsamples_out += n_out;
+     return 0;
+ }
+@@ -1156,9 +1208,90 @@ static int process_command(AVFilterContext *ctx,
+     if (ret < 0)
+         return ret;
+ 
++    // Finish already-produced old-tempo output before changing the WSOLA
++    // origin. Do not flush the input ring or discard overlap history.
++    ATempoContext *atempo = ctx->priv;
++    if (atempo->dst_buffer) {
++        int count = (atempo->dst - atempo->dst_buffer->data[0]) / atempo->stride;
++        if (count > 0) {
++            ret = push_samples(atempo, ctx->outputs[0], count);
++            if (ret < 0)
++                return ret;
++        } else {
++            av_frame_free(&atempo->dst_buffer);
++            atempo->dst = atempo->dst_end = NULL;
++        }
++    }
+     return yae_update(ctx);
+ }
+ 
++// AVOS diagnostic accessor (read-only): expose af_atempo's instantaneous
++// internal state so the wrapper can tell bounded ring buffering apart from real
++// media loss across runtime tempo changes.  ring_size is the number of input
++// samples currently held in the WSOLA ring; pos_in/pos_out are the ring tail
++// input position and the output position; ns_in/ns_out are the cumulative
++// intrinsic counters.  No behavior change.  Named avfilter_* so the linker
++// version script (global: avfilter_*; av_*) exports it from the shared lib.
++void avfilter_atempo_get_state(AVFilterContext *ctx,
++                           int *ring_size,
++                           int64_t *pos_in,
++                           int64_t *pos_out,
++                           int64_t *ns_in,
++                           int64_t *ns_out,
++                           double *tempo);
++__attribute__((visibility("default")))
++void avfilter_atempo_get_state(AVFilterContext *ctx,
++                           int *ring_size,
++                           int64_t *pos_in,
++                           int64_t *pos_out,
++                           int64_t *ns_in,
++                           int64_t *ns_out,
++                           double *tempo)
++{
++    ATempoContext *atempo = ctx ? ctx->priv : NULL;
++    if (!atempo) {
++        if (ring_size) *ring_size = -1;
++        return;
++    }
++    if (ring_size) *ring_size = atempo->size;
++    if (pos_in)    *pos_in    = atempo->position[0];
++    if (pos_out)   *pos_out   = atempo->position[1];
++    if (ns_in)     *ns_in     = (int64_t)atempo->nsamples_in;
++    if (ns_out)    *ns_out    = (int64_t)atempo->nsamples_out;
++    if (tempo)     *tempo     = atempo->tempo;
++}
++
++// Extended AVOS accessor. Keep avfilter_atempo_get_state() ABI-stable for
++// existing callers; v2 adds the media position represented by emitted output.
++void avfilter_atempo_get_state_v2(AVFilterContext *ctx,
++                              int *ring_size,
++                              int64_t *pos_in,
++                              int64_t *pos_out,
++                              int64_t *ns_in,
++                              int64_t *ns_out,
++                              double *tempo,
++                              int64_t *media_out);
++__attribute__((visibility("default")))
++void avfilter_atempo_get_state_v2(AVFilterContext *ctx,
++                              int *ring_size,
++                              int64_t *pos_in,
++                              int64_t *pos_out,
++                              int64_t *ns_in,
++                              int64_t *ns_out,
++                              double *tempo,
++                              int64_t *media_out)
++{
++    ATempoContext *atempo = ctx ? ctx->priv : NULL;
++
++    avfilter_atempo_get_state(ctx, ring_size, pos_in, pos_out,
++                              ns_in, ns_out, tempo);
++    if (!atempo) {
++        if (media_out) *media_out = -1;
++        return;
++    }
++    if (media_out) *media_out = atempo->media_position_published;
++}
++
+ static const AVFilterPad atempo_inputs[] = {
+     {
+         .name         = "default",

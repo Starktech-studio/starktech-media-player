@@ -1,0 +1,55 @@
+diff --git a/libavfilter/af_sofalizer.c b/libavfilter/af_sofalizer.c
+index ed05dc103a8..66840feda13 100644
+--- a/libavfilter/af_sofalizer.c
++++ b/libavfilter/af_sofalizer.c
+@@ -102,6 +102,7 @@ typedef struct SOFAlizerContext {
+     float radius;        /* distance virtual loudspeakers to listener (in metres) */
+     int type;            /* processing type */
+     int framesize;       /* size of buffer */
++    int hrtf_sample_rate; /* resample the IR, never the programme audio */
+     int normalize;       /* should all IRs be normalized upon import ? */
+     int interpolate;     /* should wanted IRs be interpolated from neighbors ? */
+     int minphase;        /* should all IRs be minphased upon import ? */
+@@ -153,6 +154,12 @@ static int preload_sofa(AVFilterContext *ctx, char *filename, int *samplingrate)
+         return ret;
+     }
+ 
++    if (s->hrtf_sample_rate) {
++        ret = mysofa_resample(mysofa, s->hrtf_sample_rate);
++        if (ret != MYSOFA_OK)
++            return AVERROR(EINVAL);
++    }
++
+     if (s->normalize)
+         mysofa_loudness(s->sofa.hrtf);
+ 
+@@ -401,14 +408,13 @@ static int sofalizer_convolute(AVFilterContext *ctx, void *arg, int jobnr, int n
+              * (mod buffer length) */
+             read = (wr - delay[l] - (ir_samples - 1) + buffer_length) & modulo;
+ 
+-            if (read + ir_samples < buffer_length) {
+-                memmove(temp_src, bptr + read, ir_samples * sizeof(*temp_src));
+-            } else {
+-                int len = FFMIN(n_samples - (read % ir_samples), buffer_length - read);
+-
+-                memmove(temp_src, bptr + read, len * sizeof(*temp_src));
+-                memmove(temp_src + len, bptr, (n_samples - len) * sizeof(*temp_src));
+-            }
++            /* Split only at the ring boundary, not at a multiple of the IR
++             * length. Resampled HRIR lengths need not be powers of two.
++             * Copy exactly ir_samples: the calloc-initialized SIMD padding
++             * must stay zero and must never contain wrapped signal samples. */
++            int len = FFMIN(ir_samples, buffer_length - read);
++            memcpy(temp_src, bptr + read, len * sizeof(*temp_src));
++            memcpy(temp_src + len, bptr, (ir_samples - len) * sizeof(*temp_src));
+ 
+             /* multiply signal and IR, and add up the results */
+             dst[0] += s->fdsp->scalarproduct_float(temp_ir, temp_src, FFALIGN(ir_samples, 32));
+@@ -1070,6 +1076,7 @@ static const AVOption sofalizer_options[] = {
+     { "speakers",  "set speaker custom positions", OFFSET(speakers_pos), AV_OPT_TYPE_STRING,  {.str=0},    0, 0, .flags = FLAGS },
+     { "lfegain",   "set lfe gain",                 OFFSET(lfe_gain),     AV_OPT_TYPE_FLOAT,   {.dbl=0},  -20,40, .flags = FLAGS },
+     { "framesize", "set frame size", OFFSET(framesize), AV_OPT_TYPE_INT,    {.i64=1024},1024,96000, .flags = FLAGS },
++    { "sample_rate", "resample HRTF to this rate (0 keeps file rate)", OFFSET(hrtf_sample_rate), AV_OPT_TYPE_INT, {.i64=0},0,192000, .flags = FLAGS },
+     { "normalize", "normalize IRs",  OFFSET(normalize), AV_OPT_TYPE_BOOL,   {.i64=1},       0,   1, .flags = FLAGS },
+     { "interpolate","interpolate IRs from neighbors",   OFFSET(interpolate),AV_OPT_TYPE_BOOL,    {.i64=0},       0,   1, .flags = FLAGS },
+     { "minphase",  "minphase IRs",   OFFSET(minphase),  AV_OPT_TYPE_BOOL,   {.i64=0},       0,   1, .flags = FLAGS },

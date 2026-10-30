@@ -1,0 +1,96 @@
+// Copyright 2017 Archos SA
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.archos.environment;
+
+import android.content.Context;
+import android.content.pm.InstallSourceInfo;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.util.Log;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import io.sentry.Breadcrumb;
+import io.sentry.Sentry;
+import io.sentry.SentryLevel;
+
+public final class ArchosUtils {
+    private static final String TAG = "ArchosUtils";
+    private static final boolean DBG = false;
+
+    private static Context globalContext;
+
+    public static boolean isAmazonApk() {
+        return android.os.Build.MANUFACTURER.equalsIgnoreCase("amazon");
+    }
+
+    @SuppressWarnings("deprecation") // getInstallerPackageName: pre-R fallback
+    public static boolean isInstalledfromPlayStore(Context context) {
+        final List<String> playStoreInstallerPackageNames = new ArrayList<>(Arrays.asList("com.android.vending", "com.google.android.feedback"));
+        String installerPackageName;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            try {
+                InstallSourceInfo info = context.getPackageManager().getInstallSourceInfo(context.getPackageName());
+                installerPackageName = info != null ? info.getInstallingPackageName() : null;
+            } catch (PackageManager.NameNotFoundException e) {
+                installerPackageName = null;
+            }
+        } else {
+            installerPackageName = context.getPackageManager().getInstallerPackageName(context.getPackageName());
+        }
+        if (DBG)
+            Log.d(TAG, "isInstalledfromPlayStore: installerPackageName = " + installerPackageName);
+        return installerPackageName != null && playStoreInstallerPackageNames.contains(installerPackageName);
+    }
+
+    public static String getNameWithoutExtension(String filenameWithExtension) {
+        int dotPos = filenameWithExtension.lastIndexOf('.');
+        if (dotPos >= 0) {
+            return filenameWithExtension.substring(0, dotPos);
+        } else {
+            return filenameWithExtension;
+        }
+    }
+
+    public static String getExtension(String filename) {
+        if (filename == null)
+            return null;
+        int dotPos = filename.lastIndexOf('.');
+        if (dotPos >= 0) {
+            filename.length();
+            return filename.substring(dotPos + 1).toLowerCase();
+        }
+        return null;
+    }
+
+    public static void setGlobalContext(Context globalContext) {
+        ArchosUtils.globalContext = globalContext;
+    }
+
+    public static Context getGlobalContext() {
+        return globalContext;
+    }
+
+    public static void addBreadcrumb(SentryLevel level, String category, String message) {
+        Breadcrumb breadcrumb = new Breadcrumb();
+        breadcrumb.setCategory(category);
+        breadcrumb.setMessage(message);
+        breadcrumb.setLevel(level);
+        Sentry.addBreadcrumb(breadcrumb);
+    }
+
+}

@@ -1,0 +1,60 @@
+CONFIG_LIBAV="\
+	--disable-programs \
+	--disable-swresample \
+	--disable-swscale \
+	--disable-avfilter \
+	--disable-avresample \
+	--disable-bzlib \
+	--disable-muxers \
+	--disable-bsfs \
+	--disable-avdevice \
+	--disable-devices \
+	--disable-filters \
+	--disable-encoders \
+	--enable-demuxers \
+	--enable-parsers \
+	--enable-muxer=spdif \
+	--disable-protocols \
+	--disable-decoders \
+	\
+	--enable-decoder=cook \
+	--enable-decoder=flac \
+	--enable-decoder=aac \
+	--enable-decoder=aac_latm \
+	--enable-decoder=mp3 \
+	--enable-decoder=wavpack \
+        --enable-decoder=tta \
+	--enable-decoder=vorbis \
+	--enable-decoder=ac3 \
+	\
+	--enable-decoder=amrnb \
+	--enable-decoder=amrwb \
+	\
+	--enable-decoder=msmpeg4v1 \
+	--enable-decoder=msmpeg4v2 \
+	--enable-decoder=msmpeg4v3 \
+	--enable-decoder=h263 \
+	--enable-decoder=h264 \
+	--enable-decoder=hevc \
+	--enable-decoder=mpeg4 \
+	--enable-decoder=mpegvideo \
+	--enable-decoder=mpeg1video \
+	--enable-decoder=flv \
+	--enable-decoder=rv10 \
+	--enable-decoder=rv20 \
+	--enable-decoder=rv30 \
+	--enable-decoder=rv40 \
+	--enable-decoder=mjpeg \
+	--enable-decoder=vp6f \
+	--enable-decoder=vp8 \
+	--enable-decoder=wmv1 \
+	--enable-decoder=wmv2 \
+	--enable-decoder=wmv3 \
+	--enable-decoder=vc1 \
+	--enable-decoder=theora \
+	\
+	--enable-protocol=file \
+	--enable-protocol=http \
+	--enable-protocol=rtp \
+	--enable-protocol=tcp \
+	--enable-protocol=udp"

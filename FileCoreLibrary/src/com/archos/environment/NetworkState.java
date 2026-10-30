@@ -1,0 +1,301 @@
+// Copyright 2020 Courville Software
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package com.archos.environment;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+
+import androidx.annotation.NonNull;
+import androidx.preference.PreferenceManager;
+
+import android.net.ConnectivityManager;
+import android.net.LinkProperties;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.NetworkRequest;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.util.Enumeration;
+
+/** network state updated from NetworkStateReceiver, should always represent the current state */
+public class NetworkState {
+    private static final Logger log = LoggerFactory.getLogger(NetworkState.class);
+
+    private boolean mConnected;
+    private boolean mHasLocalConnection;
+    public static boolean isNetworkConnected;
+    private Context mContext;
+    private static ConnectivityManager mConnectivityManager;
+    private static ConnectivityManager.NetworkCallback mNetworkCallback = null;
+
+    // support to notify Observers
+    private static PropertyChangeSupport propertyChangeSupport;
+    // two states to communicate with Observers
+    public static final String LAN_STATE = "lan_state";
+    public static final String WAN_STATE = "wan_state";
+
+    // singleton, volatile to make double-checked-locking work correctly
+    private static volatile NetworkState sInstance;
+
+    /** may return null but no Context required */
+    public static NetworkState peekInstance() {
+        return sInstance;
+    }
+
+    /** get's the instance, context is used for initial update */
+    public static NetworkState instance(Context context) {
+        if (sInstance == null) {
+            synchronized (NetworkState.class) {
+                if (sInstance == null) {
+                    NetworkState state = new NetworkState(context.getApplicationContext());
+                    sInstance = state;
+                }
+            }
+        }
+        return sInstance;
+    }
+
+    protected NetworkState(Context context) {
+        mContext = context;
+        // set initial state
+        mConnectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        mConnected = isNetworkConnected(context);
+        mHasLocalConnection = isLocalNetworkConnectedOrVpnMobileEnabled(mContext);
+        propertyChangeSupport = new PropertyChangeSupport(context);
+    }
+
+    public boolean hasLocalConnection() { return mHasLocalConnection; }
+
+    public boolean isConnected() { return mConnected; }
+
+    public boolean updateFrom() {
+        // returns true when that changes hasLocalConnection
+        boolean returnBoolean = false;
+        boolean connected = isNetworkConnected(mContext);
+        if (connected != mConnected) { // only fire change if there is a change
+            if (log.isDebugEnabled()) log.debug("updateFrom: connected changed notifying, {}->{}", mConnected, connected);
+            boolean oldState = mConnected;
+            mConnected = connected;
+            propertyChangeSupport.firePropertyChange(WAN_STATE, oldState, connected);
+        } else
+            if (log.isDebugEnabled()) log.debug("updateFrom: connected ({}) state not changed -> not notifying", connected);
+        boolean hasLocalConnection = isLocalNetworkConnectedOrVpnMobileEnabled(mContext);
+        if (hasLocalConnection != mHasLocalConnection) { // only fire change if there is a change
+            if (log.isDebugEnabled()) log.debug("updateFrom: hasLocalConnection changed notifying, {}->{}", mHasLocalConnection, hasLocalConnection);
+            returnBoolean = true;
+            boolean oldState = mHasLocalConnection;
+            mHasLocalConnection = hasLocalConnection;
+            propertyChangeSupport.firePropertyChange(LAN_STATE, oldState, hasLocalConnection);
+        } else
+            if (log.isDebugEnabled()) log.debug("updateFrom: hasLocalConnection ({}) not changed -> not notifying, {}->{}", hasLocalConnection, mHasLocalConnection, hasLocalConnection);
+        return returnBoolean;
+    }
+
+    public static boolean isNetworkConnected(Context context) {
+        // Check network status
+        if (context == null) return false;
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager != null) {
+            try {
+                NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.getActiveNetwork());
+                if (capabilities != null && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
+                    if (log.isDebugEnabled()) log.debug("isNetworkConnected: true");
+                    return true;
+                }
+            } catch (Exception e) {
+                if (log.isDebugEnabled()) log.debug("isNetworkConnected: caught Exception {}", e.getMessage());
+            }
+        }
+        if (log.isDebugEnabled()) log.debug("isNetworkConnected false");
+        return false;
+    }
+
+    public static boolean isLocalNetworkConnected(Context context) {
+        // Check if LAN i.e. WIFI or ETHERNET
+        if (context == null) return false;
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager != null) {
+            NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.getActiveNetwork());
+            if (capabilities != null) {
+                if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                    if (log.isDebugEnabled()) log.debug("isLocalNetworkConnected: true (WIFI)");
+                    return true;
+                } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) {
+                    if (log.isDebugEnabled()) log.debug("isLocalNetworkConnected: true (ETHERNET)");
+                    return true;
+                }
+            }
+        }
+        if (log.isDebugEnabled()) log.debug("isLocalNetworkConnected: false");
+        return false;
+    }
+
+    public static boolean isWifiAvailable(Context context) {
+        // Check if WIFI available
+        if (context == null) return false;
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager != null) {
+            NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.getActiveNetwork());
+            if (capabilities != null && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI))
+                return true;
+        }
+        return false;
+    }
+
+    public static boolean isLocalNetworkConnectedOrVpnMobileEnabled(Context context) {
+        // Check if on local network (WIFI/ETHERNET) OR if VPN on mobile network is enabled
+        if (context == null) return false;
+        // First check if on actual local network (WiFi or Ethernet)
+        if (isLocalNetworkConnected(context)) {
+            return true;
+        }
+        // If not on local network, check if vpn_mobile preference is enabled
+        // This allows SMB/UPnP discovery via VPN/Tailscale connections on mobile networks
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        boolean vpnMobileEnabled = preferences.getBoolean("vpn_mobile", false);
+        if (vpnMobileEnabled && isNetworkConnected(context)) {
+            if (log.isDebugEnabled()) log.debug("isLocalNetworkConnectedOrVpnMobileEnabled: true (VPN on mobile network)");
+            return true;
+        }
+        if (log.isDebugEnabled()) log.debug("isLocalNetworkConnectedOrVpnMobileEnabled: false");
+        return false;
+    }
+
+    public static String getIpAddress() {
+        try {
+            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
+                NetworkInterface intf = en.nextElement();
+                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
+                    InetAddress inetAddress = enumIpAddr.nextElement();
+                    if (!inetAddress.isLoopbackAddress() && (inetAddress instanceof Inet4Address)) { // we get both ipv4 and ipv6, we want ipv4
+                        return inetAddress.getHostAddress();
+                    }
+                }
+            }
+        } catch (SocketException e) {
+            log.error("getIpAddress", e);
+        }
+        return null;
+    }
+
+    @SuppressWarnings("deprecation") // getAllNetworks: diagnostic network count
+    public int getAvailableNetworksCount() {
+        int count = 0;
+        Network[] allNetworks = mConnectivityManager.getAllNetworks(); // added in API 21 (Lollipop)
+        for (Network network : allNetworks) {
+            NetworkCapabilities networkCapabilities = mConnectivityManager.getNetworkCapabilities(network);
+            if (networkCapabilities != null)
+                if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+                        || networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
+                        || networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET))
+                    count++;
+        }
+        return count;
+    }
+
+    public void addPropertyChangeListener(PropertyChangeListener propertyChangeListener) {
+        if (log.isDebugEnabled()) log.debug("addPropertyChangeListener");
+        propertyChangeSupport.addPropertyChangeListener(propertyChangeListener);
+        if (log.isDebugEnabled()) log.debug("addPropertyChangeListener: number of Listeners={}", propertyChangeSupport.getPropertyChangeListeners().length);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener propertyChangeListener) {
+        if (log.isDebugEnabled()) log.debug("removePropertyChangeListener");
+        propertyChangeSupport.removePropertyChangeListener(propertyChangeListener);
+        if (log.isDebugEnabled()) log.debug("removePropertyChangeListener: number of Listeners={}", propertyChangeSupport.getPropertyChangeListeners().length);
+    }
+
+    public void removeAllPropertyChangeListener() {
+        if (log.isDebugEnabled()) log.debug("removeAllPropertyChangeListener");
+        for (PropertyChangeListener propertyChangeListener : propertyChangeSupport.getPropertyChangeListeners())
+            propertyChangeSupport.removePropertyChangeListener(propertyChangeListener);
+    }
+
+    public void registerNetworkCallback() { // for API21+
+        try {
+            if (mNetworkCallback == null) {
+                updateFrom(); // need to update initial state
+                ConnectivityManager connectivityManager = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+                NetworkRequest.Builder builder = new NetworkRequest.Builder();
+                assert connectivityManager != null;
+                mNetworkCallback = new ConnectivityManager.NetworkCallback() {
+                    @Override
+                    public void onAvailable(@NonNull android.net.Network network) {
+                        super.onAvailable(network);
+                        if (log.isDebugEnabled()) log.debug("registerNetworkCallback: onAvailable");
+                        isNetworkConnected = true;
+                        updateFrom();
+                    }
+                    @Override
+                    public void onLost(@NonNull android.net.Network network) {
+                        // note that onLost is not sent when loosing wifi and 4G is connected
+                        super.onLost(network);
+                        if (log.isDebugEnabled()) log.debug("registerNetworkCallback: onLost");
+                        updateFrom();
+                        if (getAvailableNetworksCount() == 0) { // need to be sure that there is really no interface working
+                            isNetworkConnected = false;
+                        }
+                    }
+                    @Override
+                    public void onBlockedStatusChanged(@NonNull Network network, boolean blocked) {
+                        super.onBlockedStatusChanged(network, blocked);
+                        if (log.isDebugEnabled()) log.debug("registerNetworkCallback: onBlockedStatusChanged");
+                    }
+                    @Override
+                    public void onCapabilitiesChanged(@NonNull Network network, @NonNull NetworkCapabilities networkCapabilities) {
+                        super.onCapabilitiesChanged(network, networkCapabilities);
+                        if (log.isDebugEnabled()) log.debug("registerNetworkCallback: onCapabilitiesChanged");
+                        updateFrom();
+                    }
+                    @Override
+                    public void onLinkPropertiesChanged(@NonNull Network network, @NonNull LinkProperties linkProperties) {
+                        super.onLinkPropertiesChanged(network, linkProperties);
+                        if (log.isDebugEnabled()) log.debug("registerNetworkCallback: onLinkPropertiesChanged");
+                    }
+                    @Override
+                    public void onLosing(@NonNull Network network, int maxMsToLive) {
+                        super.onLosing(network, maxMsToLive);
+                        if (log.isDebugEnabled()) log.debug("registerNetworkCallback: onLosing");
+                    }
+                    @Override
+                    public void onUnavailable() {
+                        super.onUnavailable();
+                        if (log.isDebugEnabled()) log.debug("registerNetworkCallback: onUnavailable");
+                    }
+                };
+                connectivityManager.registerNetworkCallback(builder.build(), mNetworkCallback);
+            }
+        } catch (Exception e) {
+            log.warn("registerNetworkCallback: caught exception");
+            updateFrom();
+            isNetworkConnected = false;
+        }
+    }
+
+    public void unRegisterNetworkCallback() { // for API21+
+        ConnectivityManager connectivityManager = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        assert connectivityManager != null;
+        connectivityManager.unregisterNetworkCallback(mNetworkCallback);
+        mNetworkCallback = null;
+    }
+}

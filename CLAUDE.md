@@ -1,0 +1,58 @@
+# CLAUDE.md — StarkTech Media Player
+
+## Regras
+- Responder sempre em português do Brasil, curto e direto, com bom senso: o mínimo que resolve; explicação longa só se eu pedir.
+- Nunca inventar; faltando dado, perguntar com opções e texto livre.
+- Fazer só o que foi pedido; build e deploy só com autorização.
+- Em correção, mostrar só a parte alterada.
+- Em análise e retorno: não citar o que está certo; só o erro, o que fazer e o prompt de correção.
+- Documentação em `docs/`, no padrão da skill `starktech-base`: ler `docs/index.md` primeiro e abrir só o que a tarefa pede; criou, moveu ou apagou arquivo, atualizar o `index.md`. Nunca gravar senha, token, chave ou dado de acesso.
+
+## Contexto
+Player e biblioteca de mídia para Android TV e tablet (o mesmo APK roda no celular), gratuito, só pt-BR, distribuído por APK no site · fork do Nova Video Player v6.6.2 (Apache 2.0) num repositório privado único · código em `D:\Dev\starktech-media-player` · GitHub `Starktech-studio/starktech-media-player` (privado) · estado em 30/10/2026: F0 — código do Nova sem alteração e APK de teste. Gestão: `OneDrive\Trabalho\Starktech\PROJETOS\APLICAÇÕES\STARKTECH MEDIA PLAYER\` · planejamento: `OneDrive\Trabalho\Starktech\PLANEJAMENTO\STARKTECH MEDIA PLAYER\` · planos: `OneDrive\Trabalho\Starktech\PROJETOS\PLANOS\STARKTECH MEDIA PLAYER\` · dados oficiais: `DADOS - STARKTECH MEDIA PLAYER.md` na raiz (cópia do da gestão; mudou um, atualizar o outro).
+
+---
+
+## 1. Pastas
+
+| Pasta | Origem (Nova) | O que é |
+|---|---|---|
+| `AVP/` | aos-AVP | Manifestos, `core.mk` (make dos nativos) e scripts de ambiente |
+| `FileCoreLibrary/` | aos-FileCoreLibrary | Acesso a arquivos: local, USB, rede |
+| `Makefile` | cópia de `AVP/Makefile` | Entrada do `make`; inclui `AVP/core.mk` |
+| `MediaLib/` | aos-MediaLib | Banco de mídia, busca de dados (TMDB, Trakt) e ponte Java do motor |
+| `native/avos/` | aos-avos | Motor nativo em C, com FFmpeg |
+| `native/prebuilt/` | prebuilt-* | Binários prontos de terceiros (FFmpeg, dav1d, OpenSSL, libass…) — vão no Git |
+| `native/` (demais) | builders do Nova | Scripts que geram os binários de `native/prebuilt/` |
+| `Video/` | aos-Video | App: interface de celular, tablet e TV (Leanback); projeto Gradle principal |
+
+Repositório, ramo e commit de origem de cada pasta: `docs/operacional/origem-nova.md`.
+
+## 2. Regras do código
+
+- Pastas do Nova sem `.git` próprio. Atualizar do Nova só pelo roteiro de `docs/operacional/origem-nova.md`; a tag `nova-v6.6.2` marca o código original.
+- Manter `LICENSE`, `COPYING`, `NOTICE` e cabeçalhos de copyright de cada pasta. Arquivo do Nova alterado: acrescentar no cabeçalho "Modificado pela StarkTech Studio em AAAA" (Apache 2.0, §4b).
+- Marca: StarkTech. "Nova" só no crédito "Baseado no Nova Video Player" (a Apache 2.0 não cede a marca, §6).
+- Git desta pasta só pelo WSL (`git` dentro do Ubuntu, em `/mnt/d/Dev/starktech-media-player`). Nunca usar o Git do Windows nesta pasta (nem Git Bash, nem o Git do Android Studio ou do VS Code no Windows): com `core.autocrlf=true` e `core.symlinks=false` ele troca o fim de linha dos scripts e quebra os links simbólicos. Configuração local do repositório: `core.autocrlf=false` e `core.symlinks=true`; `.gitattributes` com `* -text`.
+- Bit de execução: em `/mnt/d` o Git não enxerga `chmod` (`core.fileMode=false`). Script novo que precisa rodar: `git update-index --chmod=+x <arquivo>`.
+- Nunca ignorar `*.so` ou `*.a` no `.gitignore`: os binários de `native/prebuilt/` vão no Git.
+- Chaves (TMDB, Trakt, OpenSubtitles, assinatura do APK): fora do Git, valor só no gerenciador de senhas. As chaves do Nova em `MediaLib/res/values/donottranslate.xml` saem antes de qualquer distribuição.
+- Licenças de terceiros e obrigações: `docs/arquitetura/licencas.md`. Mudou nativo, biblioteca ou forma de ligação: atualizar.
+
+## 3. Build
+
+- Só no WSL2 (Ubuntu): o Gradle chama `make` e scripts bash antes de compilar (`MediaLib/build.gradle:146-155`, `FileCoreLibrary/build.gradle:111-120`).
+- Stack: JDK 17 · AGP 9.3.3 · Gradle 9.5.0 (wrapper em `Video/`) · compileSdk 37 · minSdk 23 · targetSdk 36 · NDK e SDK em `~/Android/Sdk` (WSL).
+- Comando, saída e teste: `docs/operacional/build.md`. APK em `Video/build/outputs/apk/noamazon/debug/`; cópias de teste em `apks/` (fora do Git).
+- Build só com autorização.
+
+## 4. Fases
+
+| Fase | Entrega |
+|---|---|
+| F0 — Setup | Repositório com o Nova v6.6.2 sem alteração, `CLAUDE.md`, `.gitignore`, `docs/`, APK de teste |
+| F1 — Interface | Telas com dados simulados |
+| F2 — Motor | Lógica principal, isolada da interface |
+| F3 — Integração | Interface ligada ao motor: fluxo completo, erros, salvar |
+| F4 — Empacotamento | Pacote, ícones, avisos de licença, teste em aparelho limpo |
+| F5 — Publicação | APK no site e card na página `/apps` (DADOS §8) |

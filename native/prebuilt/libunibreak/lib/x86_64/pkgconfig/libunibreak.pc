@@ -1,0 +1,11 @@
+libunibreak:
+prefix=/Users/marc/Documents/git/nova-libass/native/prebuilt/libunibreak
+exec_prefix=${prefix}
+libdir=/Users/marc/Documents/git/nova-libass/native/prebuilt/libunibreak/lib/x86_64
+includedir=${prefix}/include
+
+Name: libunibreak
+Description: Library to implement Unicode algorithms for line and word breaking
+Version: 8.0
+Libs: -L${libdir} -lunibreak
+Cflags: -I${includedir}

@@ -1,0 +1,11 @@
+diff --git a/configure b/configure
+--- a/configure
++++ b/configure
+@@ -7417,6 +7417,6 @@
+ enabled libopus           && {
+     enabled libopus_decoder && {
+-        require_pkg_config libopus opus opus_multistream.h opus_multistream_decoder_create
++        require_pkg_config libopus opus opus_multistream.h opus_multistream_decoder_create "$libm_extralibs"
+     }
+     enabled libopus_encoder && {
+         require_pkg_config libopus opus opus_multistream.h opus_multistream_surround_encoder_create

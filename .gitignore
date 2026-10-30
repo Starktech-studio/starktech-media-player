@@ -1,0 +1,74 @@
+# StarkTech Media Player — .gitignore da raiz
+# As pastas do Nova mantêm os .gitignore próprios (AVP/, Video/, MediaLib/, FileCoreLibrary/, native/*).
+# Não ignorar *.so nem *.a: native/prebuilt/ guarda binários que vão no Git.
+
+# Montagem a partir do Nova (ferramenta repo)
+.repo/
+
+# Gradle e Android Studio
+.gradle/
+**/build/
+.kotlin/
+local.properties
+.idea/
+*.iml
+captures/
+.cxx/
+.externalNativeBuild/
+
+# Saída do ndk-build (gerada pelo make)
+**/obj/
+MediaLib/libs/armeabi-v7a/
+MediaLib/libs/arm64-v8a/
+MediaLib/libs/x86/
+MediaLib/libs/x86_64/
+FileCoreLibrary/libs/armeabi-v7a/
+FileCoreLibrary/libs/arm64-v8a/
+FileCoreLibrary/libs/x86/
+FileCoreLibrary/libs/x86_64/
+native/avos/libs/
+native/libnativehelper/libs/
+
+# Fontes e saídas dos builders, só ao regenerar os nativos (AVP/core.mk:429-451)
+native/*-android-builder/build-*/
+native/*-android-builder/dist-*/
+native/*-android-builder/meson-cross-*
+native/ffmpeg-android-builder/ffmpeg.git/
+native/openssl-android-builder/openssl.git/
+native/dav1d-android-builder/dav1d/
+native/opus-android-builder/opus/
+native/libmysofa-android-builder/libmysofa/
+native/libtorrent-android-builder/libtorrent/
+native/boost/boost-*/
+native/boost/dist-*/
+native/libfreetype-android-builder/freetype/
+native/libfribidi-android-builder/fribidi/
+native/harfbuzz-android-builder/harfbuzz/
+native/libass-android-builder/libass/
+native/zlib-android-builder/zlib/
+native/libpng-android-builder/libpng/
+native/libxml2-android-builder/libxml2/
+native/libunibreak-android-builder/libunibreak/
+native/fontconfig-android-builder/fontconfig/
+
+# Chaves e segredos — nunca no Git
+chaves.properties
+keystore.properties
+sentry.properties
+nova.json
+*.jks
+*.keystore
+*.pfx
+.env
+.env.*
+
+# APKs gerados e cópias de teste
+apks/
+*.apk
+*.aab
+*.idsig
+
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
