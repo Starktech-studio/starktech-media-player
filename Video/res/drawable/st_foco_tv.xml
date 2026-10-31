@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Foco na TV: borda branca de 2 dp (4 px no desenho). Usar como android:foreground do item focável. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <stroke
+                android:width="@dimen/st_tv_foco_borda"
+                android:color="@color/st_texto" />
+            <corners android:radius="@dimen/st_tv_foco_canto" />
+        </shape>
+    </item>
+    <item android:drawable="@android:color/transparent" />
+</selector>

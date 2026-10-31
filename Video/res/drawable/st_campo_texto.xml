@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Campo de texto: #0f172a com borda #1e293b; em foco, borda azul #3b82f6. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/st_cartao" />
+            <stroke
+                android:width="?attr/stBordaCampo"
+                android:color="@color/st_azul" />
+            <corners android:radius="?attr/stCantoCartao" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/st_cartao" />
+            <stroke
+                android:width="?attr/stBordaCampo"
+                android:color="@color/st_borda" />
+            <corners android:radius="?attr/stCantoCartao" />
+        </shape>
+    </item>
+</selector>

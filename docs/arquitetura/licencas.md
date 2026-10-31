@@ -102,3 +102,12 @@ Nenhum componente GPL encontrado entre os nativos do manifesto. libyuv e libcurl
 - Confirmar a versão exata de cada binário pronto de `native/prebuilt/`.
 - Pacote de código-fonte LGPL no site (FFmpeg n9.0.2 + patches + scripts de build, AudioCompress, FriBidi e o motor `native/avos` com as mudanças da StarkTech).
 - Chaves do Nova em `MediaLib/res/values/donottranslate.xml` (TMDB, Trakt, OpenSubtitles): trocar pela chave própria antes de qualquer distribuição.
+
+## 6. Recursos da interface (F1)
+
+| Recurso | Versão e origem | Onde está no código | Licença | Obrigação / quando |
+|---|---|---|---|---|
+| Fonte Inter | 4.1 (arquivos 4.001), release oficial `github.com/rsms/inter` v4.1 (16/11/2024): `Inter-4.1.zip`, sha256 `9883fdd4a49d4fb66bd8177ba6625ef9a64aa45899767dde3d36aa425756b11e`; TTF estáticos de `extras/ttf/` (Medium, SemiBold, Bold, ExtraBold, Black), sem alteração, só renomeados | `Video/res/font/st_inter_medium.ttf`, `st_inter_semibold.ttf`, `st_inter_bold.ttf`, `st_inter_extrabold.ttf`, `st_inter_black.ttf`; licença em `Video/res/raw/st_licenca_inter.txt` (cópia do `LICENSE.txt` do pacote) | OFL-1.1 ("Copyright (c) 2016 The Inter Project Authors") | Licença e aviso de copyright junto da fonte (feito no APK); aviso no Sobre (fase I); a fonte não pode ser vendida sozinha |
+| Ícones de traço (D6) | Lucide, paths dos SVG do desenho (`docs/paginas/telas-f1/`); versão do Lucide não identificada | `Video/res/drawable/st_ic_*.xml` (fases C a F) | ISC (D6) | Aviso de copyright e texto da licença no Sobre (fase I); texto a copiar do repositório `lucide-icons/lucide` |
+| Logo e aviso do TMDB | Logo do Nova `Video/res/drawable-xhdpi/tmdb_banner.webp` | Tela Sobre (fase I) | Termos de uso da API do TMDB | Conferir se é logo aprovado pelo TMDB e o texto do aviso (fase I / F4) |
+| Ícone, banner e logo StarkTech | Próprios, provisórios (D5): ícone e banner gerados com PowerShell (`System.Drawing`) com o triângulo de play e a Inter; logo de 256 px reduzido de `INSTITUCIONAL\MARCA\LOGO\LOGO - STARKTECH - 02 - SEM FUNDO.png` | `Video/res/mipmap-anydpi-v26/st_ic_launcher.xml`, `drawable/st_ic_launcher_frente.xml`, `mipmap-xxxhdpi/st_ic_launcher.png`, `drawable-xxxhdpi/st_banner.png`, `drawable-nodpi/st_logo.png` | StarkTech Studio | Ícone definitivo na F4 |

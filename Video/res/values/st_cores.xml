@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Cores da interface StarkTech (docs/paginas/INTERFACE.md §1 e HTML de telas-f1/). Só tema escuro (D18). -->
+<resources>
+    <!-- Superfície -->
+    <color name="st_fundo">#020617</color>
+    <color name="st_cartao">#0F172A</color>
+    <color name="st_borda">#1E293B</color>
+
+    <!-- Destaques -->
+    <color name="st_azul">#3B82F6</color>
+    <color name="st_azul_botao">#2563EB</color>
+    <color name="st_ciano">#06B6D4</color>
+
+    <!-- Texto -->
+    <color name="st_texto">#FFFFFF</color>
+    <color name="st_texto_secundario">#CBD5E1</color>
+    <color name="st_texto_apagado">#94A3B8</color>
+    <color name="st_texto_escuro">#020617</color>
+
+    <!-- Estados -->
+    <color name="st_assistido">#10B981</color>
+    <color name="st_aviso">#F59E0B</color>
+    <color name="st_erro">#EF4444</color>
+    <color name="st_favorito">#FB7185</color>
+    <color name="st_selo_hd_texto">#6EE7B7</color>
+    <color name="st_selo_sem_hd_texto">#FCA5A5</color>
+
+    <!-- Transparências usadas no desenho (rgba do HTML) -->
+    <color name="st_branco_8">#14FFFFFF</color>
+    <color name="st_branco_12">#1FFFFFFF</color>
+    <color name="st_branco_14">#24FFFFFF</color>
+    <color name="st_branco_15">#26FFFFFF</color>
+    <color name="st_branco_30">#4DFFFFFF</color>
+    <color name="st_branco_35">#59FFFFFF</color>
+    <color name="st_azul_18">#2E3B82F6</color>
+    <color name="st_azul_50">#803B82F6</color>
+    <color name="st_brilho_azul">#1A2563EB</color>
+    <color name="st_brilho_azul_meio">#142563EB</color>
+    <color name="st_brilho_azul_fim">#002563EB</color>
+    <color name="st_assistido_90">#E610B981</color>
+    <color name="st_assistido_14">#2410B981</color>
+    <color name="st_assistido_50">#8010B981</color>
+    <color name="st_erro_14">#24EF4444</color>
+    <color name="st_erro_50">#80EF4444</color>
+    <color name="st_barra_lateral">#990F172A</color>
+    <color name="st_veu_selo">#BF020617</color>
+</resources>

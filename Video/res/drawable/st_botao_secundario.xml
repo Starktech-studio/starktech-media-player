@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Botão secundário: branco 8 % com borda branca 14 %; canto do tema (TV 7 dp, tablet 14 dp). -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/st_branco_14">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/st_branco_8" />
+            <stroke
+                android:width="?attr/stBorda"
+                android:color="@color/st_branco_14" />
+            <corners android:radius="?attr/stCantoBotao" />
+        </shape>
+    </item>
+</ripple>

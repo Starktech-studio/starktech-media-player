@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!--
+     Medidas da interface StarkTech, tiradas do HTML de docs/paginas/telas-f1/.
+     TV (1920x1080, 320 dpi = 960x540 dp): px do HTML / 2 = dp/sp.
+     Tablet (2560x1600, 320 dpi = 1280x800 dp): px do HTML = dp/sp.
+-->
+<resources>
+    <!-- TV: tela -->
+    <dimen name="st_tv_margem_lateral">40dp</dimen>
+    <dimen name="st_tv_margem_topo">22dp</dimen>
+    <dimen name="st_tv_espaco_secao">22dp</dimen>
+    <dimen name="st_tv_espaco_titulo_secao">10dp</dimen>
+    <dimen name="st_tv_brilho">450dp</dimen>
+
+    <!-- TV: foco (borda branca 4 px; capas aumentam 6%) -->
+    <dimen name="st_tv_foco_borda">2dp</dimen>
+    <dimen name="st_tv_foco_canto">8dp</dimen>
+    <item name="st_tv_foco_escala" format="float" type="dimen">1.06</item>
+
+    <!-- TV: botões -->
+    <dimen name="st_tv_botao_altura">32dp</dimen>
+    <dimen name="st_tv_botao_icone_altura">28dp</dimen>
+    <dimen name="st_tv_botao_padding">14dp</dimen>
+    <dimen name="st_tv_botao_icone_padding">8dp</dimen>
+    <dimen name="st_tv_botao_espaco">5dp</dimen>
+    <dimen name="st_tv_botao_icone">13dp</dimen>
+    <dimen name="st_tv_botao_canto">7dp</dimen>
+
+    <!-- TV: menu em pílulas -->
+    <dimen name="st_tv_pilula_padding_h">13dp</dimen>
+    <dimen name="st_tv_pilula_padding_v">6dp</dimen>
+    <dimen name="st_tv_pilula_espaco">3dp</dimen>
+
+    <!-- TV: destaque, capas e cartões -->
+    <dimen name="st_tv_destaque_altura">190dp</dimen>
+    <dimen name="st_tv_destaque_canto">16dp</dimen>
+    <dimen name="st_tv_destaque_padding">18dp</dimen>
+    <dimen name="st_tv_destaque_capa_largura">102.5dp</dimen>
+    <dimen name="st_tv_destaque_capa_altura">154dp</dimen>
+    <dimen name="st_tv_capa_largura">98dp</dimen>
+    <dimen name="st_tv_capa_altura">147dp</dimen>
+    <dimen name="st_tv_capa_canto">8dp</dimen>
+    <dimen name="st_tv_capa_padding">6.5dp</dimen>
+    <dimen name="st_tv_capa_espaco">14dp</dimen>
+    <dimen name="st_tv_cartao_largura">190dp</dimen>
+    <dimen name="st_tv_cartao_altura">107dp</dimen>
+    <dimen name="st_tv_cartao_canto">8dp</dimen>
+    <dimen name="st_tv_cartao_espaco">16dp</dimen>
+    <dimen name="st_tv_progresso_altura">3dp</dimen>
+    <dimen name="st_tv_logo_rodape">36dp</dimen>
+
+    <!-- TV: texto -->
+    <dimen name="st_tv_texto_marca">15sp</dimen>
+    <dimen name="st_tv_texto_marca_sub">10.5sp</dimen>
+    <dimen name="st_tv_texto_destaque_titulo">32sp</dimen>
+    <dimen name="st_tv_texto_titulo_tela">24sp</dimen>
+    <dimen name="st_tv_texto_titulo_secao">14sp</dimen>
+    <dimen name="st_tv_texto_botao">11sp</dimen>
+    <dimen name="st_tv_texto_corpo">10sp</dimen>
+    <dimen name="st_tv_texto_cartao_titulo">10sp</dimen>
+    <dimen name="st_tv_texto_cartao_sub">8sp</dimen>
+    <dimen name="st_tv_texto_capa_titulo">8.5sp</dimen>
+    <dimen name="st_tv_texto_capa_sub">6.5sp</dimen>
+    <dimen name="st_tv_texto_selo">8sp</dimen>
+    <dimen name="st_tv_texto_rotulo">7sp</dimen>
+
+    <!-- Tablet: tela -->
+    <dimen name="st_tablet_barra_lateral">112dp</dimen>
+    <dimen name="st_tablet_barra_item">84dp</dimen>
+    <dimen name="st_tablet_barra_item_canto">18dp</dimen>
+    <dimen name="st_tablet_barra_logo">56dp</dimen>
+    <dimen name="st_tablet_margem_h">40dp</dimen>
+    <dimen name="st_tablet_margem_v">28dp</dimen>
+    <dimen name="st_tablet_espaco_secao">30dp</dimen>
+    <dimen name="st_tablet_brilho">900dp</dimen>
+
+    <!-- Tablet: botões -->
+    <dimen name="st_tablet_botao_altura">48dp</dimen>
+    <dimen name="st_tablet_botao_padding">18dp</dimen>
+    <dimen name="st_tablet_botao_espaco">10dp</dimen>
+    <dimen name="st_tablet_botao_icone">22dp</dimen>
+    <dimen name="st_tablet_botao_canto">14dp</dimen>
+
+    <!-- Tablet: capas e cartões -->
+    <dimen name="st_tablet_capa_largura">196dp</dimen>
+    <dimen name="st_tablet_capa_altura">294dp</dimen>
+    <dimen name="st_tablet_capa_canto">16dp</dimen>
+    <dimen name="st_tablet_capa_padding">13dp</dimen>
+    <dimen name="st_tablet_capa_espaco">22dp</dimen>
+    <dimen name="st_tablet_cartao_largura">320dp</dimen>
+    <dimen name="st_tablet_cartao_altura">180dp</dimen>
+    <dimen name="st_tablet_cartao_canto">14dp</dimen>
+    <dimen name="st_tablet_progresso_altura">5dp</dimen>
+    <dimen name="st_tablet_selo_hd_altura">48dp</dimen>
+
+    <!-- Tablet: texto -->
+    <dimen name="st_tablet_texto_marca">26sp</dimen>
+    <dimen name="st_tablet_texto_marca_sub">18sp</dimen>
+    <dimen name="st_tablet_texto_titulo_secao">22sp</dimen>
+    <dimen name="st_tablet_texto_botao">15sp</dimen>
+    <dimen name="st_tablet_texto_item_barra">13sp</dimen>
+    <dimen name="st_tablet_texto_cartao_titulo">17sp</dimen>
+    <dimen name="st_tablet_texto_cartao_sub">14sp</dimen>
+    <dimen name="st_tablet_texto_capa_titulo">17sp</dimen>
+    <dimen name="st_tablet_texto_capa_sub">13sp</dimen>
+    <dimen name="st_tablet_texto_selo_hd">15sp</dimen>
+</resources>
