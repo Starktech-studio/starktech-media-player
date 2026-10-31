@@ -45,7 +45,7 @@ Repositório, ramo e commit de origem de cada pasta: `docs/operacional/origem-no
 - Só no WSL2 (Ubuntu): o Gradle chama `make` e scripts bash antes de compilar (`MediaLib/build.gradle:146-155`, `FileCoreLibrary/build.gradle:111-120`).
 - Stack: JDK 17 · AGP 9.3.3 · Gradle 9.5.0 (wrapper em `Video/`) · compileSdk 37 · minSdk 23 · targetSdk 36 · NDK e SDK em `~/Android/Sdk` (WSL).
 - Comando, saída e teste: `docs/operacional/build.md`. APK em `Video/build/outputs/apk/noamazon/debug/`; cópias de teste em `apks/` (fora do Git).
-- Desde o fim da F2, todo build pedido é de teste e sem lint (`./gradlew -Puniversal assembleNoamazonDebug -x lintNoamazonDebug`), com o APK copiado para `apks/`. Lint completo só se o Gustavo pedir e na F4.
+- Desde o fim da F2, todo build pedido é de teste e sem lint (`./gradlew -Puniversal assembleNoamazonDebug -x lintNoamazonDebug`), com o APK copiado para `apks/` como `StarkTech Media Player 0.1.0 (teste).apk`, substituindo o anterior. Lint completo só se o Gustavo pedir e na F4.
 - Build só com autorização.
 
 ## 4. Fases

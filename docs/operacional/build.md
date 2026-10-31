@@ -53,7 +53,7 @@ cd /mnt/d/Dev/starktech-media-player/Video
 
 - APK: `Video/build/outputs/apk/noamazon/debug/` (nome na linha `generated:` que o build imprime): `br.com.starktechstudio.mediaplayer-1-0.1.0-debug.apk`.
 - Pacote `br.com.starktechstudio.mediaplayer`, versão 0.1.0 (versionCode 1), desde a F1 fase A; só pt-BR no APK (`androidResources.localeFilters` em `Video/build.gradle`).
-- Cópias de teste em `apks/` na raiz (fora do Git).
+- Cópia de teste em `apks/` na raiz (fora do Git), com o nome `StarkTech Media Player 0.1.0 (teste).apk`; cada build de teste substitui a anterior.
 - Instalar pelo Windows: `adb install -r <apk>`. Pacote, authorities, `taskAffinity` e `sharedUserId` diferentes dos do Nova: instala ao lado do Nova (`org.courville.nova`), sem desinstalar.
 - Desde a F2 (etapa 4) o APK não tem mais as chaves do Nova: o `MediaLib/res/values/donottranslate.xml` saiu e os valores de exemplo nos comentários e testes do MediaLib foram trocados. O APK de teste continua só nesta máquina até a F4 (assinatura e teste em aparelho limpo).
 

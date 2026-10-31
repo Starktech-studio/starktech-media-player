@@ -15,6 +15,7 @@ import android.text.style.SuperscriptSpan;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -29,7 +30,8 @@ import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
  * fundo animado, o ícone do app no centro, "StarkTech" branco e "Media Player" amarelo #E8AA30
  * (como no banner), "Carregando biblioteca…" e, no rodapé, "StarkTech Studio®" e a versão.
  * Fica por cima da tela principal enquanto a biblioteca carrega (fora da tela); some quando ela
- * fica pronta — ao menos 0,7 s, para não piscar, e no máximo 2 s. Com "remover animações",
+ * fica pronta — ao menos 0,7 s, para não piscar, e no máximo 2 s, contados do primeiro quadro em
+ * que a tela aparece. Com "remover animações",
  * aparece e some sem animação. Enquanto está na tela, segura os toques; as teclas da TV a tela
  * principal segura por {@link #aberta()}.
  */
@@ -39,9 +41,11 @@ public final class TelaCarregamento {
     static final long MAXIMO_MS = 2000;
     private static final long FADE_MS = 250;
 
-    private final FrameLayout camada;
     private final Handler relogio = new Handler(Looper.getMainLooper());
     private final boolean animar;
+    /** Ícone, marca e status (entram juntos). */
+    private LinearLayout centro;
+    private final FrameLayout camada;
     private boolean aberta = true;
 
     private TelaCarregamento(Activity tela) {
@@ -63,7 +67,27 @@ public final class TelaCarregamento {
         return aberta;
     }
 
+    /**
+     * A abertura a frio leva segundos até o primeiro quadro (no emulador, 4 a 6 s): a contagem do
+     * mínimo e do máximo e a entrada começam quando a tela aparece de fato, não no onCreate.
+     */
     private void carregar(Context app) {
+        camada.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+            @Override
+            public boolean onPreDraw() {
+                camada.getViewTreeObserver().removeOnPreDrawListener(this);
+                comecar(app);
+                return true;
+            }
+        });
+    }
+
+    private void comecar(Context app) {
+        if (animar) {
+            centro.setAlpha(0f);
+            centro.setTranslationY(Medidas.px(camada.getContext(), 16));
+            centro.animate().alpha(1f).translationY(0f).setDuration(300).start();
+        }
         long inicio = SystemClock.uptimeMillis();
         relogio.postDelayed(this::esconder, MAXIMO_MS);
         // F1/F2: os dados simulados (e o banco do app) ficam prontos aqui; na F3, a biblioteca real
@@ -126,12 +150,9 @@ public final class TelaCarregamento {
         raiz.addView(rodape, lpRodape);
         // Tablet: o rodapé fica acima da barra de gestos (o app desenha por baixo das barras)
         BordasSistema.aplicar(rodape, false, false, false, true);
-
-        if (animar) {
-            centro.setAlpha(0f);
-            centro.setTranslationY(Medidas.px(tela, 16));
-            centro.animate().alpha(1f).translationY(0f).setDuration(300).start();
-        }
+        // Até o primeiro quadro o centro fica escondido; a entrada roda em comecar()
+        if (animar) centro.setAlpha(0f);
+        this.centro = centro;
         return raiz;
     }
 
