@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!--
+     Player da TV (ReproducaoTvActivity), tv-player.dc.html: vídeo (simulado na F1), topo com o título
+     e o capítulo, lista de capítulos à direita (abre em "Capítulos"), barra com as marcas dos
+     capítulos, "Próximo capítulo em…" à esquerda, botões com nome no centro e Áudio, Legendas e
+     Capítulos à direita. Controles somem após 5 s (D13). Medidas: px do HTML / 2. Sem fundo animado.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/st_video">
+
+    <TextView
+        style="@style/StarkTech.Texto.Botao"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="@string/st_video_simulado"
+        android:textColor="@color/st_branco_12"
+        android:textSize="@dimen/st_tv_texto_rep_video" />
+
+    <!-- Aviso no centro: "−10 s", "+10 s", "Capítulo 4 · A memória" (controles ocultos) -->
+    <TextView
+        android:id="@+id/st_rep_aviso"
+        style="@style/StarkTech.Texto.Titulo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:alpha="0"
+        android:background="@drawable/st_fundo_painel_reproducao"
+        android:letterSpacing="0"
+        android:paddingStart="14dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="14dp"
+        android:paddingBottom="8dp"
+        android:textSize="@dimen/st_tv_texto_rep_aviso" />
+
+    <!-- Topo: título e capítulo (fundo #020617 70 %) -->
+    <LinearLayout
+        android:id="@+id/st_rep_topo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:background="@color/st_veu_70"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/st_tv_margem_lateral"
+        android:paddingTop="@dimen/st_tv_rep_topo_padding_v"
+        android:paddingEnd="@dimen/st_tv_margem_lateral"
+        android:paddingBottom="@dimen/st_tv_rep_topo_padding_v">
+
+        <TextView
+            android:id="@+id/st_rep_titulo"
+            style="@style/StarkTech.Texto.Titulo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:letterSpacing="0"
+            android:singleLine="true"
+            android:textSize="@dimen/st_tv_texto_rep_titulo" />
+
+        <TextView
+            android:id="@+id/st_rep_sub"
+            style="@style/StarkTech.Texto.Forte"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:singleLine="true"
+            android:textColor="@color/st_texto_secundario"
+            android:textSize="@dimen/st_tv_texto_rep_sub" />
+    </LinearLayout>
+
+    <!-- Capítulos à direita (top 48, right 48, bottom 330, 520 px de largura) -->
+    <LinearLayout
+        android:id="@+id/st_rep_painel"
+        android:layout_width="@dimen/st_tv_rep_painel_largura"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:layout_marginTop="@dimen/st_tv_rep_painel_margem"
+        android:layout_marginEnd="@dimen/st_tv_rep_painel_margem"
+        android:layout_marginBottom="@dimen/st_tv_rep_painel_base"
+        android:background="@drawable/st_fundo_painel_reproducao"
+        android:orientation="vertical"
+        android:padding="@dimen/st_tv_rep_painel_padding"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                style="@style/StarkTech.Texto.Titulo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:letterSpacing="0"
+                android:text="@string/st_capitulos"
+                android:textSize="@dimen/st_tv_texto_rep_painel_titulo" />
+
+            <TextView
+                style="@style/StarkTech.Texto.Forte"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/st_ok_para_ir"
+                android:textColor="@color/st_texto_apagado"
+                android:textSize="@dimen/st_tv_texto_rep_painel_dica" />
+        </LinearLayout>
+
+        <androidx.leanback.widget.VerticalGridView
+            android:id="@+id/st_rep_lista_capitulos"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp" />
+    </LinearLayout>
+
+    <!-- Controles embaixo (fundo #020617 88 %) -->
+    <LinearLayout
+        android:id="@+id/st_rep_controles"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/st_veu_88"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/st_tv_margem_lateral"
+        android:paddingTop="@dimen/st_tv_rep_controles_padding_topo"
+        android:paddingEnd="@dimen/st_tv_margem_lateral"
+        android:paddingBottom="@dimen/st_tv_rep_controles_padding_base">
+
+        <!-- Tempo, barra com as marcas dos capítulos, duração -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/st_rep_tempo"
+                style="@style/StarkTech.Texto.Botao"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/st_tv_texto_rep_tempo" />
+
+            <br.com.starktechstudio.mediaplayer.comum.BarraCapitulosView
+                android:id="@+id/st_rep_barra"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/st_rep_duracao"
+                style="@style/StarkTech.Texto.Botao"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/st_texto_secundario"
+                android:textSize="@dimen/st_tv_texto_rep_tempo" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/st_tv_rep_controles_espaco"
+            android:baselineAligned="false"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- "Próximo: 04 · A memória em 00:38" -->
+            <TextView
+                android:id="@+id/st_rep_proximo"
+                style="@style/StarkTech.Texto.Forte"
+                android:layout_width="@dimen/st_tv_rep_lado_largura"
+                android:layout_height="wrap_content"
+                android:textColor="@color/st_texto_apagado"
+                android:textSize="@dimen/st_tv_texto_rep_proximo" />
+
+            <!-- Centro: botões com nome embaixo -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:id="@+id/st_rep_grupo_cap_anterior"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <ImageButton
+                        android:id="@+id/st_rep_cap_anterior"
+                        android:layout_width="wrap_content"
+                        android:layout_height="@dimen/st_tv_rep_botao_altura"
+                        android:adjustViewBounds="true"
+                        android:background="@drawable/st_botao_secundario"
+                        android:contentDescription="@string/st_capitulo_anterior"
+                        android:foreground="@drawable/st_foco_tv"
+                        android:paddingStart="@dimen/st_tv_rep_botao_padding"
+                        android:paddingTop="11.5dp"
+                        android:paddingEnd="@dimen/st_tv_rep_botao_padding"
+                        android:paddingBottom="11.5dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/st_ic_cap_anterior"
+                        app:tint="@color/st_texto" />
+
+                    <TextView
+                        style="@style/StarkTech.Texto.Botao"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:text="@string/st_cap_anterior"
+                        android:textColor="@color/st_texto_secundario"
+                        android:textSize="@dimen/st_tv_texto_rep_rotulo" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/st_tv_rep_botao_espaco"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <ImageButton
+                        android:id="@+id/st_rep_menos_10"
+                        android:layout_width="wrap_content"
+                        android:layout_height="@dimen/st_tv_rep_botao_altura"
+                        android:adjustViewBounds="true"
+                        android:background="@drawable/st_botao_secundario"
+                        android:contentDescription="@string/st_voltar_10"
+                        android:foreground="@drawable/st_foco_tv"
+                        android:paddingStart="@dimen/st_tv_rep_botao_padding"
+                        android:paddingTop="11.5dp"
+                        android:paddingEnd="@dimen/st_tv_rep_botao_padding"
+                        android:paddingBottom="11.5dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/st_ic_do_inicio"
+                        app:tint="@color/st_texto" />
+
+                    <TextView
+                        style="@style/StarkTech.Texto.Botao"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:text="@string/st_menos_10"
+                        android:textColor="@color/st_texto_secundario"
+                        android:textSize="@dimen/st_tv_texto_rep_rotulo" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/st_tv_rep_botao_espaco"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <ImageButton
+                        android:id="@+id/st_rep_pausar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="@dimen/st_tv_rep_botao_altura"
+                        android:adjustViewBounds="true"
+                        android:background="@drawable/st_botao_primario"
+                        android:contentDescription="@string/st_pausar"
+                        android:foreground="@drawable/st_foco_tv"
+                        android:paddingStart="@dimen/st_tv_rep_botao_pausar_padding"
+                        android:paddingTop="10dp"
+                        android:paddingEnd="@dimen/st_tv_rep_botao_pausar_padding"
+                        android:paddingBottom="10dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/st_ic_pausar"
+                        app:tint="@color/st_texto" />
+
+                    <TextView
+                        android:id="@+id/st_rep_rotulo_pausar"
+                        style="@style/StarkTech.Texto.Botao"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:text="@string/st_pausar"
+                        android:textColor="@color/st_texto_secundario"
+                        android:textSize="@dimen/st_tv_texto_rep_rotulo" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/st_tv_rep_botao_espaco"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <ImageButton
+                        android:id="@+id/st_rep_mais_10"
+                        android:layout_width="wrap_content"
+                        android:layout_height="@dimen/st_tv_rep_botao_altura"
+                        android:adjustViewBounds="true"
+                        android:background="@drawable/st_botao_secundario"
+                        android:contentDescription="@string/st_avancar_10"
+                        android:foreground="@drawable/st_foco_tv"
+                        android:paddingStart="@dimen/st_tv_rep_botao_padding"
+                        android:paddingTop="11.5dp"
+                        android:paddingEnd="@dimen/st_tv_rep_botao_padding"
+                        android:paddingBottom="11.5dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/st_ic_mais_10"
+                        app:tint="@color/st_texto" />
+
+                    <TextView
+                        style="@style/StarkTech.Texto.Botao"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:text="@string/st_mais_10"
+                        android:textColor="@color/st_texto_secundario"
+                        android:textSize="@dimen/st_tv_texto_rep_rotulo" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/st_rep_grupo_cap_proximo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/st_tv_rep_botao_espaco"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <ImageButton
+                        android:id="@+id/st_rep_cap_proximo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="@dimen/st_tv_rep_botao_altura"
+                        android:adjustViewBounds="true"
+                        android:background="@drawable/st_botao_secundario"
+                        android:contentDescription="@string/st_proximo_capitulo"
+                        android:foreground="@drawable/st_foco_tv"
+                        android:paddingStart="@dimen/st_tv_rep_botao_padding"
+                        android:paddingTop="11.5dp"
+                        android:paddingEnd="@dimen/st_tv_rep_botao_padding"
+                        android:paddingBottom="11.5dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/st_ic_cap_proximo"
+                        app:tint="@color/st_texto" />
+
+                    <TextView
+                        style="@style/StarkTech.Texto.Botao"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:text="@string/st_prox_capitulo"
+                        android:textColor="@color/st_texto_secundario"
+                        android:textSize="@dimen/st_tv_texto_rep_rotulo" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Direita: Áudio, Legendas, Capítulos (este em azul com a lista aberta) -->
+            <LinearLayout
+                android:layout_width="@dimen/st_tv_rep_lado_largura"
+                android:layout_height="wrap_content"
+                android:gravity="end|center_vertical"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/st_rep_audio"
+                    style="@style/StarkTech.Botao.Tv.Secundario"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/st_tv_rep_lado_botao_altura"
+                    android:minHeight="0dp"
+                    android:paddingStart="@dimen/st_tv_rep_lado_botao_padding"
+                    android:paddingEnd="@dimen/st_tv_rep_lado_botao_padding"
+                    android:text="@string/st_audio"
+                    android:textSize="@dimen/st_tv_texto_rep_lado_botao" />
+
+                <Button
+                    android:id="@+id/st_rep_legendas"
+                    style="@style/StarkTech.Botao.Tv.Secundario"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/st_tv_rep_lado_botao_altura"
+                    android:layout_marginStart="6dp"
+                    android:minHeight="0dp"
+                    android:paddingStart="@dimen/st_tv_rep_lado_botao_padding"
+                    android:paddingEnd="@dimen/st_tv_rep_lado_botao_padding"
+                    android:text="@string/st_legendas"
+                    android:textSize="@dimen/st_tv_texto_rep_lado_botao" />
+
+                <Button
+                    android:id="@+id/st_rep_capitulos"
+                    style="@style/StarkTech.Botao.Tv.Secundario"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/st_tv_rep_lado_botao_altura"
+                    android:layout_marginStart="6dp"
+                    android:minHeight="0dp"
+                    android:paddingStart="@dimen/st_tv_rep_lado_botao_padding"
+                    android:paddingEnd="@dimen/st_tv_rep_lado_botao_padding"
+                    android:text="@string/st_capitulos"
+                    android:textSize="@dimen/st_tv_texto_rep_lado_botao" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

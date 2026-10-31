@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!--
+     Ponto de slide / página (Main.dc.html, tablet-biblioteca.dc.html): ativo (selecionado)
+     branco; os outros branco 35 %; pontas redondas. Usar como src de ImageView com
+     scaleType fitXY: na TV o padding do ImageView abre espaço para o anel de foco.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_selected="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/st_texto" />
+            <corners android:radius="100dp" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/st_branco_35" />
+            <corners android:radius="100dp" />
+        </shape>
+    </item>
+</selector>

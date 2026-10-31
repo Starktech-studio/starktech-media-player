@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!--
+     Episódio na Série da TV (CartaoEpisodio), tv-serie.dc.html: miniatura 240x135 px com o número,
+     "EPISÓDIO N", nome (TMDB), arquivo e duração, barra de progresso (em andamento) e o selo
+     Assistido / Em andamento. Foco: borda branca no cartão. Medidas: px do HTML / 2.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/st_fundo_cartao"
+    android:focusable="true"
+    android:foreground="@drawable/st_foco_tv"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="@dimen/st_tv_episodio_padding">
+
+    <FrameLayout
+        android:id="@+id/st_episodio_miniatura"
+        android:layout_width="@dimen/st_tv_episodio_miniatura_largura"
+        android:layout_height="@dimen/st_tv_episodio_miniatura_altura">
+
+        <TextView
+            android:id="@+id/st_episodio_numero"
+            style="@style/StarkTech.Texto.Titulo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:letterSpacing="0"
+            android:textColor="@color/st_branco_55"
+            android:textSize="@dimen/st_tv_texto_episodio_numero" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/st_tv_episodio_espaco"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/st_episodio_rotulo"
+            style="@style/StarkTech.Texto.Titulo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:letterSpacing="0.12"
+            android:textAllCaps="true"
+            android:textColor="@color/st_texto_apagado"
+            android:textSize="@dimen/st_tv_texto_episodio_rotulo" />
+
+        <TextView
+            android:id="@+id/st_episodio_nome"
+            style="@style/StarkTech.Texto.Botao"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textSize="@dimen/st_tv_texto_episodio_nome" />
+
+        <TextView
+            android:id="@+id/st_episodio_arquivo"
+            style="@style/StarkTech.Texto.Apagado"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:textSize="@dimen/st_tv_texto_episodio_arquivo" />
+
+        <ProgressBar
+            android:id="@+id/st_episodio_progresso"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="@dimen/st_tv_episodio_progresso_largura"
+            android:layout_height="@dimen/st_tv_progresso_altura"
+            android:layout_marginTop="5dp"
+            android:importantForAccessibility="no"
+            android:max="100"
+            android:maxHeight="@dimen/st_tv_progresso_altura"
+            android:minHeight="@dimen/st_tv_progresso_altura"
+            android:progressDrawable="@drawable/st_progresso" />
+    </LinearLayout>
+
+    <!-- Selo Assistido (verde) ou Em andamento (azul) -->
+    <TextView
+        android:id="@+id/st_episodio_selo"
+        style="@style/StarkTech.Texto.Forte"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/st_tv_episodio_espaco"
+        android:drawablePadding="3dp"
+        android:gravity="center_vertical"
+        android:paddingStart="5dp"
+        android:paddingTop="2dp"
+        android:paddingEnd="5dp"
+        android:paddingBottom="2dp"
+        android:singleLine="true"
+        android:textSize="@dimen/st_tv_texto_episodio_selo" />
+</LinearLayout>

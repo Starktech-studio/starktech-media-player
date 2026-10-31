@@ -2,6 +2,7 @@
 
 package br.com.starktechstudio.mediaplayer.tablet;
 
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -20,7 +21,6 @@ import com.archos.mediacenter.video.BuildConfig;
 import com.archos.mediacenter.video.R;
 
 import br.com.starktechstudio.mediaplayer.comum.BordasSistema;
-import br.com.starktechstudio.mediaplayer.comum.Marca;
 import br.com.starktechstudio.mediaplayer.comum.Navegacao;
 import br.com.starktechstudio.mediaplayer.comum.Navegacao.Aba;
 import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
@@ -52,7 +52,6 @@ public class PrincipalTabletActivity extends AppCompatActivity {
         setContentView(R.layout.st_tablet_principal);
         repositorio = RepositorioBiblioteca.atual(this);
 
-        Marca.aplicar(findViewById(R.id.st_marca));
         topoInicio = findViewById(R.id.st_topo_inicio);
         seloHd = findViewById(R.id.st_selo_hd);
         seloHdIcone = findViewById(R.id.st_selo_hd_icone);
@@ -60,10 +59,11 @@ public class PrincipalTabletActivity extends AppCompatActivity {
         seloHdFechar = findViewById(R.id.st_selo_hd_fechar);
 
         ViewGroup barra = findViewById(R.id.st_barra_lateral);
-        // Fundo da barra lateral até as bordas de cima e de baixo; logo e conteúdo fora das barras do sistema
+        // Fundo da barra lateral até as bordas de cima e de baixo; logo e conteúdo fora das barras do sistema.
+        // Embaixo, cada aba soma a barra de navegação à própria rolagem: o conteúdo passa por trás dela
         BordasSistema.aplicar(findViewById(R.id.st_corpo), true, false, true, false);
         BordasSistema.aplicar(barra, false, true, false, true);
-        BordasSistema.aplicar(findViewById(R.id.st_coluna_conteudo), false, true, false, true);
+        BordasSistema.aplicar(findViewById(R.id.st_coluna_conteudo), false, true, false, false);
         LayoutInflater inflater = LayoutInflater.from(this);
         for (int i = 0; i < ABAS.length; i++) {
             final int indice = i;
@@ -83,11 +83,22 @@ public class PrincipalTabletActivity extends AppCompatActivity {
             });
         }
 
-        int inicial = savedInstanceState == null ? 0 : savedInstanceState.getInt(ESTADO_ABA, 0);
+        Aba pedida = Navegacao.abaDoIntent(getIntent());
+        int inicial = savedInstanceState != null ? savedInstanceState.getInt(ESTADO_ABA, 0)
+                : pedida == null ? 0 : pedida.ordinal();
         boolean restaurado = savedInstanceState != null
                 && getSupportFragmentManager().findFragmentById(R.id.st_conteudo) != null;
         if (restaurado) marcarItem(inicial);
         else selecionarAba(inicial);
+    }
+
+    /** Pastas da biblioteca (em Ajustes) e outras telas que pedem uma aba. */
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        Aba aba = Navegacao.abaDoIntent(intent);
+        if (aba != null) selecionarAba(aba.ordinal());
     }
 
     @Override
@@ -107,7 +118,7 @@ public class PrincipalTabletActivity extends AppCompatActivity {
         marcarItem(indice);
         getSupportFragmentManager().beginTransaction()
                 .setReorderingAllowed(true)
-                .replace(R.id.st_conteudo, Navegacao.conteudoDaAba(ABAS[indice]))
+                .replace(R.id.st_conteudo, Navegacao.conteudoDaAba(this, ABAS[indice]))
                 .commitNow();
     }
 

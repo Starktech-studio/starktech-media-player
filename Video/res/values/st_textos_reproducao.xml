@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Textos do player e de Áudio e legendas (F1 fase F): tv-player.dc.html, tablet-player.dc.html, D13. Só pt-BR (D4). -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="pt-BR">
+
+    <!-- Topo -->
+    <string name="st_video_simulado">Vídeo simulado</string>
+    <string name="st_capitulo_de">Capítulo %1$d de %2$d · %3$s</string>
+    <string name="st_temporada_episodio">Temporada %1$d · Episódio %2$d</string>
+    <string name="st_voltar">Voltar</string>
+    <string name="st_mostrar_controles">Mostrar controles</string>
+
+    <!-- Capítulos -->
+    <string name="st_ok_para_ir">OK para ir</string>
+    <string name="st_arraste_para_o_lado">· arraste para o lado</string>
+    <string name="st_agora">Agora</string>
+    <string name="st_visto">Visto</string>
+    <!-- "Próximo: 04 · A memória em 00:38"; entre aspas por causa dos espaços nas pontas -->
+    <string name="st_proximo">"Próximo: "</string>
+    <string name="st_capitulo_curto">%1$02d · %2$s</string>
+    <string name="st_proximo_em">" em %1$s"</string>
+
+    <!-- Botões -->
+    <string name="st_cap_anterior">Cap. anterior</string>
+    <string name="st_capitulo_anterior">Capítulo anterior</string>
+    <string name="st_menos_10">−10 s</string>
+    <string name="st_voltar_10">Voltar 10 segundos</string>
+    <string name="st_pausar">Pausar</string>
+    <string name="st_mais_10">+10 s</string>
+    <string name="st_avancar_10">Avançar 10 segundos</string>
+    <string name="st_prox_capitulo">Próx. capítulo</string>
+    <string name="st_proximo_capitulo">Próximo capítulo</string>
+    <string name="st_audio">Áudio</string>
+    <string name="st_legendas">Legendas</string>
+    <string name="st_volume">Volume %1$d%%</string>
+</resources>

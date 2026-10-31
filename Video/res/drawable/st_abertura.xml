@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Tela de abertura (fundo da janela da EntryActivity): #020617 com o splash (300 dp) no centro. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/st_fundo" />
+    <item>
+        <bitmap
+            android:gravity="center"
+            android:src="@drawable/st_splash" />
+    </item>
+</layer-list>

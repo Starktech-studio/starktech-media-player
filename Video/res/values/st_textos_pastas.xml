@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Textos de Pastas, Adicionar pasta e Não identificados (F1 fase H): tv-pastas, tablet-pastas, D15. Só pt-BR (D4). -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="pt-BR">
+
+    <!-- Pastas -->
+    <string name="st_pastas_dica">Marque o tipo de cada pasta. Os vídeos vão direto para o lugar certo.</string>
+    <string name="st_atualizar_biblioteca">Atualizar biblioteca</string>
+    <string name="st_biblioteca_atualizada">Biblioteca atualizada</string>
+    <string name="st_adicionar_pasta">Adicionar pasta</string>
+    <string name="st_hd_externo_usb">HD externo (USB)</string>
+    <string name="st_armazenamento_interno">Armazenamento interno</string>
+    <string name="st_conectado">Conectado</string>
+    <string name="st_desconectado">Desconectado</string>
+    <string name="st_reconhecida_nome">reconhecida pelo nome</string>
+    <string name="st_escolha_tipo">escolha o tipo</string>
+    <string name="st_tipo_da_pasta">Tipo da pasta</string>
+    <string name="st_tipo_filmes">Filmes</string>
+    <string name="st_tipo_series">Séries</string>
+    <string name="st_tipo_shows">Shows</string>
+    <string name="st_tipo_ignorar">Ignorar</string>
+    <string name="st_pasta_linha">%1$s · %2$s</string>
+    <plurals name="st_n_videos">
+        <item quantity="one">%d vídeo</item>
+        <item quantity="other">%d vídeos</item>
+    </plurals>
+    <plurals name="st_n_series">
+        <item quantity="one">%d série</item>
+        <item quantity="other">%d séries</item>
+    </plurals>
+
+    <!-- Não identificados -->
+    <string name="st_nao_identificados">Não identificados</string>
+    <plurals name="st_n_sem_tipo">
+        <item quantity="one">%d vídeo sem tipo ou fora do padrão</item>
+        <item quantity="other">%d vídeos sem tipo ou fora do padrão</item>
+    </plurals>
+    <string name="st_revisar">Revisar</string>
+    <string name="st_nao_identificados_dica">Toque ou OK num vídeo para escolher o título certo em Editar.</string>
+
+    <!-- Como organizar -->
+    <string name="st_como_organizar">Como organizar</string>
+    <string name="st_como_organizar_texto">O tipo da pasta manda o vídeo direto para Filmes, Séries ou Shows. Pastas com esses nomes já são reconhecidas.</string>
+    <string name="st_exemplo_filme" translatable="false">Nome do filme (2012).mkv</string>
+    <string name="st_exemplo_serie" translatable="false">Nome da série / Temporada 1 / 01.mkv</string>
+    <string name="st_exemplo_show" translatable="false">Artista - Show (2019).mkv</string>
+    <string name="st_como_organizar_fim">O que não se encaixar vai para "Não identificados" e pode ser corrigido em Editar.</string>
+
+    <!-- Adicionar pasta (D15): navegador de pastas próprio, simulado na F1 -->
+    <string name="st_escolher_pasta">Escolher pasta</string>
+    <string name="st_pasta_adicionada">Pasta adicionada: %1$s</string>
+    <string name="st_subir">Voltar uma pasta</string>
+</resources>

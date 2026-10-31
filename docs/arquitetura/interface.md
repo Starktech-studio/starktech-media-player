@@ -1,6 +1,6 @@
 # Interface — StarkTech Media Player
 
-> Como as telas novas da F1 estão montadas no código. Telas e comportamentos aprovados: `docs/paginas/INTERFACE.md`; referência visual: `docs/paginas/telas-f1/*.html`. Estado: F1 fase C (base, navegação e dados simulados), 30/10/2026.
+> Como as telas novas da F1 estão montadas no código. Telas e comportamentos aprovados: `docs/paginas/INTERFACE.md`; referência visual: `docs/paginas/telas-f1/*.html`. Estado: F1 fechada em 31/10/2026 — todas as telas (fases A a I e os ajustes do Gustavo), lint completo sem erros (69 avisos) e percurso final nos dois emuladores, com as capturas `docs/imagens/f1/fim-*.png`. Dados ainda simulados: a biblioteca real entra na F3.
 
 ## 1. Pacotes
 
@@ -9,9 +9,9 @@ Código novo em `Video/src/main/java/br/com/starktechstudio/mediaplayer/` (o `R`
 | Pacote | O que tem |
 |---|---|
 | `dados` | `Modelo` (Titulo, Capitulo, Temporada, Episodio, Pasta, ResultadoTmdb, Faixa, PessoaElenco, DadosTecnicos e os enums), `RepositorioBiblioteca` (interface), `RepositorioSimulado`, `EstadoSimulado` |
-| `comum` | `Aparelho` (TV ou tablet), `Navegacao` (abas e rotas), `FocoTv`, `Marca`, `BordasSistema`, `EmConstrucaoActivity`, `EmConstrucaoFragment` e, nas fases seguintes, as telas iguais nos dois aparelhos |
-| `tv` | `PrincipalTvActivity` e as telas só da TV |
-| `tablet` | `PrincipalTabletActivity` e as telas só do tablet |
+| `comum` | Base: `Aparelho` (TV ou tablet), `Navegacao` (abas e rotas), `FocoTv`, `BordasSistema`, `Animacoes`, `FundoAnimado`, `Medidas`, `Textos`, `Icones`, `Grade`, `OpcaoMenu`, `Preferencias`, `EmConstrucaoActivity`/`Fragment`. Peças: `CapaAdapter`, `CartaoAdapter`, `CapituloAdapter`, `CartaoEpisodio`, `BarraCapitulosView`, `PecasDetalhe`, `PecasReproducao`, `ReproducaoSimulada`. Telas iguais nos dois aparelhos (layout de cada um): `ListaFragment`, `MenuCapaActivity`, `FaixasActivity`, `EditarActivity`, `BuscaTmdbActivity`, `PastasFragment`, `NavegadorPastasActivity`, `NaoIdentificadosActivity`, `ConfiguracoesFragment`/`Activity`, `InformacoesUsoActivity`, `SobreActivity` |
+| `tv` | `PrincipalTvActivity`, `InicioTvFragment`, `DestaqueTv`, `RolagemTv`, `TopoSecaoTv`, `DetalheTvActivity`, `SerieTvActivity`, `ReproducaoTvActivity`, `BuscaTvActivity` |
+| `tablet` | `PrincipalTabletActivity`, `InicioTabletFragment`, `DetalheTabletActivity`, `SerieTabletActivity`, `ReproducaoTabletActivity`, `GestosReproducao` |
 
 Arquivos novos com "Copyright 2026 StarkTech Studio. Todos os direitos reservados."; arquivos do Nova alterados mantêm o Apache-2.0 e ganham "Modificado por StarkTech Studio em 2026".
 
@@ -37,7 +37,9 @@ Emuladores com 320 dpi: TV 1920×1080 = 960×540 dp; tablet 2560×1600 = 1280×8
 | TV | px do HTML ÷ 2 = dp/sp | margens 80 × 44 px → 40 × 22 dp; capa 196×294 → 98×147 dp |
 | Tablet | px do HTML = dp/sp | barra lateral 112 dp; capa 196×294 dp |
 
-Medidas comuns em `res/values/st_dimens.xml`; cantos e bordas que mudam entre TV e tablet vêm dos atributos do tema (`stCantoBotao`, `stCantoCartao`, `stCantoSelo`, `stBorda`, `stBordaCampo`), usados pelos fundos `res/drawable/st_*.xml` — por isso esses fundos só funcionam com contexto de tema StarkTech.
+Medidas comuns em `res/values/st_dimens.xml`; cantos e bordas que mudam entre TV e tablet vêm dos atributos do tema (`stCantoBotao`, `stCantoCartao`, `stCantoSelo`, `stCantoMenu`, `stBorda`, `stBordaCampo`), usados pelos fundos `res/drawable/st_*.xml` — por isso esses fundos só funcionam com contexto de tema StarkTech.
+
+Telas montadas no código (Pastas, Não identificados, Configurações, Sobre) usam `Medidas` com os px do desenho da TV: TV ÷ 2; tablet × 0,7 (a versão "compacta" do `tablet-pastas.dc.html`).
 
 ## 4. Recursos
 
@@ -46,19 +48,21 @@ Medidas comuns em `res/values/st_dimens.xml`; cantos e bordas que mudam entre TV
 | Prefixo | `st_` em tudo que é novo em `Video/res/` |
 | Textos | `res/values/st_textos_<fase>.xml`, já em pt-BR, com `tools:locale="pt-BR"` (D4) |
 | Ícones | `res/drawable/st_ic_*.xml`: SVG do Lucide (ISC, D6) convertidos à mão em VectorDrawable 24×24, traço 2, branco; a cor vem do `app:tint` de quem usa. Círculos e retângulos viram `path`; comandos sempre explícitos (sem `lineto` implícito depois de `M`) |
-| Logo StarkTech | `res/drawable-nodpi/st_logo.png` (256 px): só no topo da barra lateral do tablet e no rodapé da TV (D5) |
+| Marca e logo | Marca do topo (tablet: Início; TV: Principal, Detalhe e Série): `layout/st_tablet_marca.xml` e `st_tv_marca.xml`, com o ícone do app `drawable-nodpi/st_icone_app.png` (192 px, reduzido de `design/icone/app-icon.png`; 48 dp no tablet, 24 dp na TV) + "StarkTech" branco (Inter 700) + "Media Player" `st_amarelo_marca` (#E8AA30, Inter 800), como no banner. Logo StarkTech `drawable-nodpi/st_logo.png` (256 px): só no rodapé da TV; o Sobre mostra o ícone do app |
+| Fundo animado | `comum/FundoAnimado`, atrás do conteúdo de todas as telas (menos o player e as janelas flutuantes): 3 manchas azul/ciano (10–18 %) em gradiente radial criado uma vez; por quadro só muda a matriz; ~30 qps; parado fora da tela, com "remover animações" ou `definirParado(true)` |
+| Animações | `Animacoes.ligadas` (escala de animação do aparelho): pílula do topo da TV estica até a aba nova e encolhe nela (260 ms) com a cor do texto junto; o conteúdo atual sai para o outro lado e o novo, montado quando o menu para (andar rápido não monta as abas do caminho), entra deslizando; sem animação com "remover animações" |
+| Janelas flutuantes | `Theme.StarkTech.Menu(.Tv)`: Menu da capa, Áudio e legendas, Buscar no TMDB, Adicionar pasta. São activities translúcidas: ao fechar, a tela de baixo passa pelo `onResume` e relê o estado |
 
 ## 5. Navegação e rotas
 
 | Ponto | Como está |
 |---|---|
 | Entrada | Launcher (`LAUNCHER` e `LEANBACK_LAUNCHER`, ambos no alias `…browser.BrowserActivityVideo`) → `EntryActivity` → `Navegacao.telaPrincipal` → `PrincipalTvActivity` ou `PrincipalTabletActivity`. O `MainActivityLeanback` perdeu o `intent-filter`; os atalhos do launcher do Nova saíram (D21). Telas do Nova continuam no código, sem entrada |
-| Abas | `Navegacao.Aba`: Início, Filmes, Séries, Shows, Pastas (TV: pílulas do topo) + Ajustes (tablet: barra lateral). Conteúdo por `Navegacao.conteudoDaAba` |
-| Rotas | `Navegacao.abrirBusca`, `abrirConfiguracoes`, `abrirTitulo`, `abrirReproducao`, `abrirEditar`, `abrirNaoIdentificados`, `abrirSobre`. Tela que ainda não existe abre `EmConstrucaoActivity` com o nome da tela |
-| Teclas (TV) | ← / → entre as pílulas (a pílula em foco vira a aba ativa); ↓ do topo desce ao primeiro item do conteúdo; ↑ no alto do conteúdo e Voltar no conteúdo voltam à pílula ativa; Voltar no topo sai do app |
-| Tablet | Toque nos itens da barra lateral; marca e selo do HD só na aba Início (nas outras o desenho começa pelo título da tela) |
-
-Estado ao fim da fase C: todas as abas e rotas em construção; cada fase seguinte troca a sua rota em `Navegacao`.
+| Abas | `Navegacao.Aba`: Início, Filmes, Séries, Shows, Pastas (TV: pílulas do topo) + Ajustes (tablet: barra lateral). Conteúdo por `Navegacao.conteudoDaAba`; Filmes, Séries e Shows na TV em ordem alfabética do título (`ListaFragment`) |
+| Rotas | `Navegacao.abrirTitulo` (Detalhe ou Série), `abrirReproducao` (capítulo, `DE_ONDE_PAROU`, `DO_INICIO`), `abrirFaixas`, `abrirMenuCapa`, `abrirEditar`, `abrirBuscaTmdb`, `abrirAba` (volta à principal na aba pedida), `abrirAdicionarPasta`, `abrirNaoIdentificados`, `abrirBusca` (TV), `abrirConfiguracoes`, `abrirInformacoesUso` (Configurações: o que cada parte do app faz, texto da TV ou do tablet), `abrirSobre`. Ainda em construção: `abrirImagemDoAparelho` ("Do HD" / "Do aparelho" de Editar, F2) |
+| Teclas (TV) | ← / → entre as pílulas (a pílula em foco vira a aba ativa); ↓ do topo desce ao primeiro item do conteúdo; ↑ no alto do conteúdo e Voltar no conteúdo voltam à pílula ativa; Voltar no topo sai do app. Detalhe e Série: pílulas com foco (OK leva à aba), ↑ do conteúdo vai à pílula da seção, Editar só com o ícone. Segurar OK numa capa: Menu da capa |
+| Player (TV) | Controles somem após 5 s; com eles ocultos ← / → = −10 s / +10 s e as outras teclas mostram; próxima / anterior do controle = capítulo; Voltar fecha a lista de capítulos ou sai (a posição fica salva) |
+| Tablet | Sem a barra de status (hora, rede e bateria) em nenhuma tela (`android:windowFullscreen` no tema base); toque nos itens da barra lateral; marca e selo do HD só na aba Início (nas outras o desenho começa pelo título da tela). Tocar e segurar uma capa (listas, Detalhe, Série): Menu da capa. Player: um toque mostra / esconde; à vista, os controles somem 5 s depois do último toque (e ficam com Áudio / Legendas abertos); dois toques nas laterais ±10 s (sem botões de −10 s / +10 s), arrastar para os lados / para cima e baixo = posição / volume |
 
 ## 6. Dados simulados
 
@@ -67,8 +71,11 @@ Estado ao fim da fase C: todas as abas e rotas em construção; cada fase seguin
 | `RepositorioBiblioteca` | Única porta de dados das telas: listas (destaques, continuar assistindo, favoritos, adicionados recentemente, abas, busca), detalhe (capítulos, temporadas, dados técnicos, elenco, faixas), Editar (opções de capa e fundo, resultados do TMDB), pastas, não identificados, HD; ações (favorito, assistido, posição, salvar edição, restaurar original, escolher resultado, capa, fundo, tipo da pasta). `RepositorioBiblioteca.atual(contexto)` devolve a implementação em uso |
 | `RepositorioSimulado` | Java puro, sem `ContentResolver`, `VideoStore`, `ScraperStore` nem loaders. Os exemplos das 13 telas (8 filmes, capítulos, cores e números do desenho); textos entre colchetes viraram exemplos fictícios (D8): 3 séries ("Horizonte Azul" com 3 temporadas e 24 episódios), 4 shows, 5 pastas, 5 não identificados, resultados do TMDB. Tears of Steel, Sintel e os demais filmes têm 8 capítulos; Cosmos Laundromat e Big Buck Bunny não têm |
 | `EstadoSimulado` | Estado das ações em arquivo próprio (`getSharedPreferences("st_simulado")`): favorito, assistido, posição, campos editados à mão, capa, fundo, resultado do TMDB, tipo da pasta, HD. Não abre as preferências padrão nem o banco do Nova |
-| Regras | Escolher resultado do TMDB troca título, sinopse, capa e fundo, sem tocar nos campos editados à mão; Restaurar original apaga edição, capa, fundo e resultado; progresso arredondado para cima (04:12 de 12:14 = 35%, como no desenho) |
+| Regras | Editar: a capa e o fundo escolhidos ficam em destaque ("atual", ou "nova · salve para usar"), com as outras opções e "Do HD" / "Do aparelho" em fileiras que cabem na coluna; Escolher resultado do TMDB troca título, sinopse, capa e fundo, sem tocar nos campos editados à mão; Restaurar original apaga edição, capa, fundo e resultado; progresso arredondado para cima (04:12 de 12:14 = 35%, como no desenho) |
 | HD (teste) | No APK debug, toque longo no selo do HD do tablet alterna conectado / desconectado (grava no `st_simulado`) |
+| Reprodução | `ReproducaoSimulada`: relógio de 1 s; ao sair grava a posição; no fim do vídeo, assistido. Botões de capítulo nunca passam para outro título |
+| Só na memória do app (somem ao fechar) | Faixa de áudio / legenda escolhida (`FaixasActivity`); pasta adicionada (`RepositorioBiblioteca.adicionarPasta`) |
+| Configurações | `Preferencias`, arquivo próprio `st_preferencias` (áudio, legenda, tamanho, retomar); F3: ligar ao player do Nova |
 
 Conferência em cada fase: `git diff --stat nova-v6.6.2 -- MediaLib FileCoreLibrary native` mostra só os arquivos da fase A. Na F4: `RepositorioSimulado` fora do APK de distribuição.
 

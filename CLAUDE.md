@@ -18,6 +18,7 @@ Player e biblioteca de mídia para Android TV e tablet (o mesmo APK roda no celu
 | Pasta | Origem (Nova) | O que é |
 |---|---|---|
 | `AVP/` | aos-AVP | Manifestos, `core.mk` (make dos nativos) e scripts de ambiente |
+| `design/icone/` | — (StarkTech) | Ícone do app em 1024 px, cor e monocromático (origem dos ícones Android) |
 | `FileCoreLibrary/` | aos-FileCoreLibrary | Acesso a arquivos: local, USB, rede |
 | `Makefile` | cópia de `AVP/Makefile` | Entrada do `make`; inclui `AVP/core.mk` |
 | `MediaLib/` | aos-MediaLib | Banco de mídia, busca de dados (TMDB, Trakt) e ponte Java do motor |

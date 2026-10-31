@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Texto das abas do Detalhe do tablet: ativa = branco; demais #94a3b8. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/st_texto" android:state_selected="true" />
+    <item android:color="@color/st_texto_apagado" />
+</selector>

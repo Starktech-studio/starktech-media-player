@@ -131,7 +131,7 @@
             android:exported="true"
             android:launchMode="singleTask"
             android:taskAffinity="${applicationId}"
-            android:theme="@style/ArchosThemeLauncher" />
+            android:theme="@style/Theme.StarkTech.Abertura" />
 
         <!-- StarkTech: telas novas (F1). A EntryActivity abre a principal da TV ou do tablet. -->
         <activity
@@ -153,6 +153,91 @@
             android:name="br.com.starktechstudio.mediaplayer.comum.EmConstrucaoActivity"
             android:exported="false"
             android:theme="@style/Theme.StarkTech" />
+
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.tv.DetalheTvActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech.Tv" />
+
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.tablet.DetalheTabletActivity"
+            android:exported="false"
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/Theme.StarkTech.Tablet" />
+
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.comum.MenuCapaActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech.Menu" />
+
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.comum.FaixasActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech.Menu" />
+
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.comum.EditarActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.comum.ConfiguracoesActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech" />
+
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.comum.SobreActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech" />
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.comum.InformacoesUsoActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech" />
+
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.tv.BuscaTvActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech.Tv"
+            android:windowSoftInputMode="stateVisible|adjustResize" />
+
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.comum.NaoIdentificadosActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech" />
+
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.comum.NavegadorPastasActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech.Menu" />
+
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.comum.BuscaTmdbActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech.Menu"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.tv.ReproducaoTvActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech.Tv" />
+
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.tablet.ReproducaoTabletActivity"
+            android:exported="false"
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/Theme.StarkTech.Tablet" />
+
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.tv.SerieTvActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech.Tv" />
+
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.tablet.SerieTabletActivity"
+            android:exported="false"
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/Theme.StarkTech.Tablet" />
 
         <activity
             android:name=".browser.MainActivity"

@@ -4,8 +4,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:locale="pt-BR">
 
     <!-- Marca do topo -->
-    <string name="st_marca_stark" translatable="false">Stark</string>
-    <string name="st_marca_tech" translatable="false">Tech</string>
+    <string name="st_marca" translatable="false">StarkTech</string>
     <string name="st_marca_media_player" translatable="false">Media Player</string>
     <string name="st_logo">Logo StarkTech</string>
 
@@ -30,12 +29,4 @@
     <!-- Telas ainda não feitas (EmConstrucaoActivity) -->
     <string name="st_em_construcao">Em construção</string>
     <string name="st_em_construcao_texto">Esta tela entra numa próxima etapa.</string>
-    <string name="st_tela_busca">Buscar</string>
-    <string name="st_tela_configuracoes">Configurações</string>
-    <string name="st_tela_detalhe">Detalhe</string>
-    <string name="st_tela_serie">Série</string>
-    <string name="st_tela_reproducao">Reprodução</string>
-    <string name="st_tela_editar">Editar</string>
-    <string name="st_tela_nao_identificados">Não identificados</string>
-    <string name="st_tela_sobre">Sobre</string>
 </resources>

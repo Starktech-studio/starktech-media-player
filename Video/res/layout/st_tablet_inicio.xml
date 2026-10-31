@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!--
+     Início do tablet (InicioTabletFragment), tablet-biblioteca.dc.html abaixo da marca e do
+     selo do HD: Continuar assistindo (rolagem lateral) e Adicionados recentemente em páginas
+     de 5 capas, com pontos de página (D12). Medidas: px do HTML = dp.
+-->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/st_inicio_rolagem"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:overScrollMode="never"
+    android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="@dimen/st_tablet_espaco_secao"
+        android:paddingBottom="@dimen/st_tablet_margem_v">
+
+        <!-- Continuar assistindo -->
+        <LinearLayout
+            android:id="@+id/st_secao_continuar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/StarkTech.Texto.Titulo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/st_tablet_margem_h"
+                android:layout_marginEnd="@dimen/st_tablet_margem_h"
+                android:letterSpacing="0"
+                android:text="@string/st_continuar_assistindo"
+                android:textSize="@dimen/st_tablet_texto_titulo_secao" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/st_fileira_continuar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:clipToPadding="false"
+                android:overScrollMode="never"
+                android:paddingStart="@dimen/st_tablet_margem_h"
+                android:paddingEnd="@dimen/st_tablet_margem_h" />
+        </LinearLayout>
+
+        <!-- Adicionados recentemente: 5 por vez, arrastar traz mais 5 -->
+        <LinearLayout
+            android:id="@+id/st_secao_adicionados"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/st_tablet_espaco_secao"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/st_tablet_margem_h"
+                android:layout_marginEnd="@dimen/st_tablet_margem_h"
+                android:baselineAligned="false"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    style="@style/StarkTech.Texto.Titulo"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:letterSpacing="0"
+                    android:text="@string/st_adicionados"
+                    android:textSize="@dimen/st_tablet_texto_titulo_secao" />
+
+                <!-- Pontos de página (criados no código; só indicam) -->
+                <LinearLayout
+                    android:id="@+id/st_adicionados_pontos"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:importantForAccessibility="noHideDescendants"
+                    android:orientation="horizontal" />
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/st_paginas_adicionados"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/st_tablet_capa_altura"
+                android:layout_marginStart="@dimen/st_tablet_margem_h"
+                android:layout_marginTop="14dp"
+                android:layout_marginEnd="@dimen/st_tablet_margem_h"
+                android:overScrollMode="never" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

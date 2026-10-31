@@ -12,6 +12,7 @@ import br.com.starktechstudio.mediaplayer.dados.Modelo.Capitulo;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.DadosTecnicos;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Episodio;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Faixa;
+import br.com.starktechstudio.mediaplayer.dados.Modelo.Origem;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Pasta;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.PessoaElenco;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.ResultadoTmdb;
@@ -116,6 +117,12 @@ public interface RepositorioBiblioteca {
     void escolherFundo(String idTitulo, int cor);
 
     void definirTipoPasta(String idPasta, TipoPasta tipo);
+
+    /**
+     * Adicionar pasta (D15): {@code caminho} como mostrado ("HD / Filmes 2"). Nome igual a Filmes,
+     * Séries ou Shows já vem com o tipo. F1: só na memória do app (some ao fechar); F2: de verdade.
+     */
+    void adicionarPasta(Origem origem, String caminho);
 
     /** Só para teste no APK debug (selo do HD). */
     void definirHdConectado(boolean conectado);

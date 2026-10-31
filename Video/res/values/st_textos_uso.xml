@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Textos de Informações de uso (Configurações): o que cada parte do app faz, na TV e no tablet. Só pt-BR (D4). -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="pt-BR">
+
+    <string name="st_cfg_uso">Informações de uso</string>
+    <string name="st_cfg_uso_dica">Como usar cada parte do app</string>
+    <string name="st_uso_dica">Um resumo do que cada parte do app faz e de como usar.</string>
+
+    <!-- Seções -->
+    <string name="st_uso_navegar">Navegar</string>
+    <string name="st_uso_biblioteca">Biblioteca</string>
+    <string name="st_uso_titulo">Filme, série ou show</string>
+    <string name="st_uso_player">Assistindo</string>
+    <string name="st_uso_pastas">Pastas</string>
+    <string name="st_uso_editar">Editar</string>
+    <string name="st_uso_configuracoes">Configurações</string>
+
+    <string-array name="st_uso_navegar_tv">
+        <item>← e → no topo trocam entre Início, Filmes, Séries, Shows e Pastas; ↓ desce para o conteúdo.</item>
+        <item>Voltar no conteúdo leva ao menu do topo; Voltar no menu do topo fecha o app.</item>
+        <item>A lupa no topo busca filmes, séries e shows pelo nome; o botão ao lado abre as Configurações.</item>
+    </string-array>
+    <string-array name="st_uso_navegar_tablet">
+        <item>A barra lateral leva a Início, Filmes, Séries, Shows, Pastas e Ajustes.</item>
+        <item>Arraste as fileiras para o lado para ver mais títulos.</item>
+    </string-array>
+
+    <string-array name="st_uso_biblioteca_tv">
+        <item>Início reúne o que você está assistindo, os favoritos e o que chegou por último.</item>
+        <item>Filmes, Séries e Shows mostram todos os títulos de cada tipo, em ordem alfabética.</item>
+        <item>O selo \"Assistido\" marca o que você já viu até o fim.</item>
+    </string-array>
+    <string-array name="st_uso_biblioteca_tablet">
+        <item>Início reúne o que você está assistindo, os favoritos e o que chegou por último.</item>
+        <item>Filmes, Séries e Shows mostram todos os títulos de cada tipo.</item>
+        <item>O selo \"Assistido\" marca o que você já viu até o fim.</item>
+    </string-array>
+
+    <string-array name="st_uso_titulo_tv">
+        <item>Assistir começa o vídeo; se você já começou, Continuar volta de onde parou e Do início começa do zero.</item>
+        <item>Áudio e legendas escolhe o idioma antes de começar.</item>
+        <item>O coração adiciona aos favoritos; Marcar como assistido muda o selo.</item>
+        <item>Nas séries, escolha a temporada e o episódio; nos vídeos com capítulos, vá direto ao capítulo.</item>
+        <item>Segure OK numa capa para o menu rápido: Assistir, Marcar como assistido, Favoritos e Editar.</item>
+    </string-array>
+    <string-array name="st_uso_titulo_tablet">
+        <item>Assistir começa do início; se você já começou, Continuar volta de onde parou.</item>
+        <item>Áudio e legendas escolhe o idioma antes de começar.</item>
+        <item>Nas séries, escolha a temporada e o episódio; nos vídeos com capítulos, vá direto ao capítulo.</item>
+        <item>Toque e segure uma capa, na lista ou no detalhe, para o menu rápido: Assistir, Marcar como assistido, Favoritos e Editar.</item>
+    </string-array>
+
+    <string-array name="st_uso_player_tv">
+        <item>Com os controles na tela, use as setas e o OK nos botões; eles somem sozinhos depois de 5 segundos.</item>
+        <item>Com os controles escondidos, ← volta 10 segundos e → avança 10; as outras setas e o OK mostram os controles.</item>
+        <item>As teclas de anterior e próximo do controle remoto trocam de capítulo; Capítulos abre a lista.</item>
+        <item>Áudio e Legendas trocam a faixa durante o vídeo. Ao sair, o ponto onde você parou fica guardado.</item>
+    </string-array>
+    <string-array name="st_uso_player_tablet">
+        <item>Um toque mostra ou esconde os controles; eles somem sozinhos 5 segundos depois do último toque.</item>
+        <item>Dois toques na lateral esquerda voltam 10 segundos; na direita, avançam 10.</item>
+        <item>Arraste para os lados para mudar a posição; para cima ou para baixo, o volume.</item>
+        <item>Capítulos abre a faixa de capítulos; Áudio e Legendas trocam a faixa. Ao sair, o ponto onde você parou fica guardado.</item>
+    </string-array>
+
+    <string-array name="st_uso_pastas">
+        <item>Marque o tipo de cada pasta: Filmes, Séries, Shows ou Ignorar. Pastas com esses nomes já são reconhecidas.</item>
+        <item>Nomes que o app entende: \"Nome do filme (2012).mkv\", \"Nome da série / Temporada 1 / 01.mkv\" e \"Artista - Show (2019).mkv\".</item>
+        <item>O que não se encaixar vai para Não identificados e pode ser corrigido em Editar.</item>
+        <item>Adicionar pasta inclui outra pasta do HD ou do aparelho; Atualizar procura vídeos novos.</item>
+    </string-array>
+
+    <string-array name="st_uso_editar">
+        <item>Corrija título, tipo, ano, duração, gêneros e sinopse, e escolha outra capa ou outro fundo.</item>
+        <item>Buscar no TMDB mostra os resultados para você escolher o certo; Restaurar original desfaz as mudanças.</item>
+        <item>Abra pelo detalhe do título ou pelo menu rápido da capa.</item>
+    </string-array>
+
+    <string-array name="st_uso_configuracoes">
+        <item>Escolha o áudio e a legenda preferidos, o tamanho da legenda e se o vídeo continua de onde parou.</item>
+        <item>Pastas da biblioteca e Atualizar biblioteca também ficam aqui.</item>
+    </string-array>
+</resources>

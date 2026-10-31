@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Selo "escolha o tipo" da pasta: âmbar 14 % com borda âmbar 45 %. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/st_aviso_14" />
+    <stroke
+        android:width="?attr/stBorda"
+        android:color="@color/st_aviso_45" />
+    <corners android:radius="?attr/stCantoSelo" />
+</shape>

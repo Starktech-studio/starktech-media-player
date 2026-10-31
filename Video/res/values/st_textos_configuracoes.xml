@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Textos de Configurações, Sobre e Buscar da TV (F1 fase I): D16, D17, D11. Só pt-BR (D4). -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="pt-BR">
+
+    <!-- Configurações (D16) -->
+    <string name="st_configuracoes_dica">Biblioteca, áudio, legendas e reprodução.</string>
+    <string name="st_cfg_pastas">Pastas da biblioteca</string>
+    <string name="st_cfg_pastas_dica">Onde ficam os filmes, as séries e os shows</string>
+    <string name="st_cfg_atualizar_dica">Procura vídeos novos nas pastas</string>
+    <string name="st_cfg_audio">Áudio preferido</string>
+    <string name="st_cfg_audio_dica">Idioma escolhido ao abrir um vídeo</string>
+    <string name="st_cfg_legenda">Legenda preferida</string>
+    <string name="st_cfg_legenda_dica">Idioma da legenda ao abrir um vídeo</string>
+    <string name="st_cfg_tamanho_legenda">Tamanho da legenda</string>
+    <string name="st_cfg_tamanho_legenda_dica">Pequena, média ou grande</string>
+    <string name="st_cfg_retomar">Retomar de onde parou</string>
+    <string name="st_cfg_retomar_dica">Continuar do ponto em que o vídeo parou</string>
+    <string name="st_cfg_sobre">Sobre</string>
+    <string name="st_cfg_sobre_dica">Versão, créditos e licenças</string>
+    <string name="st_valor_original">Original do arquivo</string>
+    <string name="st_valor_portugues">Português (BR)</string>
+    <string name="st_valor_ingles">Inglês</string>
+    <string name="st_valor_desligada">Desligada</string>
+    <string name="st_valor_pequena">Pequena</string>
+    <string name="st_valor_media">Média</string>
+    <string name="st_valor_grande">Grande</string>
+    <string name="st_valor_ligado">Ligado</string>
+    <string name="st_valor_desligado">Desligado</string>
+
+    <!-- Sobre (D17) -->
+    <string name="st_sobre_descricao">Player e biblioteca de mídia. Lê o HD ou disco externo, separa filmes, séries e shows com capa, sinopse e dados técnicos, e reproduz MKV e MP4 em 4K.</string>
+    <string name="st_versao">Versão %1$s</string>
+    <string name="st_creditos">Créditos</string>
+    <string name="st_creditos_nova">Baseado no Nova Video Player · Apache-2.0</string>
+    <string name="st_avisos_terceiros">Avisos de terceiros</string>
+    <string name="st_ver_todos">Ver todos</string>
+    <string name="st_aviso_tmdb">Este produto usa a API do TMDB, mas não é endossado nem certificado pelo TMDB.</string>
+    <string name="st_logo_tmdb">Logo do TMDB</string>
+    <string name="st_direitos">© 2026 StarkTech Studio. Todos os direitos reservados.</string>
+
+    <!-- Buscar da TV (D11) -->
+    <string name="st_busca_dica">Digite o nome de um filme, série ou show</string>
+    <string name="st_busca_nada">Nada encontrado para "%1$s"</string>
+</resources>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!--
+     Abas Filmes, Séries e Shows do tablet (ListaFragment, D9): título da tela (30 px, como
+     "Pastas" no tablet-pastas.dc.html) e grade de capas 196x294 dp com 22 dp de espaço,
+     sem filtros. Margens do tablet-biblioteca.dc.html (40 x 28 dp). Colunas pela largura.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/st_lista_titulo"
+        style="@style/StarkTech.Texto.Titulo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/st_tablet_margem_h"
+        android:layout_marginTop="@dimen/st_tablet_margem_v"
+        android:layout_marginEnd="@dimen/st_tablet_margem_h"
+        android:textSize="@dimen/st_tablet_texto_titulo_tela" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/st_lista_grade"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="18dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+        android:paddingStart="@dimen/st_tablet_margem_h"
+        android:paddingEnd="@dimen/st_tablet_margem_h"
+        android:paddingBottom="@dimen/st_tablet_margem_v"
+        android:scrollbars="none" />
+</LinearLayout>

@@ -11,6 +11,8 @@
     <color name="st_azul">#3B82F6</color>
     <color name="st_azul_botao">#2563EB</color>
     <color name="st_ciano">#06B6D4</color>
+    <!-- "Media Player" da marca do topo, como no banner -->
+    <color name="st_amarelo_marca">#E8AA30</color>
 
     <!-- Texto -->
     <color name="st_texto">#FFFFFF</color>
@@ -27,22 +29,51 @@
     <color name="st_selo_sem_hd_texto">#FCA5A5</color>
 
     <!-- Transparências usadas no desenho (rgba do HTML) -->
+    <color name="st_branco_4">#0AFFFFFF</color>
     <color name="st_branco_8">#14FFFFFF</color>
+    <color name="st_branco_10">#1AFFFFFF</color>
     <color name="st_branco_12">#1FFFFFFF</color>
     <color name="st_branco_14">#24FFFFFF</color>
     <color name="st_branco_15">#26FFFFFF</color>
+    <color name="st_branco_18">#2EFFFFFF</color>
     <color name="st_branco_30">#4DFFFFFF</color>
     <color name="st_branco_35">#59FFFFFF</color>
+    <color name="st_branco_55">#8CFFFFFF</color>
+    <color name="st_branco_60">#99FFFFFF</color>
+    <color name="st_azul_16">#293B82F6</color>
     <color name="st_azul_18">#2E3B82F6</color>
     <color name="st_azul_50">#803B82F6</color>
-    <color name="st_brilho_azul">#1A2563EB</color>
-    <color name="st_brilho_azul_meio">#142563EB</color>
-    <color name="st_brilho_azul_fim">#002563EB</color>
     <color name="st_assistido_90">#E610B981</color>
     <color name="st_assistido_14">#2410B981</color>
+    <color name="st_assistido_18">#2E10B981</color>
+    <color name="st_assistido_45">#7310B981</color>
     <color name="st_assistido_50">#8010B981</color>
+    <color name="st_ciano_10">#1A06B6D4</color>
+    <color name="st_ciano_12">#1F06B6D4</color>
+    <color name="st_ciano_35">#5906B6D4</color>
+    <color name="st_ciano_40">#6606B6D4</color>
+    <color name="st_ciano_claro">#67E8F9</color>
+    <color name="st_aviso_6">#0FF59E0B</color>
+    <color name="st_aviso_14">#24F59E0B</color>
+    <color name="st_aviso_45">#73F59E0B</color>
+    <color name="st_aviso_50">#80F59E0B</color>
+    <color name="st_aviso_claro">#FCD34D</color>
+    <color name="st_azul_8">#143B82F6</color>
+    <color name="st_azul_30">#4D3B82F6</color>
+    <color name="st_branco_5">#0DFFFFFF</color>
     <color name="st_erro_14">#24EF4444</color>
     <color name="st_erro_50">#80EF4444</color>
     <color name="st_barra_lateral">#990F172A</color>
     <color name="st_veu_selo">#BF020617</color>
+    <!-- Véu 72 % do fundo do Detalhe e da Série (misturado na cor do fundo, PecasDetalhe.fundoDoTitulo) -->
+    <color name="st_veu_72">#B8020617</color>
+
+    <!-- Player (tv-player, tablet-player): véus sobre o vídeo, painel de capítulos -->
+    <color name="st_video">#000000</color>
+    <color name="st_veu_70">#B3020617</color>
+    <color name="st_veu_88">#E0020617</color>
+    <color name="st_veu_90">#E6020617</color>
+    <color name="st_veu_0">#00020617</color>
+    <color name="st_cartao_94">#F00F172A</color>
+    <color name="st_azul_55">#8C3B82F6</color>
 </resources>

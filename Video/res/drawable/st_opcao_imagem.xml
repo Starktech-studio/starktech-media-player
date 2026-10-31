@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Opção de capa ou fundo em Editar (por cima do bloco de cor): escolhida = anel azul de 4 px; em foco (TV) = borda branca. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <stroke
+                android:width="@dimen/st_tv_foco_borda"
+                android:color="@color/st_texto" />
+            <corners android:radius="?attr/stCantoBotao" />
+        </shape>
+    </item>
+    <item android:state_selected="true">
+        <shape android:shape="rectangle">
+            <stroke
+                android:width="?attr/stBordaCampo"
+                android:color="@color/st_azul" />
+            <corners android:radius="?attr/stCantoBotao" />
+        </shape>
+    </item>
+    <item android:drawable="@android:color/transparent" />
+</selector>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!--
+     Menu da capa (MenuCapaActivity), tv-menu-capa.dc.html: título, dica e as opções Assistir,
+     Marcar como assistido, Adicionar aos favoritos, Trocar capa, Trocar fundo e Editar.
+     Medidas da TV ou do tablet aplicadas no código; as opções são criadas no código.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/st_menu_caixa"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/st_fundo_menu"
+    android:contentDescription="@string/st_opcoes_capa"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/st_menu_titulo"
+        style="@style/StarkTech.Texto.Titulo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:letterSpacing="0"
+        android:maxLines="2" />
+
+    <TextView
+        android:id="@+id/st_menu_dica"
+        style="@style/StarkTech.Texto.Apagado"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp" />
+
+    <LinearLayout
+        android:id="@+id/st_menu_opcoes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" />
+</LinearLayout>

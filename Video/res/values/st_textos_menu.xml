@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Textos do Menu da capa (F1 fase E): tv-menu-capa.dc.html; no tablet, toque longo (D12). Só pt-BR (D4). -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="pt-BR">
+    <string name="st_opcoes_capa">Opções da capa</string>
+    <string name="st_menu_dica_tv">Abre ao segurar OK · um toque em OK vai para os detalhes</string>
+    <string name="st_menu_dica_tablet">Abre ao tocar e segurar · um toque vai para os detalhes</string>
+    <string name="st_adicionar_favoritos">Adicionar aos favoritos</string>
+</resources>

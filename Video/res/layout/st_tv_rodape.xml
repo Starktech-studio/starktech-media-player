@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!--
+     Rodapé do Início da TV (Main.dc.html): linha #1e293b, logo StarkTech (72 px = 36 dp, D5),
+     "StarkTech Studio®", "StarkTech Media Player · versão …" (versão lida do pacote) e o site.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/st_rodape"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="@dimen/st_tv_margem_lateral"
+    android:layout_marginTop="@dimen/st_tv_rodape_margem_topo"
+    android:layout_marginEnd="@dimen/st_tv_margem_lateral"
+    android:orientation="vertical">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:background="@color/st_borda" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingTop="@dimen/st_tv_rodape_padding"
+        android:paddingBottom="@dimen/st_tv_rodape_padding">
+
+        <ImageView
+            android:layout_width="@dimen/st_tv_logo_rodape"
+            android:layout_height="@dimen/st_tv_logo_rodape"
+            android:contentDescription="@string/st_logo"
+            android:src="@drawable/st_logo" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/st_rodape_empresa"
+                style="@style/StarkTech.Texto.Titulo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:letterSpacing="0"
+                android:textSize="@dimen/st_tv_texto_rodape_empresa" />
+
+            <TextView
+                android:id="@+id/st_rodape_versao"
+                style="@style/StarkTech.Texto.Apagado"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/st_tv_texto_cartao_sub" />
+        </LinearLayout>
+
+        <TextView
+            style="@style/StarkTech.Texto.Forte"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/st_rodape_site"
+            android:textColor="@color/st_texto_apagado"
+            android:textSize="@dimen/st_tv_texto_rodape_site" />
+    </LinearLayout>
+</LinearLayout>

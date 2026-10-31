@@ -513,7 +513,7 @@ public final class RepositorioSimulado implements RepositorioBiblioteca {
             return new DadosTecnicos("3840×2160 · H.265 · HDR10", "Inglês · Dolby Digital 5.1",
                     "Português (BR) · Inglês", t.arquivo, "8, com nome", "HD externo (USB)",
                     Arrays.asList("4K UHD", "HDR10", "Dolby Digital 5.1", "Legendas PT-BR"),
-                    Arrays.asList("4K UHD", "HDR10", "5.1"));
+                    Arrays.asList("4K UHD", "HDR10", "5.1"), 2);
         }
         List<Capitulo> caps = capitulos(idTitulo);
         String textoCapitulos = caps.isEmpty() ? "Sem capítulos" : caps.size() + ", com nome";
@@ -521,7 +521,7 @@ public final class RepositorioSimulado implements RepositorioBiblioteca {
         return new DadosTecnicos("1920×1080 · H.264", "Inglês · Estéreo", "Português (BR)", t.arquivo,
                 textoCapitulos, origem,
                 Arrays.asList("1080p", "Estéreo", "Legendas PT-BR"),
-                Arrays.asList("1080p", "Estéreo"));
+                Arrays.asList("1080p", "Estéreo"), 1);
     }
 
     @Override
@@ -688,6 +688,19 @@ public final class RepositorioSimulado implements RepositorioBiblioteca {
     @Override
     public void definirTipoPasta(String idPasta, TipoPasta tipo) {
         estado.definirTipoPasta(idPasta, tipo);
+    }
+
+    @Override
+    public synchronized void adicionarPasta(Origem origem, String caminho) {
+        for (Pasta p : pastas) {
+            if (p.caminho.equals(caminho)) return;
+        }
+        String nome = caminho.replaceAll("^.*/\\s*", "");
+        String chave = normalizar(nome);
+        TipoPasta tipo = chave.equals("filmes") ? TipoPasta.FILMES
+                : chave.equals("series") ? TipoPasta.SERIES
+                : chave.equals("shows") ? TipoPasta.SHOWS : TipoPasta.NENHUM;
+        pastas.add(pasta("adicionada_" + pastas.size(), nome, origem, caminho, tipo != TipoPasta.NENHUM, 0, 0, 0, tipo));
     }
 
     @Override

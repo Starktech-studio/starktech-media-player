@@ -33,5 +33,21 @@ public final class BordasSistema {
             // Não consome: as views irmãs também recebem
             return insets;
         });
+        // View que entra depois da tela montada (fragmento de aba): pede as áreas de novo
+        if (view.isAttachedToWindow()) {
+            ViewCompat.requestApplyInsets(view);
+        } else {
+            view.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+                @Override
+                public void onViewAttachedToWindow(View v) {
+                    v.removeOnAttachStateChangeListener(this);
+                    ViewCompat.requestApplyInsets(v);
+                }
+
+                @Override
+                public void onViewDetachedFromWindow(View v) {
+                }
+            });
+        }
     }
 }

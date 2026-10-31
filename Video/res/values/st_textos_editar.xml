@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Textos de Editar e Buscar no TMDB (F1 fase G): tv-editar, tablet-editar, tv-busca-tmdb. Só pt-BR (D4). -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="pt-BR">
+
+    <!-- Topo -->
+    <string name="st_buscar_tmdb">Buscar no TMDB</string>
+    <string name="st_restaurar_original">Restaurar original</string>
+    <string name="st_fechar">Fechar</string>
+    <string name="st_cancelar">Cancelar</string>
+    <string name="st_salvar">Salvar</string>
+
+    <!-- Capa e fundo -->
+    <string name="st_capa">Capa</string>
+    <string name="st_fundo">Fundo</string>
+    <string name="st_capa_atual">Capa atual</string>
+    <string name="st_fundo_atual">Fundo atual</string>
+    <string name="st_capa_nova">Nova capa · salve para usar</string>
+    <string name="st_fundo_novo">Novo fundo · salve para usar</string>
+    <string name="st_outras_opcoes">Outras opções</string>
+    <string name="st_do_hd">Do HD</string>
+    <string name="st_do_aparelho">Do aparelho</string>
+    <string name="st_regra_capa">JPG, PNG ou WebP · vertical 2:3 · ideal 1000×1500 px</string>
+    <string name="st_regra_fundo">JPG, PNG ou WebP · horizontal 16:9 · ideal 1920×1080 px</string>
+    <string name="st_opcao_imagem">Opção %1$d</string>
+    <string name="st_tela_imagem_hd">Escolher imagem</string>
+
+    <!-- Campos -->
+    <string name="st_campo_titulo">Título</string>
+    <string name="st_campo_titulo_original">Título original</string>
+    <string name="st_campo_tipo">Tipo</string>
+    <string name="st_campo_ano">Ano</string>
+    <string name="st_campo_duracao">Duração</string>
+    <string name="st_campo_generos">Gêneros</string>
+    <string name="st_campo_sinopse">Sinopse</string>
+
+    <!-- Buscar no TMDB -->
+    <string name="st_escolher_filme">Escolher o filme certo</string>
+    <string name="st_escolher_serie">Escolher a série certa</string>
+    <string name="st_escolher_show">Escolher o show certo</string>
+    <string name="st_buscar_acao">Buscar</string>
+    <string name="st_resultado_linha">%1$s · %2$s · TMDB</string>
+    <string name="st_atual">Atual</string>
+    <string name="st_selecionar">Selecionar</string>
+    <string name="st_ajuda_tmdb">Não achou? Mude o nome ou acrescente o ano. Ao selecionar, título, sinopse, capa e fundo são trocados — os campos editados à mão ficam como estão.</string>
+</resources>

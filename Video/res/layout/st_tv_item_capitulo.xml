@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!--
+     Capítulo na fileira do Detalhe da TV (CapituloAdapter): miniatura 260x146 px com o número,
+     nome e início. O foco (borda branca) fica só na miniatura. Medidas: px do HTML / 2.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="@dimen/st_tv_capitulo_largura"
+    android:layout_height="wrap_content"
+    android:focusable="true"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:id="@+id/st_capitulo_miniatura"
+        android:layout_width="@dimen/st_tv_capitulo_largura"
+        android:layout_height="@dimen/st_tv_capitulo_altura"
+        android:duplicateParentState="true"
+        android:foreground="@drawable/st_foco_tv">
+
+        <TextView
+            android:id="@+id/st_capitulo_numero"
+            style="@style/StarkTech.Texto.Titulo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:letterSpacing="0"
+            android:textColor="@color/st_branco_55"
+            android:textSize="@dimen/st_tv_texto_capitulo_numero" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/st_capitulo_nome"
+        style="@style/StarkTech.Texto.Botao"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:textSize="@dimen/st_tv_texto_capitulo_nome" />
+
+    <TextView
+        android:id="@+id/st_capitulo_tempo"
+        style="@style/StarkTech.Texto.Apagado"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textSize="@dimen/st_tv_texto_capitulo_tempo" />
+</LinearLayout>

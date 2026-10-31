@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Resultado do TMDB: branco 4 % com borda #1e293b; canto do cartão (TV 8 dp, tablet 16 dp); toque com ripple. -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/st_branco_14">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/st_branco_4" />
+            <stroke
+                android:width="?attr/stBorda"
+                android:color="@color/st_borda" />
+            <corners android:radius="?attr/stCantoCartao" />
+        </shape>
+    </item>
+</ripple>

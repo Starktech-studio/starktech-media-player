@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!--
+     Cartão 16:9 do tablet (CartaoAdapter): tablet-biblioteca.dc.html "Continuar assistindo".
+     Imagem 320x180 dp (bloco de cor no código), barra de progresso de 5 dp, título e linha
+     de apoio. O toque vale para o cartão inteiro; o efeito do toque fica na imagem.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="@dimen/st_tablet_cartao_largura"
+    android:layout_height="wrap_content"
+    android:clickable="true"
+    android:focusable="true"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:id="@+id/st_cartao_imagem"
+        android:layout_width="@dimen/st_tablet_cartao_largura"
+        android:layout_height="@dimen/st_tablet_cartao_altura"
+        android:duplicateParentState="true"
+        android:foreground="?attr/selectableItemBackground">
+
+        <ImageView
+            android:layout_width="@dimen/st_tablet_cartao_icone"
+            android:layout_height="@dimen/st_tablet_cartao_icone"
+            android:layout_gravity="center"
+            android:importantForAccessibility="no"
+            android:src="@drawable/st_ic_imagem"
+            app:tint="@color/st_branco_30" />
+
+        <FrameLayout
+            android:id="@+id/st_cartao_favorito"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|start"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/st_selo_veu"
+            android:contentDescription="@string/st_favorito"
+            android:padding="6dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/st_ic_favorito"
+                app:tint="@color/st_favorito" />
+        </FrameLayout>
+    </FrameLayout>
+
+    <ProgressBar
+        android:id="@+id/st_cartao_progresso"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/st_tablet_progresso_altura"
+        android:layout_marginTop="8dp"
+        android:importantForAccessibility="no"
+        android:max="100"
+        android:maxHeight="@dimen/st_tablet_progresso_altura"
+        android:minHeight="@dimen/st_tablet_progresso_altura"
+        android:progressDrawable="@drawable/st_progresso" />
+
+    <TextView
+        android:id="@+id/st_cartao_titulo"
+        style="@style/StarkTech.Texto.Botao"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textSize="@dimen/st_tablet_texto_cartao_titulo" />
+
+    <TextView
+        android:id="@+id/st_cartao_sub"
+        style="@style/StarkTech.Texto.Apagado"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textSize="@dimen/st_tablet_texto_cartao_sub" />
+</LinearLayout>

@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!--
+     Editar na TV (EditarActivity), tv-editar.dc.html: Voltar, título e "Editar"; Buscar no TMDB e
+     Restaurar original; capa e fundo à esquerda (a escolhida em destaque; embaixo, as outras opções
+     do TMDB + Do HD, D14); campos à direita
+     (criados no código) e Cancelar / Salvar embaixo. Medidas: px do HTML / 2.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/st_fundo">
+
+    <br.com.starktechstudio.mediaplayer.comum.FundoAnimado
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:overScrollMode="never"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="@dimen/st_tv_margem_lateral"
+            android:paddingTop="@dimen/st_tv_margem_topo"
+            android:paddingEnd="@dimen/st_tv_margem_lateral"
+            android:paddingBottom="@dimen/st_tv_margem_topo">
+
+            <!-- Topo -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/st_editar_voltar"
+                    android:layout_width="28dp"
+                    android:layout_height="@dimen/st_tv_botao_icone_altura"
+                    android:background="@drawable/st_botao_secundario"
+                    android:contentDescription="@string/st_voltar"
+                    android:foreground="@drawable/st_foco_tv"
+                    android:padding="7dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/st_ic_voltar"
+                    app:tint="@color/st_texto" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/st_editar_nome"
+                        style="@style/StarkTech.Texto.Forte"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:singleLine="true"
+                        android:textColor="@color/st_texto_apagado"
+                        android:textSize="@dimen/st_tv_texto_editar_nome" />
+
+                    <TextView
+                        style="@style/StarkTech.Texto.Titulo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/st_editar"
+                        android:textSize="@dimen/st_tv_texto_editar_titulo" />
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/st_editar_buscar_tmdb"
+                    style="@style/StarkTech.Botao.Tv.Secundario"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/st_tv_botao_altura"
+                    android:text="@string/st_buscar_tmdb"
+                    android:textSize="@dimen/st_tv_texto_detalhe_topo_botao" />
+
+                <Button
+                    android:id="@+id/st_editar_restaurar"
+                    style="@style/StarkTech.Botao.Tv.Secundario"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/st_tv_botao_altura"
+                    android:layout_marginStart="7dp"
+                    android:text="@string/st_restaurar_original"
+                    android:textSize="@dimen/st_tv_texto_detalhe_topo_botao" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/st_tv_editar_margem_topo"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <!-- Capa e fundo (540 px): a escolhida em destaque e as outras opções + Do HD (D14) embaixo, montadas no código -->
+                <LinearLayout
+                    android:layout_width="@dimen/st_tv_editar_coluna"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/StarkTech.Texto.Rotulo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/st_capa"
+                        android:textColor="@color/st_texto_apagado"
+                        android:textSize="@dimen/st_tv_texto_dados_rotulo" />
+
+                    <LinearLayout
+                        android:id="@+id/st_editar_capas"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="7dp"
+                        android:orientation="vertical" />
+
+                    <TextView
+                        style="@style/StarkTech.Texto.Rotulo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:text="@string/st_fundo"
+                        android:textColor="@color/st_texto_apagado"
+                        android:textSize="@dimen/st_tv_texto_dados_rotulo" />
+
+                    <LinearLayout
+                        android:id="@+id/st_editar_fundos"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="7dp"
+                        android:orientation="vertical" />
+                </LinearLayout>
+
+                <!-- Campos (2 colunas) e Cancelar / Salvar -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/st_tv_editar_espaco"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:id="@+id/st_editar_campos"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/st_tv_campo_espaco_v"
+                        android:gravity="end"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/st_editar_cancelar"
+                            style="@style/StarkTech.Botao.Tv.Secundario"
+                            android:layout_width="wrap_content"
+                            android:layout_height="@dimen/st_tv_botao_altura"
+                            android:text="@string/st_cancelar" />
+
+                        <Button
+                            android:id="@+id/st_editar_salvar"
+                            style="@style/StarkTech.Botao.Tv.Primario"
+                            android:layout_width="wrap_content"
+                            android:layout_height="@dimen/st_tv_botao_altura"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/st_salvar" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>

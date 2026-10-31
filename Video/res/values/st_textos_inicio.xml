@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Textos do Início, das listas e do rodapé (F1 fase D): Main.dc.html, tablet-biblioteca.dc.html, tv-menu-capa.dc.html. Só pt-BR (D4). -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="pt-BR">
+
+    <!-- Destaque da TV (slide de 10 s, D10) -->
+    <string name="st_novidades">Novidades na biblioteca</string>
+    <string name="st_assistir">Assistir</string>
+    <string name="st_detalhes">Detalhes</string>
+    <string name="st_favoritar">Favoritar</string>
+    <string name="st_remover_favoritos">Remover dos favoritos</string>
+    <string name="st_ir_para">Ir para %1$s</string>
+    <string name="st_duracao_min">%1$d min</string>
+
+    <!-- Fileiras -->
+    <string name="st_continuar_assistindo">Continuar assistindo</string>
+    <string name="st_favoritos">Favoritos</string>
+    <string name="st_filmes_adicionados">Filmes adicionados recentemente</string>
+    <string name="st_adicionados">Adicionados recentemente</string>
+
+    <!-- Capas e cartões -->
+    <string name="st_assistido">Assistido</string>
+    <string name="st_favorito">Favorito</string>
+    <string name="st_cap_faltam">Cap. %1$d de %2$d · Faltam %3$d min</string>
+    <string name="st_cap_de">Cap. %1$d de %2$d</string>
+    <string name="st_faltam">Faltam %1$d min</string>
+    <string name="st_ano_duracao">%1$s · %2$d min</string>
+
+    <!-- Rodapé da TV -->
+    <string name="st_rodape_empresa" translatable="false">StarkTech Studio</string>
+    <string name="st_rodape_registrada" translatable="false">®</string>
+    <string name="st_rodape_versao">StarkTech Media Player · versão %1$s</string>
+    <string name="st_rodape_site" translatable="false">starktechstudio.com.br</string>
+</resources>

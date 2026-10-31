@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!--
+     Cartão 16:9 da TV (CartaoAdapter): Main.dc.html "Continuar assistindo" e "Favoritos".
+     Imagem 380x214 px = 190x107 dp (bloco de cor no código), barra de progresso de 3 dp
+     (só em Continuar), título e linha de apoio; coração no canto (só em Favoritos).
+     O item recebe o foco; a borda de foco fica na imagem (duplicateParentState).
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="@dimen/st_tv_cartao_largura"
+    android:layout_height="wrap_content"
+    android:focusable="true"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:id="@+id/st_cartao_imagem"
+        android:layout_width="@dimen/st_tv_cartao_largura"
+        android:layout_height="@dimen/st_tv_cartao_altura"
+        android:duplicateParentState="true"
+        android:foreground="@drawable/st_foco_tv">
+
+        <ImageView
+            android:layout_width="@dimen/st_tv_cartao_icone"
+            android:layout_height="@dimen/st_tv_cartao_icone"
+            android:layout_gravity="center"
+            android:importantForAccessibility="no"
+            android:src="@drawable/st_ic_imagem"
+            app:tint="@color/st_branco_30" />
+
+        <FrameLayout
+            android:id="@+id/st_cartao_favorito"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|start"
+            android:layout_marginStart="@dimen/st_tv_selo_favorito_margem"
+            android:layout_marginTop="@dimen/st_tv_selo_favorito_margem"
+            android:background="@drawable/st_selo_veu"
+            android:contentDescription="@string/st_favorito"
+            android:padding="@dimen/st_tv_selo_favorito_padding"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="@dimen/st_tv_selo_favorito_icone"
+                android:layout_height="@dimen/st_tv_selo_favorito_icone"
+                android:importantForAccessibility="no"
+                android:src="@drawable/st_ic_favorito"
+                app:tint="@color/st_favorito" />
+        </FrameLayout>
+    </FrameLayout>
+
+    <ProgressBar
+        android:id="@+id/st_cartao_progresso"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/st_tv_progresso_altura"
+        android:layout_marginTop="6dp"
+        android:importantForAccessibility="no"
+        android:max="100"
+        android:maxHeight="@dimen/st_tv_progresso_altura"
+        android:minHeight="@dimen/st_tv_progresso_altura"
+        android:progressDrawable="@drawable/st_progresso" />
+
+    <TextView
+        android:id="@+id/st_cartao_titulo"
+        style="@style/StarkTech.Texto.Botao"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textSize="@dimen/st_tv_texto_cartao_titulo" />
+
+    <TextView
+        android:id="@+id/st_cartao_sub"
+        style="@style/StarkTech.Texto.Apagado"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="3dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textSize="@dimen/st_tv_texto_cartao_sub" />
+</LinearLayout>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Pausar do player do tablet: círculo azul #2563eb de 76 px. -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/st_branco_14">
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@color/st_azul_botao" />
+        </shape>
+    </item>
+</ripple>

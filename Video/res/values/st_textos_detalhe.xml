@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Textos do Detalhe (F1 fase E): tv-detalhe.dc.html e tablet-detalhe.dc.html. Só pt-BR (D4). -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="pt-BR">
+
+    <!-- Topo -->
+    <string name="st_editar">Editar</string>
+    <string name="st_biblioteca">Biblioteca</string>
+
+    <!-- Tipo e origem dos dados -->
+    <string name="st_tipo_filme">Filme</string>
+    <string name="st_tipo_serie">Série</string>
+    <string name="st_tipo_show">Show</string>
+    <string name="st_dados_tmdb">Dados do TMDB</string>
+    <string name="st_dados_tmdb_corrigidos">Dados do TMDB · corrigidos à mão</string>
+
+    <!-- Progresso e ações -->
+    <string name="st_parou_em">Parou em %1$s · %2$d%%</string>
+    <string name="st_marcar_assistido">Marcar como assistido</string>
+    <string name="st_marcar_nao_assistido">Marcar como não assistido</string>
+    <string name="st_continuar">Continuar</string>
+    <string name="st_continuar_em">Continuar %1$s</string>
+    <string name="st_do_inicio">Do início</string>
+    <string name="st_capitulos">Capítulos</string>
+    <string name="st_audio_legendas">Áudio e legendas</string>
+
+    <!-- Abas do tablet e dados técnicos -->
+    <string name="st_dados_tecnicos">Dados técnicos</string>
+    <string name="st_elenco">Elenco</string>
+    <string name="st_sem_elenco">Sem elenco no TMDB.</string>
+    <string name="st_dt_video">Vídeo</string>
+    <string name="st_dt_audio">Áudio</string>
+    <string name="st_dt_legendas">Legendas</string>
+    <string name="st_dt_arquivo">Arquivo</string>
+    <string name="st_dt_capitulos">Capítulos</string>
+    <string name="st_dt_origem">Origem</string>
+
+    <!-- Capítulos -->
+    <string name="st_capitulos_lidos">%1$d · lidos do arquivo %2$s</string>
+    <string name="st_capitulo_descricao">Capítulo %1$d: %2$s, %3$s</string>
+</resources>

@@ -167,12 +167,11 @@ Padrão da família (`starktech-design`): escudo + lobo do Conversor, cor e selo
 
 | Item | Situação |
 |---|---|
-| Cor do escudo | A definir |
-| Selo | A definir (sugestão: triângulo de play) |
+| Cor do escudo | Preto, com linhas e lobo em branco (escolhido em 31/10/2026) |
+| Selo | Redondo, com triângulo de play |
 
 ---
 
 ## 10. A definir
 
-- Cor e selo do ícone.
 - Licença de cada sub-repositório e dos nativos.

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Android 12+: a tela de abertura do sistema mostra o ícone do app sobre #020617 (o splash fica para as versões antes da 12). -->
+<resources>
+
+    <style name="Theme.StarkTech.Abertura">
+        <item name="android:windowBackground">@drawable/st_abertura</item>
+        <item name="android:windowSplashScreenBackground">@color/st_fundo</item>
+    </style>
+</resources>

@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!--
+     Player do tablet (ReproducaoTabletActivity), tablet-player.dc.html: vídeo (simulado na F1; toques
+     e gestos em GestosReproducao), topo com Voltar, título grande e o capítulo; embaixo, a faixa de
+     capítulos (abre em "Capítulos", arrasta para o lado), barra, "Próximo capítulo em…", botões no
+     centro e Áudio, Legendas e Capítulos à direita. Controles somem após 5 s; um toque mostra.
+     Medidas: px do HTML = dp. Sem fundo animado.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/st_video">
+
+    <!-- Área do vídeo: recebe os toques e os gestos -->
+    <TextView
+        android:id="@+id/st_rep_video"
+        style="@style/StarkTech.Texto.Botao"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@string/st_mostrar_controles"
+        android:gravity="center"
+        android:text="@string/st_video_simulado"
+        android:textColor="@color/st_branco_12"
+        android:textSize="@dimen/st_tablet_texto_rep_video" />
+
+    <!-- Aviso no centro: ±10 s, posição ao arrastar, volume, capítulo -->
+    <TextView
+        android:id="@+id/st_rep_aviso"
+        style="@style/StarkTech.Texto.Titulo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:alpha="0"
+        android:background="@drawable/st_fundo_painel_reproducao"
+        android:letterSpacing="0"
+        android:paddingStart="24dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="12dp"
+        android:textSize="@dimen/st_tablet_texto_rep_aviso" />
+
+    <!-- Topo: Voltar, título e capítulo -->
+    <LinearLayout
+        android:id="@+id/st_rep_topo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:background="@drawable/st_veu_topo_reproducao"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/st_tablet_rep_topo_padding_h"
+        android:paddingTop="@dimen/st_tablet_rep_topo_padding_topo"
+        android:paddingEnd="@dimen/st_tablet_rep_topo_padding_h"
+        android:paddingBottom="@dimen/st_tablet_rep_topo_padding_base">
+
+        <ImageButton
+            android:id="@+id/st_rep_voltar"
+            android:layout_width="@dimen/st_tablet_rep_voltar"
+            android:layout_height="@dimen/st_tablet_rep_voltar"
+            android:background="@drawable/st_botao_secundario"
+            android:contentDescription="@string/st_voltar"
+            android:padding="14dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/st_ic_voltar"
+            app:tint="@color/st_texto" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="18dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/st_rep_titulo"
+                style="@style/StarkTech.Texto.Titulo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:textSize="@dimen/st_tablet_texto_rep_titulo" />
+
+            <TextView
+                android:id="@+id/st_rep_sub"
+                style="@style/StarkTech.Texto.Forte"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:singleLine="true"
+                android:textColor="@color/st_ciano"
+                android:textSize="@dimen/st_tablet_texto_rep_sub" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Controles embaixo (fundo #020617 90 %) -->
+    <LinearLayout
+        android:id="@+id/st_rep_controles"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/st_veu_90"
+        android:clickable="true"
+        android:focusable="false"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/st_tablet_rep_topo_padding_h"
+        android:paddingTop="@dimen/st_tablet_rep_controles_padding_topo"
+        android:paddingEnd="@dimen/st_tablet_rep_topo_padding_h"
+        android:paddingBottom="@dimen/st_tablet_rep_controles_padding_base">
+
+        <!-- Faixa de capítulos (sem "Ver todos"): arrasta para o lado -->
+        <LinearLayout
+            android:id="@+id/st_rep_faixa"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/st_tablet_rep_controles_espaco"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/st_rep_faixa_titulo"
+                style="@style/StarkTech.Texto.Titulo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:letterSpacing="0"
+                android:textSize="@dimen/st_tablet_texto_rep_capitulos" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/st_rep_lista_capitulos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:clipToPadding="false"
+                android:overScrollMode="never"
+                android:paddingStart="4dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="4dp"
+                android:paddingBottom="6dp" />
+        </LinearLayout>
+
+        <!-- Tempo, barra (tocar ou arrastar muda a posição), duração -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/st_rep_tempo"
+                style="@style/StarkTech.Texto.Botao"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/st_tablet_texto_rep_tempo" />
+
+            <br.com.starktechstudio.mediaplayer.comum.BarraCapitulosView
+                android:id="@+id/st_rep_barra"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/st_rep_duracao"
+                style="@style/StarkTech.Texto.Botao"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/st_texto_secundario"
+                android:textSize="@dimen/st_tablet_texto_rep_tempo" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/st_tablet_rep_controles_espaco"
+            android:baselineAligned="false"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/st_rep_proximo"
+                style="@style/StarkTech.Texto.Forte"
+                android:layout_width="@dimen/st_tablet_rep_lado_largura"
+                android:layout_height="wrap_content"
+                android:textColor="@color/st_texto_apagado"
+                android:textSize="@dimen/st_tablet_texto_rep_proximo" />
+
+            <!-- Centro: botões com nome embaixo e Pausar redondo -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/st_rep_cap_anterior"
+                    style="@style/StarkTech.Texto.Botao"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/st_tablet_rep_botao"
+                    android:layout_marginEnd="@dimen/st_tablet_rep_botao_espaco"
+                    android:background="@drawable/st_botao_reproducao_tablet"
+                    android:contentDescription="@string/st_capitulo_anterior"
+                    android:drawablePadding="4dp"
+                    android:gravity="center"
+                    android:minWidth="@dimen/st_tablet_rep_botao"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:text="@string/st_cap_anterior"
+                    android:textColor="@color/st_texto_secundario"
+                    android:textSize="@dimen/st_tablet_texto_rep_rotulo" />
+
+                <ImageButton
+                    android:id="@+id/st_rep_pausar"
+                    android:layout_width="@dimen/st_tablet_rep_pausar"
+                    android:layout_height="@dimen/st_tablet_rep_pausar"
+                    android:background="@drawable/st_botao_pausar_redondo"
+                    android:contentDescription="@string/st_pausar"
+                    android:padding="23dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/st_ic_pausar"
+                    app:tint="@color/st_texto" />
+
+                <TextView
+                    android:id="@+id/st_rep_cap_proximo"
+                    style="@style/StarkTech.Texto.Botao"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/st_tablet_rep_botao"
+                    android:layout_marginStart="@dimen/st_tablet_rep_botao_espaco"
+                    android:background="@drawable/st_botao_reproducao_tablet"
+                    android:contentDescription="@string/st_proximo_capitulo"
+                    android:drawablePadding="4dp"
+                    android:gravity="center"
+                    android:minWidth="@dimen/st_tablet_rep_botao"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:text="@string/st_prox_capitulo"
+                    android:textColor="@color/st_texto_secundario"
+                    android:textSize="@dimen/st_tablet_texto_rep_rotulo" />
+            </LinearLayout>
+
+            <!-- Direita: Áudio, Legendas, Capítulos -->
+            <LinearLayout
+                android:layout_width="@dimen/st_tablet_rep_lado_largura"
+                android:layout_height="wrap_content"
+                android:gravity="end|center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/st_rep_audio"
+                    style="@style/StarkTech.Texto.Botao"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/st_tablet_rep_botao"
+                    android:background="@drawable/st_botao_reproducao_tablet"
+                    android:drawablePadding="4dp"
+                    android:gravity="center"
+                    android:minWidth="@dimen/st_tablet_rep_botao"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:text="@string/st_audio"
+                    android:textColor="@color/st_texto_secundario"
+                    android:textSize="@dimen/st_tablet_texto_rep_rotulo" />
+
+                <TextView
+                    android:id="@+id/st_rep_legendas"
+                    style="@style/StarkTech.Texto.Botao"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/st_tablet_rep_botao"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/st_botao_reproducao_tablet"
+                    android:drawablePadding="4dp"
+                    android:gravity="center"
+                    android:minWidth="@dimen/st_tablet_rep_botao"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:text="@string/st_legendas"
+                    android:textColor="@color/st_texto_secundario"
+                    android:textSize="@dimen/st_tablet_texto_rep_rotulo" />
+
+                <TextView
+                    android:id="@+id/st_rep_capitulos"
+                    style="@style/StarkTech.Texto.Botao"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/st_tablet_rep_botao"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/st_botao_reproducao_tablet"
+                    android:drawablePadding="4dp"
+                    android:gravity="center"
+                    android:minWidth="@dimen/st_tablet_rep_botao"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:text="@string/st_capitulos"
+                    android:textColor="@color/st_texto_secundario"
+                    android:textSize="@dimen/st_tablet_texto_rep_rotulo" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

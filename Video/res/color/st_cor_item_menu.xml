@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Texto e ícone do item do Menu da capa: em foco ou tocado (fundo branco) = #020617; demais branco. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/st_texto_escuro" android:state_focused="true" />
+    <item android:color="@color/st_texto_escuro" android:state_pressed="true" />
+    <item android:color="@color/st_texto" />
+</selector>

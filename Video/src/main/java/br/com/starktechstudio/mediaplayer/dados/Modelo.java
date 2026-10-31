@@ -310,9 +310,11 @@ public final class Modelo {
         public final List<String> chips;
         /** Chips do Detalhe do tablet ("4K UHD", "HDR10", "5.1"). */
         public final List<String> chipsCurtos;
+        /** Quantos chips do começo das duas listas são do vídeo (azuis no desenho: "4K UHD", "HDR10"). */
+        public final int chipsVideo;
 
         public DadosTecnicos(String video, String audio, String legendas, String arquivo, String capitulos,
-                             String origem, List<String> chips, List<String> chipsCurtos) {
+                             String origem, List<String> chips, List<String> chipsCurtos, int chipsVideo) {
             this.video = video;
             this.audio = audio;
             this.legendas = legendas;
@@ -321,6 +323,7 @@ public final class Modelo {
             this.origem = origem;
             this.chips = Collections.unmodifiableList(new ArrayList<>(chips));
             this.chipsCurtos = Collections.unmodifiableList(new ArrayList<>(chipsCurtos));
+            this.chipsVideo = chipsVideo;
         }
     }
 }

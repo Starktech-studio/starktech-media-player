@@ -19,11 +19,17 @@ public class EmConstrucaoActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         setTheme(Aparelho.tema(this));
         super.onCreate(savedInstanceState);
+        // Fundo #020617 com o fundo animado atrás do conteúdo
+        FrameLayout raiz = new FrameLayout(this);
+        raiz.setBackgroundResource(R.color.st_fundo);
+        raiz.addView(new FundoAnimado(this), new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
         FrameLayout conteudo = new FrameLayout(this);
         conteudo.setId(R.id.st_conteudo);
-        conteudo.setBackgroundResource(R.color.st_fundo);
         BordasSistema.aplicar(conteudo, true, true, true, true);
-        setContentView(conteudo);
+        raiz.addView(conteudo, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        setContentView(raiz);
 
         if (savedInstanceState == null) {
             int nome = getIntent().getIntExtra(EXTRA_NOME, 0);

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!--
+     Capítulo na faixa do player do tablet (CapituloAdapter), tablet-player.dc.html: miniatura
+     176x99 com o número (o atual com contorno azul de 3 px), nome e início. Toque leva ao capítulo.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="@dimen/st_tablet_rep_capitulo_largura"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:id="@+id/st_capitulo_miniatura"
+        android:layout_width="@dimen/st_tablet_rep_capitulo_largura"
+        android:layout_height="@dimen/st_tablet_rep_capitulo_altura"
+        android:duplicateParentState="true"
+        android:foreground="@drawable/st_contorno_capitulo_atual">
+
+        <TextView
+            android:id="@+id/st_capitulo_numero"
+            style="@style/StarkTech.Texto.Titulo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:letterSpacing="0"
+            android:textColor="@color/st_branco_60"
+            android:textSize="@dimen/st_tablet_texto_rep_item_numero" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/st_capitulo_nome"
+        style="@style/StarkTech.Texto.Botao"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:textSize="@dimen/st_tablet_texto_rep_item_nome" />
+
+    <TextView
+        android:id="@+id/st_capitulo_tempo"
+        style="@style/StarkTech.Texto.Forte"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textColor="@color/st_texto_apagado"
+        android:textSize="@dimen/st_tablet_texto_rep_item_tempo" />
+</LinearLayout>

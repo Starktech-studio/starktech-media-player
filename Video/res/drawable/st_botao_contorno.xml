@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Botão só com contorno ("Marcar como assistido" do Detalhe): sem fundo, borda branca 18 %. -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/st_branco_14">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent" />
+            <stroke
+                android:width="?attr/stBorda"
+                android:color="@color/st_branco_18" />
+            <corners android:radius="?attr/stCantoSelo" />
+        </shape>
+    </item>
+</ripple>

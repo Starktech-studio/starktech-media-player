@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
-<!-- Ícone adaptativo provisório (D5): fundo #020617 + triângulo de play em vetor. -->
+<!-- Ícone adaptativo definitivo: fundo #020617 + frente em PNG (escudo com o lobo e o play), de ÍCONES/android/res. -->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
     <background android:drawable="@color/st_fundo" />
-    <foreground android:drawable="@drawable/st_ic_launcher_frente" />
-    <monochrome android:drawable="@drawable/st_ic_launcher_frente" />
+    <foreground android:drawable="@mipmap/st_ic_launcher_frente" />
 </adaptive-icon>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!--
+     Abas Filmes, Séries e Shows da TV (ListaFragment, D9): grade de capas 2:3 no padrão do
+     tv-menu-capa.dc.html (título 28 px a 60 px do topo, capas 196x294 px com 28 px de espaço),
+     sem filtros. Medidas: px do HTML / 2. Colunas calculadas pela largura (7 em 960 dp).
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/st_lista_titulo"
+        style="@style/StarkTech.Texto.Titulo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/st_tv_margem_lateral"
+        android:layout_marginTop="@dimen/st_tv_lista_margem_topo"
+        android:layout_marginEnd="@dimen/st_tv_margem_lateral"
+        android:letterSpacing="0"
+        android:textSize="@dimen/st_tv_texto_titulo_secao" />
+
+    <androidx.leanback.widget.VerticalGridView
+        android:id="@+id/st_lista_grade"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="11dp"
+        android:layout_weight="1"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:paddingStart="@dimen/st_tv_fileira_inicio"
+        android:paddingTop="@dimen/st_tv_fileira_topo"
+        android:paddingEnd="@dimen/st_tv_margem_lateral"
+        android:paddingBottom="@dimen/st_tv_margem_topo" />
+</LinearLayout>
