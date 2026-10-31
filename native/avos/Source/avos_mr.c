@@ -1,5 +1,6 @@
 /*
  * Copyright 2017 Archos SA
+ * Modificado por StarkTech Studio em 2026
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -309,6 +310,17 @@ static int avos_mr_fillmetadata(avos_mr_t *mr)
 			ADD_STR(gap_key + AVOS_MR_METADATA_SUBTITLE_TRACK_LANGUAGE, av->sub[i].lang);
 			serprintf("avos_mr_fillmetadata: sub[%d] disp=%d\n", i, av->sub[i].disposition);
 			ADD_INT(gap_key + AVOS_MR_METADATA_SUBTITLE_TRACK_DISPOSITION, av->sub[i].disposition);
+		}
+	}
+	if (mr->type == TYPE_VID && mr->info.num_chapters > 0) {
+		// chapters read from the file (StarkTech)
+		ADD_INT(AVOS_MR_METADATA_NB_CHAPTER, mr->info.num_chapters);
+		for (i = 0; i < mr->info.num_chapters; ++i) {
+			FILE_INFO_CHAPTER *chapter = &mr->info.chapters[i];
+			gap_key = AVOS_MR_METADATA_CHAPTER + i * AVOS_MR_METADATA_CHAPTER_MAX;
+			ADD_STR(gap_key + AVOS_MR_METADATA_CHAPTER_TITLE, chapter->title);
+			ADD_INT64(gap_key + AVOS_MR_METADATA_CHAPTER_START, (int64_t)chapter->start);
+			ADD_INT64(gap_key + AVOS_MR_METADATA_CHAPTER_END, (int64_t)chapter->end);
 		}
 	}
 

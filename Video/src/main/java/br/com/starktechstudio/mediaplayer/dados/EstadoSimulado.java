@@ -5,14 +5,12 @@ package br.com.starktechstudio.mediaplayer.dados;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import java.util.Locale;
-
-import br.com.starktechstudio.mediaplayer.dados.Modelo.Campo;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.TipoPasta;
 
 /**
- * Estado das ações da F1 (favorito, assistido, posição, edição à mão, capa, fundo,
- * resultado do TMDB, tipo da pasta, HD), num arquivo próprio: st_simulado.
+ * Estado das ações da F1 (favorito, assistido, posição, resultado do TMDB, tipo da pasta, HD),
+ * num arquivo próprio: st_simulado. A edição à mão (campos, capa e fundo) está no banco do app
+ * desde a F2 ({@code motor.Edicoes}).
  * Não toca nas preferências padrão nem no banco do Nova. Sai na F3.
  */
 final class EstadoSimulado {
@@ -53,32 +51,7 @@ final class EstadoSimulado {
         prefs.edit().putInt("posicao_" + id, segundos).apply();
     }
 
-    // ---- Edição à mão ----
-
-    /** Valor editado à mão, ou null se o campo não foi editado. */
-    String campoEditado(String id, Campo campo) {
-        return prefs.getString(chaveCampo(id, campo), null);
-    }
-
-    void definirCampoEditado(String id, Campo campo, String valor) {
-        prefs.edit().putString(chaveCampo(id, campo), valor).apply();
-    }
-
-    String capa(String id) {
-        return prefs.getString("capa_" + id, null);
-    }
-
-    void definirCapa(String id, int cor) {
-        prefs.edit().putString("capa_" + id, Integer.toString(cor)).apply();
-    }
-
-    String fundo(String id) {
-        return prefs.getString("fundo_" + id, null);
-    }
-
-    void definirFundo(String id, int cor) {
-        prefs.edit().putString("fundo_" + id, Integer.toString(cor)).apply();
-    }
+    // ---- Resultado do TMDB (a edição à mão fica na motor.Edicoes, desde a F2) ----
 
     String resultadoTmdb(String id) {
         return prefs.getString("tmdb_" + id, null);
@@ -88,16 +61,9 @@ final class EstadoSimulado {
         prefs.edit().putString("tmdb_" + id, idResultado).apply();
     }
 
-    /** Escolha do TMDB troca capa e fundo: apaga as escolhas anteriores. */
-    void limparCapaFundo(String id) {
-        prefs.edit().remove("capa_" + id).remove("fundo_" + id).apply();
-    }
-
-    /** Restaurar original: apaga edição, capa, fundo e resultado do TMDB do título. */
+    /** Restaurar original: apaga o resultado do TMDB escolhido (a edição sai na motor.Edicoes). */
     void restaurarOriginal(String id) {
-        SharedPreferences.Editor editor = prefs.edit();
-        for (Campo campo : Campo.values()) editor.remove(chaveCampo(id, campo));
-        editor.remove("capa_" + id).remove("fundo_" + id).remove("tmdb_" + id).apply();
+        prefs.edit().remove("tmdb_" + id).apply();
     }
 
     // ---- Pastas e HD ----
@@ -122,9 +88,5 @@ final class EstadoSimulado {
 
     void definirHdConectado(boolean conectado) {
         prefs.edit().putBoolean(HD_CONECTADO, conectado).apply();
-    }
-
-    private static String chaveCampo(String id, Campo campo) {
-        return "editado_" + id + "_" + campo.name().toLowerCase(Locale.ROOT);
     }
 }

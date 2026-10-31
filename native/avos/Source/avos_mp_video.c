@@ -1,5 +1,6 @@
 /*
  * Copyright 2017 Archos SA
+ * Modificado por StarkTech Studio em 2026
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,7 +134,8 @@ static void send_metadata(avos_mp_t *mp, avos_mp_video_t *video, int notify)
 	    video->last_duration,
 	    video->last_seekable,
 	    video->last_pauseable,
-	    decoder);
+	    decoder,
+	    video->s);
 	if (changed && notify) {
 		MPLOG("changed");
 		avos_mp_sendevent(mp, MEDIA_INFO, MEDIA_INFO_METADATA_UPDATE, 0);

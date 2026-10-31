@@ -23,7 +23,14 @@
     <string name="st_regra_capa">JPG, PNG ou WebP · vertical 2:3 · ideal 1000×1500 px</string>
     <string name="st_regra_fundo">JPG, PNG ou WebP · horizontal 16:9 · ideal 1920×1080 px</string>
     <string name="st_opcao_imagem">Opção %1$d</string>
-    <string name="st_tela_imagem_hd">Escolher imagem</string>
+    <string name="st_escolher_imagem">Escolher imagem</string>
+    <string name="st_escolher_imagem_dica">JPG, PNG ou WebP, até 15 MB</string>
+    <string name="st_nenhuma_imagem">Nenhuma pasta ou imagem aqui</string>
+    <string name="st_imagem_formato">Use uma imagem JPG, PNG ou WebP.</string>
+    <string name="st_imagem_grande">A imagem passa de 15 MB.</string>
+    <string name="st_imagem_ilegivel">Não deu para ler essa imagem.</string>
+    <string name="st_imagem_sem_permissao">Sem permissão para ver as imagens do aparelho.</string>
+    <string name="st_imagem_do_aparelho">Imagem do aparelho</string>
 
     <!-- Campos -->
     <string name="st_campo_titulo">Título</string>

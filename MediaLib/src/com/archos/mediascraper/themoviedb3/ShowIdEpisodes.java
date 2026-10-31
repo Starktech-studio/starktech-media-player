@@ -1,4 +1,5 @@
 // Copyright 2020 Courville Software
+// Modificado por StarkTech Studio em 2026
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -92,7 +93,7 @@ public class ShowIdEpisodes {
                             for (CastMember seasonStar : tvSeason.credits.cast)
                                 episodeTags.addActorIfAbsent(seasonStar.name, seasonStar.character);
                         }
-                        // note tvSeason.poster_path can be null when show has only one serie e.g. https://api.themoviedb.org/3/tv/93911/season/1?language=en&api_key=051012651ba326cf5b1e2f482342eaa2
+                        // note tvSeason.poster_path can be null when show has only one serie e.g. https://api.themoviedb.org/3/tv/93911/season/1?language=en&api_key=SUA_CHAVE_DO_TMDB
                         if (tvSeason.poster_path != null) {
                             // Cache ScraperImage objects to avoid redundant creation for episodes sharing the same season poster
                             String posterKey = showId + "|" + tvSeason.poster_path + "|" + language;

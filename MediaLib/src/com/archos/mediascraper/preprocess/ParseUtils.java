@@ -1,4 +1,5 @@
 // Copyright 2017 Archos SA
+// Modificado por StarkTech Studio em 2026
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -74,7 +75,7 @@ public class ParseUtils {
     // i.e. movieName (1969) garbage -> movieName () garbage -> movieName
     private static final Pattern EMPTY_PARENTHESIS_PATTERN = Pattern.compile("(.*)[\\s\\p{Punct}]+([(][)])(.*)");
 
-    // full list of possible countries of origin is available here https://api.themoviedb.org/3/configuration/countries?api_key=051012651ba326cf5b1e2f482342eaa2
+    // full list of possible countries of origin is available here https://api.themoviedb.org/3/configuration/countries?api_key=SUA_CHAVE_DO_TMDB
     private static final Pattern COUNTRY_OF_ORIGIN = Pattern.compile("(.*)[\\s\\p{Punct}]+\\(((US|UK|FR))\\)(.*)");
 
     // Validates a standalone roman numeral token (e.g. "iii", "iv"), lowercase only.

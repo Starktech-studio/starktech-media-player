@@ -1,4 +1,5 @@
 // Copyright 2026 Courville Software
+// Modificado por StarkTech Studio em 2026
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -29,6 +30,7 @@ import com.archos.mediascraper.preprocess.SearchPreprocessor;
 import com.archos.mediascraper.themoviedb3.SearchMovie2;
 import com.archos.mediascraper.themoviedb3.SearchMovieResult;
 
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -70,12 +72,14 @@ import static org.mockito.Mockito.spy;
 @Config(sdk = 33)
 public class ScraperPerfCascadeOrderTest {
 
-    private static final String STUB_TMDB_API_KEY = "051012651ba326cf5b1e2f482342eaa2";
+    // Chave do TMDB fora do código (StarkTech): vem do Gradle (starktech.tmdb.chave); sem ela, o teste é pulado
+    private static final String STUB_TMDB_API_KEY = System.getProperty("starktech.tmdb.chave", "");
 
     private PerfCacheTmdb perfTmdb;
 
     @Before
     public void setUp() {
+        Assume.assumeFalse("sem a chave do TMDB (starktech.tmdb.chave)", STUB_TMDB_API_KEY.isEmpty());
         Context context = spy(ApplicationProvider.getApplicationContext());
         doReturn(STUB_TMDB_API_KEY).when(context).getString(R.string.tmdb_api_key);
         FileUtilsQ.getInstance(context);

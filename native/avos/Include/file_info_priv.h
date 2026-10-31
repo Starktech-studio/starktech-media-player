@@ -1,5 +1,6 @@
 /*
  * Copyright 2017 Archos SA
+ * Modificado por StarkTech Studio em 2026
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +29,14 @@
 
 typedef int (*FILE_INFO_ABORT) ( void * );
 
+// chapters read from the file (StarkTech): the info path keeps no STREAM, so they live here
+#define FILE_INFO_MAX_CHAPTERS 256
+typedef struct FILE_INFO_CHAPTER {
+	char		title[MAX_TAG_LENGTH + 1];	// empty when the file has none
+	UINT64		start;	// ms
+	UINT64		end;	// ms
+} FILE_INFO_CHAPTER;
+
 typedef struct FILE_INFO {
 	int 		type;
 	int 		etype;
@@ -50,6 +59,9 @@ typedef struct FILE_INFO {
 	
 	char		full_path[MAX_NAME_LEN + 1];
 	void *abort_opaque; // borrowed for the duration of get_url_info_with_abort()
+
+	int		num_chapters;
+	FILE_INFO_CHAPTER chapters[FILE_INFO_MAX_CHAPTERS];
 } FILE_INFO;
 
 typedef int (*FILE_INFO_PATH)( const char *path,           struct FILE_INFO *info, APIC *apic, FILE_INFO_ABORT abort );

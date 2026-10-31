@@ -1,5 +1,6 @@
 /*
  * Copyright 2017 Archos SA
+ * Modificado por StarkTech Studio em 2026
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,9 +61,11 @@ enum {
 	AVOS_MR_METADATA_NB_VIDEO_TRACK			= 9000,
 	AVOS_MR_METADATA_NB_AUDIO_TRACK			= 9001,
 	AVOS_MR_METADATA_NB_SUBTITLE_TRACK	 	= 9002,
+	AVOS_MR_METADATA_NB_CHAPTER			= 9003,
 	AVOS_MR_METADATA_VIDEO_TRACK			= 10000,
 	AVOS_MR_METADATA_AUDIO_TRACK			= 20000,
 	AVOS_MR_METADATA_SUBTITLE_TRACK			= 30000,
+	AVOS_MR_METADATA_CHAPTER			= 40000,
 };
 
 enum {
@@ -103,6 +106,14 @@ enum {
 	AVOS_MR_METADATA_SUBTITLE_TRACK_LANGUAGE	= 4,
 	AVOS_MR_METADATA_SUBTITLE_TRACK_DISPOSITION	= 5,
 	AVOS_MR_METADATA_SUBTITLE_TRACK_MAX			= 6,
+};
+
+// chapters read from the file (StarkTech), same layout as the player
+enum {
+	AVOS_MR_METADATA_CHAPTER_TITLE			= 0, // empty when the file has none
+	AVOS_MR_METADATA_CHAPTER_START			= 1, // ms
+	AVOS_MR_METADATA_CHAPTER_END			= 2, // ms
+	AVOS_MR_METADATA_CHAPTER_MAX			= 3,
 };
 
 #endif // AVOS_MR_METADATA_H

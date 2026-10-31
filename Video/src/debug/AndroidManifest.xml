@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Modificado por StarkTech Studio em 2026 -->
 <!-- TV features and the Leanback launcher are inherited from the main manifest. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
@@ -7,6 +8,11 @@
         <!-- DUMP is granted to adb shell; ordinary apps cannot configure tests. -->
         <receiver
             android:name="com.archos.mediacenter.video.debug.SpeedTestReceiver"
+            android:exported="true"
+            android:permission="android.permission.DUMP" />
+        <!-- StarkTech (F2): conferência dos capítulos pelo motor, só no debug (adb) -->
+        <receiver
+            android:name="br.com.starktechstudio.mediaplayer.debug.CapitulosReceiver"
             android:exported="true"
             android:permission="android.permission.DUMP" />
     </application>

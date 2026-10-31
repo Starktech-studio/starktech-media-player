@@ -23,6 +23,7 @@ import com.archos.mediacenter.video.R;
 import br.com.starktechstudio.mediaplayer.comum.BordasSistema;
 import br.com.starktechstudio.mediaplayer.comum.Navegacao;
 import br.com.starktechstudio.mediaplayer.comum.Navegacao.Aba;
+import br.com.starktechstudio.mediaplayer.comum.TelaCarregamento;
 import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 
 /**
@@ -90,6 +91,8 @@ public class PrincipalTabletActivity extends AppCompatActivity {
                 && getSupportFragmentManager().findFragmentById(R.id.st_conteudo) != null;
         if (restaurado) marcarItem(inicial);
         else selecionarAba(inicial);
+        // Ao abrir o app: tela de carregamento por cima até a biblioteca ficar pronta
+        if (savedInstanceState == null) TelaCarregamento.mostrar(this);
     }
 
     /** Pastas da biblioteca (em Ajustes) e outras telas que pedem uma aba. */

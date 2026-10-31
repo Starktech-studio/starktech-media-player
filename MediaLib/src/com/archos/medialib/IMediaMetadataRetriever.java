@@ -1,4 +1,5 @@
 // Copyright 2017 Archos SA
+// Modificado por StarkTech Studio em 2026
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -402,6 +403,8 @@ public interface IMediaMetadataRetriever {
 
     public static final int METADATA_KEY_NB_SUBTITLE_TRACK  = 9002;
 
+    public static final int METADATA_KEY_NB_CHAPTER         = 9003;
+
     public static final int METADATA_KEY_VIDEO_TRACK        = 10000;
 
     public static final int METADATA_KEY_AUDIO_TRACK        = 20000;
@@ -441,4 +444,11 @@ public interface IMediaMetadataRetriever {
     public static final int METADATA_KEY_SUBTITLE_TRACK_LANGUAGE    = 4;
     public static final int METADATA_KEY_SUBTITLE_TRACK_DISPOSITION = 5;
     public static final int METADATA_KEY_SUBTITLE_TRACK_MAX         = 6;
+
+    // Chapters read from the file (StarkTech), same layout as IMediaPlayer; values come as text
+    public static final int METADATA_KEY_CHAPTER                    = 40000;
+    public static final int METADATA_KEY_CHAPTER_TITLE              = 0; // empty when the file has none
+    public static final int METADATA_KEY_CHAPTER_START              = 1; // ms
+    public static final int METADATA_KEY_CHAPTER_END                = 2; // ms
+    public static final int METADATA_KEY_CHAPTER_MAX                = 3;
 }

@@ -7,6 +7,7 @@
 |---|---|
 | `arquitetura/interface.md` | Telas novas no código: pacotes, regra TV × tablet, medidas, recursos, navegação e rotas, dados simulados e o que ligar na F3 |
 | `arquitetura/licencas.md` | Licença de cada pasta do Nova e de cada nativo do APK; obrigações para distribuir |
+| `arquitetura/motor.md` | Lógica da F2: capítulos do arquivo (motor → Java), banco do app (edição à mão, tipo por pasta), imagem do aparelho, classificação de filmes, séries e shows, chave do TMDB; o que a F3 liga |
 | `backlog.md` | Pendências fora do plano da fase em curso, separadas pela fase em que entram (F2, F3 e F4) |
 | `imagens/f0/tablet.png` | F0 — tela inicial do APK debug sem alteração no emulador de tablet (Tablet_API37, 2560×1600) |
 | `imagens/f0/tv.png` | F0 — tela inicial do APK debug sem alteração no emulador de TV (TV_1080p_API36, 1920×1080) |

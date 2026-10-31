@@ -1,4 +1,5 @@
 // Copyright 2021 Courville Software
+// Modificado por StarkTech Studio em 2026
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -59,7 +60,7 @@ public class ShowIdSeasonSearch {
             myResult = new ShowIdSeasonSearchResult();
             try {
                 // use appendToResponse to get imdbId
-                // e.g. https://api.themoviedb.org/3/tv/66732/season/1?language=en&append_to_response=credits%2Cexternal_ids%2Cimages%2Ccontent_ratings&include_image_language=en%2Cnull&api_key=051012651ba326cf5b1e2f482342eaa2
+                // e.g. https://api.themoviedb.org/3/tv/66732/season/1?language=en&append_to_response=credits%2Cexternal_ids%2Cimages%2Ccontent_ratings&include_image_language=en%2Cnull&api_key=SUA_CHAVE_DO_TMDB
                 Response<TvSeason> seriesResponse = tmdb.tvSeasonsService().season(showId, season, language, new AppendToResponse(AppendToResponseItem.EXTERNAL_IDS, AppendToResponseItem.IMAGES, AppendToResponseItem.CREDITS, AppendToResponseItem.CONTENT_RATINGS), options).execute();
                 switch (seriesResponse.code()) {
                     case 401: // auth issue

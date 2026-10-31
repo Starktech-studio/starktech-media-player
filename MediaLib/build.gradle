@@ -1,3 +1,4 @@
+// Modificado por StarkTech Studio em 2026
 apply plugin: 'com.android.library'
 
 repositories {
@@ -13,6 +14,12 @@ ext {
     // so Nova pins it explicitly. 9.2.30 is the last 9.2.x line; Jetty >= 9.3 uses
     // java.util.concurrent.atomic.LongAdder (API 24), which breaks minSdk 23.
     jettyVersion = '9.2.30.v20200428'
+}
+
+// StarkTech (F2): chave da API do TMDB fora do repositório — linha "starktech.tmdb.chave=" do
+// ~/.gradle/gradle.properties do WSL; vazia quando a linha não existe
+def chaveTmdb() {
+    return (project.findProperty('starktech.tmdb.chave') ?: '').toString().trim()
 }
 
 allprojects {
@@ -79,6 +86,15 @@ android {
         multiDexEnabled = true
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         consumerProguardFiles 'proguard-project.txt'
+
+        // StarkTech (F2): chaves fora do Git. A do TMDB vem da linha "starktech.tmdb.chave=" do
+        // ~/.gradle/gradle.properties do WSL (fora do repositório) e entra no APK na hora do build;
+        // sem a linha, fica vazia e o TMDB responde "sem autorização", sem fechar o app.
+        // Trakt e OpenSubtitles: desligados, sem chave (D5).
+        resValue 'string', 'tmdb_api_key', chaveTmdb()
+        resValue 'string', 'trakt_api_key', ''
+        resValue 'string', 'trakt_api_secret', ''
+        resValue 'string', 'opensubtitles_api_key', ''
     }
 
     tasks.withType(JavaCompile).configureEach {
@@ -111,6 +127,7 @@ android {
     buildFeatures {
         aidl = true
         renderScript = false
+        resValues = true
     }
     lint {
         abortOnError = true
@@ -123,6 +140,8 @@ android {
         unitTests.all {
             forkEvery = 1
             systemProperty 'nova.test.mediaDbPath', System.getProperty('nova.test.mediaDbPath')
+            // Testes que chamam o TMDB de verdade usam a mesma chave; sem ela, são pulados
+            systemProperty 'starktech.tmdb.chave', chaveTmdb()
             testLogging {
                 events "passed", "skipped", "failed", "standardOut", "standardError"
                 outputs.upToDateWhen {false}

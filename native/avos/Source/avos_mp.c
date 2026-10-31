@@ -1,5 +1,6 @@
 /*
  * Copyright 2017 Archos SA
+ * Modificado por StarkTech Studio em 2026
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -197,7 +198,7 @@ avos_mp_audio_t *avos_mp_getaudio(avos_mp_t *mp)
 	return (avos_mp_audio_t *)mp->media;
 }
 
-int avos_mp_fillmetadata(avos_mp_t *mp, int type, uint64_t size, ID3_TAG *id3_tag, AV_PROPERTIES *av, const char *mimetype, int duration, int seekable, int pauseable, int decoder)
+int avos_mp_fillmetadata(avos_mp_t *mp, int type, uint64_t size, ID3_TAG *id3_tag, AV_PROPERTIES *av, const char *mimetype, int duration, int seekable, int pauseable, int decoder, struct STREAM *s)
 {
 #define ADD_STR(_id, _str) do { \
 	if (avos_metadata_append_str(buffer, (_id), (_str)) == -1) \
@@ -370,6 +371,21 @@ int avos_mp_fillmetadata(avos_mp_t *mp, int type, uint64_t size, ID3_TAG *id3_ta
 		if (av->subs >= 0 && av->subs < av->subs_max)
 			current_subitle = av->sub[av->subs].valid ? av->subs : -1;
 		ADD_INT(AVOS_MP_METADATA_CURRENT_SUBTITLE_TRACK, current_subitle);
+	}
+	if (type == TYPE_VID && s) {
+		// chapters read from the file (StarkTech); stream_get_chapter fills a missing end
+		STREAM_CHAPTER chapter;
+		int nb_chapters = stream_get_chapter(s, 0, NULL);
+		ADD_INT(AVOS_MP_METADATA_NB_CHAPTER, nb_chapters);
+		for (i = 0; i < nb_chapters; ++i) {
+			if (!stream_get_chapter(s, i, &chapter))
+				break;
+			gap_key = AVOS_MP_METADATA_CHAPTER + i * AVOS_MP_METADATA_CHAPTER_MAX;
+			// the ffmpeg parser stores "s_unknown" when the chapter has no title
+			ADD_STR(gap_key + AVOS_MP_METADATA_CHAPTER_TITLE, strcmp(chapter.title, "s_unknown") ? chapter.title : "");
+			ADD_INT(gap_key + AVOS_MP_METADATA_CHAPTER_START, (int)chapter.start);
+			ADD_INT(gap_key + AVOS_MP_METADATA_CHAPTER_END, (int)chapter.end);
+		}
 	}
 
 quit:

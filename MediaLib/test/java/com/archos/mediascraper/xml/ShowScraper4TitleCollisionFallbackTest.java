@@ -1,4 +1,5 @@
 // Copyright 2026 Courville Software
+// Modificado por StarkTech Studio em 2026
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -59,7 +60,7 @@ public class ShowScraper4TitleCollisionFallbackTest {
     @Before
     public void setUp() {
         context = spy(ApplicationProvider.getApplicationContext());
-        doReturn("051012651ba326cf5b1e2f482342eaa2").when(context).getString(R.string.tmdb_api_key);
+        doReturn("chave-falsa-de-teste").when(context).getString(R.string.tmdb_api_key);
     }
 
     private static SearchInfo someTvSearchInfo() {

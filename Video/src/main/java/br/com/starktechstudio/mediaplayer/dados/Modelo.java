@@ -53,6 +53,9 @@ public final class Modelo {
         public String sinopse;
         public int corCapa;
         public int corFundo;
+        /** Capa / fundo escolhidos no aparelho (referência da {@code motor.Edicoes}); nulo = a cor. */
+        public String capaImagem;
+        public String fundoImagem;
         /** Cor da miniatura 16:9 (Continuar assistindo, Favoritos). */
         public int corCartao;
         public String arquivo;
@@ -85,6 +88,8 @@ public final class Modelo {
             t.sinopse = sinopse;
             t.corCapa = corCapa;
             t.corFundo = corFundo;
+            t.capaImagem = capaImagem;
+            t.fundoImagem = fundoImagem;
             t.corCartao = corCartao;
             t.arquivo = arquivo;
             t.naoIdentificado = naoIdentificado;

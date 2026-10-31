@@ -33,6 +33,7 @@ import com.archos.mediacenter.video.R;
 import br.com.starktechstudio.mediaplayer.comum.Animacoes;
 import br.com.starktechstudio.mediaplayer.comum.Navegacao;
 import br.com.starktechstudio.mediaplayer.comum.Navegacao.Aba;
+import br.com.starktechstudio.mediaplayer.comum.TelaCarregamento;
 
 /**
  * Tela principal da TV (Main.dc.html): barra do topo com a marca, as pílulas
@@ -61,6 +62,8 @@ public class PrincipalTvActivity extends AppCompatActivity {
     private final Handler relogio = new Handler(Looper.getMainLooper());
     /** Aba nova esperando o menu parar para ser montada. */
     private Runnable trocaPendente;
+    @Nullable
+    private TelaCarregamento carregamento;
     private int corTexto;
     private int corTextoAtivo;
     private int abaAtiva = -1;
@@ -106,6 +109,8 @@ public class PrincipalTvActivity extends AppCompatActivity {
         if (restaurado) marcarPilula(inicial);
         else selecionarAba(inicial);
         pilulas[inicial].requestFocus();
+        // Ao abrir o app: tela de carregamento por cima até a biblioteca ficar pronta
+        if (savedInstanceState == null) carregamento = TelaCarregamento.mostrar(this);
     }
 
     /** OK numa pílula do Detalhe ou da Série: volta para cá, na aba pedida, com o foco nela. */
@@ -264,6 +269,8 @@ public class PrincipalTvActivity extends AppCompatActivity {
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent evento) {
+        // Tela de carregamento aberta: o controle não mexe na tela de baixo
+        if (carregamento != null && carregamento.aberta()) return true;
         if (evento.getAction() == KeyEvent.ACTION_DOWN) {
             View foco = getCurrentFocus();
             int tecla = evento.getKeyCode();

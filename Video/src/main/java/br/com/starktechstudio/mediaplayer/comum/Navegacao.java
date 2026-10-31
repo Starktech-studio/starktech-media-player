@@ -178,11 +178,6 @@ public final class Navegacao {
         origem.startActivity(new Intent(origem, BuscaTmdbActivity.class).putExtra(EXTRA_ID, idTitulo));
     }
 
-    /** Capa ou fundo do HD / do aparelho (D14): navegador de pastas da fase H. */
-    public static void abrirImagemDoAparelho(Activity origem, String idTitulo) {
-        emConstrucao(origem, R.string.st_tela_imagem_hd);
-    }
-
     /** Não identificados (Revisar, em Pastas; D15). */
     public static void abrirNaoIdentificados(Activity origem) {
         origem.startActivity(new Intent(origem, NaoIdentificadosActivity.class));
@@ -200,11 +195,5 @@ public final class Navegacao {
 
     public static void abrirInformacoesUso(Activity origem) {
         origem.startActivity(new Intent(origem, InformacoesUsoActivity.class));
-    }
-
-    private static void emConstrucao(Activity origem, @StringRes int nomeTela) {
-        Intent intent = new Intent(origem, EmConstrucaoActivity.class);
-        intent.putExtra(EmConstrucaoActivity.EXTRA_NOME, nomeTela);
-        origem.startActivity(intent);
     }
 }

@@ -1,5 +1,6 @@
 /*
  * Copyright 2017 Archos SA
+ * Modificado por StarkTech Studio em 2026
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +24,11 @@
 
 typedef struct avos_mp_video avos_mp_video_t;
 typedef struct avos_mp_audio avos_mp_audio_t;
+struct STREAM;
 
 avos_mp_video_t *avos_mp_getvideo(avos_mp_t *mp);
 avos_mp_audio_t *avos_mp_getaudio(avos_mp_t *mp);
-int avos_mp_fillmetadata(avos_mp_t *mp, int type, uint64_t size, ID3_TAG *id3_tag, AV_PROPERTIES *av, const char *mimetype, int duration, int seekable, int pauseable, int decoder); /* return 1 if metadata changed */
+int avos_mp_fillmetadata(avos_mp_t *mp, int type, uint64_t size, ID3_TAG *id3_tag, AV_PROPERTIES *av, const char *mimetype, int duration, int seekable, int pauseable, int decoder, struct STREAM *s); /* return 1 if metadata changed; s (video only, may be NULL) gives the chapters */
 
 void avos_mp_sendevent(avos_mp_t *mp, int what, int arg1, int arg2);
 void avos_mp_sendevent_msg(avos_mp_t *mp, int what, int arg1, int arg2, const char *msg);

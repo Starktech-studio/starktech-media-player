@@ -112,9 +112,15 @@ public interface RepositorioBiblioteca {
     /** Troca título, sinopse, capa e fundo pelo resultado, sem tocar nos campos editados à mão. */
     void selecionarResultadoTmdb(String idTitulo, String idResultado);
 
+    /** Capa entre as opções (editada à mão). */
     void escolherCapa(String idTitulo, int cor);
 
     void escolherFundo(String idTitulo, int cor);
+
+    /** Capa do aparelho: {@code referencia} da {@code motor.ImagemDoAparelho} (editada à mão). */
+    void escolherCapaImagem(String idTitulo, String referencia);
+
+    void escolherFundoImagem(String idTitulo, String referencia);
 
     void definirTipoPasta(String idPasta, TipoPasta tipo);
 

@@ -1,5 +1,6 @@
 /*
  * Copyright 2017 Archos SA
+ * Modificado por StarkTech Studio em 2026
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,7 +100,8 @@ static void send_audio_track_info(avos_mp_t *mp, avos_mp_audio_t *audio)
 	    audio->last_duration,
 	    audio->last_seekable,
 	    audio->last_pauseable,
-	    0);
+	    0,
+	    NULL);
 	afree(av);
 	if (changed) {
 		MPLOG("changed");

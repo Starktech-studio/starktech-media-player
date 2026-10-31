@@ -1,4 +1,5 @@
 // Copyright 2017 Archos SA
+// Modificado por StarkTech Studio em 2026
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -51,7 +52,7 @@ public class ScraperImage {
     public static int PICTURE_WIDTH = 300;
     public static int PICTURE_HEIGHT = 169;
 
-    // cf. https://www.themoviedb.org/talk/5abcef779251411e97025408 and formats available https://api.themoviedb.org/3/configuration?api_key=051012651ba326cf5b1e2f482342eaa2
+    // cf. https://www.themoviedb.org/talk/5abcef779251411e97025408 and formats available https://api.themoviedb.org/3/configuration?api_key=SUA_CHAVE_DO_TMDB
     final static String TMDB_IMAGE_URL = "https://image.tmdb.org/t/p/";
     final static String POSTER_THUMB = "w185";
     public final static String POSTER_LARGE = "w500";

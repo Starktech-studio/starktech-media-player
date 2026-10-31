@@ -47,6 +47,7 @@ cd /mnt/d/Dev/starktech-media-player/Video
 ```
 
 - Lint completo (comando da seção 2 sem o `-x`): uma vez no fim da F1 (fase I) e de novo na F4 (`docs/backlog.md`).
+- Chave da API do TMDB (desde a F2): fora do repositório, na linha `starktech.tmdb.chave=` do `~/.gradle/gradle.properties` do WSL (permissão 600; o valor fica no documento do TMDB da pasta de gestão). O `MediaLib/build.gradle` (`chaveTmdb()`) a põe no APK na hora do build e nos testes que chamam o TMDB. Sem a linha, o build passa, a chave fica vazia e esses testes são pulados. Trakt e OpenSubtitles: desligados, sem chave (D5 da F2). Nunca gravar a chave no repositório, no `docs/` ou num commit.
 
 ## 3. Saída e instalação
 
@@ -54,7 +55,7 @@ cd /mnt/d/Dev/starktech-media-player/Video
 - Pacote `br.com.starktechstudio.mediaplayer`, versão 0.1.0 (versionCode 1), desde a F1 fase A; só pt-BR no APK (`androidResources.localeFilters` em `Video/build.gradle`).
 - Cópias de teste em `apks/` na raiz (fora do Git).
 - Instalar pelo Windows: `adb install -r <apk>`. Pacote, authorities, `taskAffinity` e `sharedUserId` diferentes dos do Nova: instala ao lado do Nova (`org.courville.nova`), sem desinstalar.
-- Enquanto o APK tiver as chaves do Nova (`MediaLib/res/values/donottranslate.xml`), ele não sai desta máquina.
+- Desde a F2 (etapa 4) o APK não tem mais as chaves do Nova: o `MediaLib/res/values/donottranslate.xml` saiu e os valores de exemplo nos comentários e testes do MediaLib foram trocados. O APK de teste continua só nesta máquina até a F4 (assinatura e teste em aparelho limpo).
 
 ## 4. NDK
 
@@ -77,6 +78,7 @@ sdkmanager "ndk;29.0.14206865" && sdkmanager --uninstall "ndk;30.0.16248370"
 | 30/10/2026 | `./gradlew -Puniversal assembleNoamazonDebug -x lintNoamazonDebug` (F1 fase D: Início, listas, Favoritos e slide; 7 classes novas, 9 layouts, 8 desenhos; daemon aberto) | `BUILD SUCCESSFUL` em 3 min 8 s (15 de 82 tarefas executadas). APK com 109.476.082 bytes |
 | 30/10/2026 | idem, incrementais (correções depois do teste nos emuladores) | `BUILD SUCCESSFUL` em 1 min 46 s, 54 s e 1 min 1 s (14, 11 e 7 de 82 tarefas). APK final com 109.636.849 bytes (~105 MB). Instalado nos emuladores de TV e tablet |
 | 31/10/2026 | `./gradlew -Puniversal assembleNoamazonDebug` (F1 fases E a I e ajustes; lint completo do fechamento da F1) | Primeira tentativa: lint com 1 erro (`GestureBackNavigation`: tecla Voltar tratada no `dispatchKeyEvent` do player da TV), corrigido. Final: `BUILD SUCCESSFUL` em 10 min 19 s; lint com 0 erros e 69 avisos (nenhum bloqueia). Builds de teste sem lint do dia: 1 a 2 min cada. APK com ~110 MB. Instalado nos emuladores de TV e tablet |
+| 31/10/2026 | `./gradlew -Puniversal assembleNoamazonDebug` e `testNoamazonDebugUnitTest --tests 'br.com.starktechstudio.mediaplayer.motor.*'` (fechamento da F2: motor nativo com capítulos, pacote `motor`, chave do TMDB pelo Gradle) | Primeira tentativa: erro de compilação em `Capitulos` (dois métodos `vazio()`), corrigido. Final: `BUILD SUCCESSFUL` em 11 min 52 s, com o motor nativo recompilado; lint com 0 erros e 70 avisos. Testes do `motor`: 45 de 45 passaram (4 min). APK com ~116 MB. Instalado nos emuladores de TV e tablet |
 
 Avisos do build, sem erro:
 - NDK r30 aceitou o `APP_PLATFORM android-21` do avos, só com aviso: o risco do NDK (seção 4) não ocorreu.

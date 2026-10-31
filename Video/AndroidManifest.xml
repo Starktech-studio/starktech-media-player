@@ -210,6 +210,10 @@
             android:name="br.com.starktechstudio.mediaplayer.comum.NavegadorPastasActivity"
             android:exported="false"
             android:theme="@style/Theme.StarkTech.Menu" />
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.comum.NavegadorImagensActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech.Menu" />
 
         <activity
             android:name="br.com.starktechstudio.mediaplayer.comum.BuscaTmdbActivity"

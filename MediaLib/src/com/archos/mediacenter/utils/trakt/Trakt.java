@@ -1,4 +1,5 @@
 // Copyright 2017 Archos SA
+// Modificado por StarkTech Studio em 2026
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -272,7 +273,7 @@ public class Trakt {
                         PreferenceManager.getDefaultSharedPreferences(context)));
 
         //test
-        //mTraktV2.setAccessToken("911cfb2e98258328fd95a12d593f6e72e5412cff3f4ce9772e2b3a7b8af121fd");
+        //mTraktV2.setAccessToken("SEU_TOKEN");
         //setRefreshToken(PreferenceManager.getDefaultSharedPreferences(context),"");
     }
 

@@ -2,7 +2,10 @@
 
 package br.com.starktechstudio.mediaplayer.comum;
 
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
@@ -16,7 +19,10 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.ColorRes;
 import androidx.annotation.DimenRes;
 import androidx.annotation.FontRes;
@@ -29,22 +35,32 @@ import androidx.core.widget.ImageViewCompat;
 
 import com.archos.mediacenter.video.R;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Campo;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Tipo;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Titulo;
 import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
+import br.com.starktechstudio.mediaplayer.motor.Edicoes;
+import br.com.starktechstudio.mediaplayer.motor.ImagemDoAparelho;
 
 /**
  * Editar (tv-editar.dc.html, tablet-editar.dc.html), igual nos dois aparelhos com o layout de
  * cada um: capa e fundo escolhidos entre as opções do TMDB, a escolhida em destaque e as outras
- * embaixo (Do HD / Do aparelho, D14: navegador de pastas da fase H), campos Título, Título original, Tipo, Ano, Duração, Gêneros e Sinopse;
+ * embaixo, ou uma imagem do aparelho (F2, D3: "Do aparelho" pelo seletor do sistema no tablet,
+ * "Do HD" pelo {@link NavegadorImagensActivity} na TV; JPG, PNG ou WebP até 15 MB, copiada pela
+ * {@link ImagemDoAparelho}); campos Título, Título original, Tipo, Ano, Duração, Gêneros e Sinopse;
  * Buscar no TMDB, Restaurar original e Salvar. Salvar marca os campos mudados como "editados à mão"
  * (o Detalhe passa a mostrar "corrigidos à mão"). Na volta da busca no TMDB, os campos já mexidos
  * nesta tela ficam como estão.
@@ -63,6 +79,23 @@ public class EditarActivity extends AppCompatActivity {
     private int fundo;
     private int capaSalva;
     private int fundoSalvo;
+    /** Imagem do aparelho escolhida no lugar da cor (referência da Edicoes); nula = a cor. */
+    private String capaImagem;
+    private String fundoImagem;
+    private String capaImagemSalva;
+    private String fundoImagemSalva;
+    /** Capa / fundo trocados nesta tela: a volta de outra tela (seletor, TMDB) não desfaz. */
+    private boolean capaMexida;
+    private boolean fundoMexido;
+    private boolean salvou;
+    /** Imagens copiadas nesta tela: as que não forem salvas são apagadas ao sair. */
+    private final List<String> importadas = new ArrayList<>();
+    private final Map<String, Bitmap> previas = new HashMap<>();
+    private final ExecutorService copia = Executors.newSingleThreadExecutor();
+    private ActivityResultLauncher<String[]> seletorDoSistema;
+    private ActivityResultLauncher<Intent> navegadorDoApp;
+    /** O pedido de imagem em andamento é da capa (senão, do fundo). */
+    private boolean pedidoDaCapa;
     /** Opções em fileira (para o foco da TV entre capa e fundo). */
     private final List<View> opcoesCapa = new ArrayList<>();
     private final List<View> opcoesFundo = new ArrayList<>();
@@ -75,6 +108,17 @@ public class EditarActivity extends AppCompatActivity {
         setTheme(Aparelho.tema(this));
         super.onCreate(savedInstanceState);
         tv = Aparelho.ehTv(this);
+        // D3: tablet pelo seletor do sistema; TV (e tablet sem seletor) pelo navegador do app
+        seletorDoSistema = registerForActivityResult(new ActivityResultContracts.OpenDocument(), endereco -> {
+            if (endereco != null) importar(() -> ImagemDoAparelho.doConteudo(this, endereco));
+        });
+        navegadorDoApp = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), volta -> {
+            Intent dados = volta.getData();
+            String caminho = dados == null ? null : dados.getStringExtra(NavegadorImagensActivity.EXTRA_CAMINHO);
+            if (volta.getResultCode() == RESULT_OK && caminho != null) {
+                importar(() -> ImagemDoAparelho.doArquivo(this, new File(caminho)));
+            }
+        });
         repositorio = RepositorioBiblioteca.atual(this);
         id = getIntent().getStringExtra(Navegacao.EXTRA_ID);
         if (repositorio.titulo(id) == null) {
@@ -89,6 +133,8 @@ public class EditarActivity extends AppCompatActivity {
         findViewById(R.id.st_editar_restaurar).setOnClickListener(v -> {
             repositorio.restaurarOriginal(id);
             mexidos.clear();
+            capaMexida = false;
+            fundoMexido = false;
             carregar();
         });
         findViewById(R.id.st_editar_salvar).setOnClickListener(v -> salvar());
@@ -118,8 +164,18 @@ public class EditarActivity extends AppCompatActivity {
         }
         carregando = false;
         if (!mexidos.contains(Campo.TIPO)) marcarTipo(t.tipo == null ? Tipo.FILME : t.tipo);
-        capa = capaSalva = t.corCapa;
-        fundo = fundoSalvo = t.corFundo;
+        capaSalva = t.corCapa;
+        capaImagemSalva = t.capaImagem;
+        fundoSalvo = t.corFundo;
+        fundoImagemSalva = t.fundoImagem;
+        if (!capaMexida) {
+            capa = capaSalva;
+            capaImagem = capaImagemSalva;
+        }
+        if (!fundoMexido) {
+            fundo = fundoSalvo;
+            fundoImagem = fundoImagemSalva;
+        }
         montarOpcoes(findViewById(R.id.st_editar_capas), repositorio.opcoesCapa(id), true, -1);
         montarOpcoes(findViewById(R.id.st_editar_fundos), repositorio.opcoesFundo(id), false, -1);
     }
@@ -129,10 +185,96 @@ public class EditarActivity extends AppCompatActivity {
         for (Map.Entry<Campo, EditText> item : campos.entrySet()) valores.put(item.getKey(), item.getValue().getText().toString());
         valores.put(Campo.TIPO, tipo.name());
         repositorio.salvarEdicao(id, valores);
-        Titulo t = repositorio.titulo(id);
-        if (t != null && t.corCapa != capa) repositorio.escolherCapa(id, capa);
-        if (t != null && t.corFundo != fundo) repositorio.escolherFundo(id, fundo);
+        if (capaMexida) {
+            if (capaImagem != null) repositorio.escolherCapaImagem(id, capaImagem);
+            else repositorio.escolherCapa(id, capa);
+        }
+        if (fundoMexido) {
+            if (fundoImagem != null) repositorio.escolherFundoImagem(id, fundoImagem);
+            else repositorio.escolherFundo(id, fundo);
+        }
+        salvou = true;
         finish();
+    }
+
+    @Override
+    protected void onDestroy() {
+        copia.shutdownNow();
+        // Imagens copiadas e não salvas (ou trocadas por outra antes de salvar) saem da pasta do app
+        for (String referencia : importadas) {
+            boolean ficou = salvou && (referencia.equals(capaImagem) || referencia.equals(fundoImagem));
+            String caminho = Edicoes.arquivoDe(referencia);
+            if (!ficou && caminho != null) {
+                //noinspection ResultOfMethodCallIgnored
+                new File(caminho).delete();
+            }
+        }
+        super.onDestroy();
+    }
+
+    // ---- Imagem do aparelho (F2, D3 e D7) ----
+
+    private void escolherDoAparelho(boolean ehCapa) {
+        pedidoDaCapa = ehCapa;
+        Intent navegador = new Intent(this, NavegadorImagensActivity.class);
+        if (tv) {
+            navegadorDoApp.launch(navegador);
+            return;
+        }
+        try {
+            seletorDoSistema.launch(new String[]{"image/jpeg", "image/png", "image/webp"});
+        } catch (ActivityNotFoundException e) {
+            navegadorDoApp.launch(navegador);
+        }
+    }
+
+    /** Copia a imagem fora da tela (até 15 MB) e mostra no destaque; problema vira aviso. */
+    private void importar(Callable<ImagemDoAparelho.Resultado> tarefa) {
+        final boolean ehCapa = pedidoDaCapa;
+        final int largura = px(ehCapa ? R.dimen.st_tv_editar_previa_capa_largura : R.dimen.st_tv_editar_previa_fundo_largura,
+                ehCapa ? R.dimen.st_tablet_editar_previa_capa_largura : R.dimen.st_tablet_editar_previa_fundo_largura);
+        final int altura = px(ehCapa ? R.dimen.st_tv_editar_previa_capa_altura : R.dimen.st_tv_editar_previa_fundo_altura,
+                ehCapa ? R.dimen.st_tablet_editar_previa_capa_altura : R.dimen.st_tablet_editar_previa_fundo_altura);
+        copia.execute(() -> {
+            ImagemDoAparelho.Resultado resultado;
+            try {
+                resultado = tarefa.call();
+            } catch (Exception e) {
+                resultado = null;
+            }
+            Bitmap previa = resultado != null && resultado.ok() ? ImagemDoAparelho.previa(resultado.referencia, largura, altura) : null;
+            final ImagemDoAparelho.Resultado fim = resultado;
+            runOnUiThread(() -> aoImportar(fim, previa, ehCapa));
+        });
+    }
+
+    private void aoImportar(@Nullable ImagemDoAparelho.Resultado resultado, @Nullable Bitmap previa, boolean ehCapa) {
+        boolean copiou = resultado != null && resultado.ok();
+        if (copiou && isDestroyed()) {
+            // a tela fechou durante a cópia: a imagem não vai ser usada
+            //noinspection ResultOfMethodCallIgnored
+            new File(Edicoes.arquivoDe(resultado.referencia)).delete();
+            return;
+        }
+        if (copiou) importadas.add(resultado.referencia);
+        if (isFinishing()) return;
+        if (resultado == null || !resultado.ok() || previa == null) {
+            ImagemDoAparelho.Erro erro = resultado == null || resultado.ok() ? ImagemDoAparelho.Erro.ILEGIVEL : resultado.erro;
+            Toast.makeText(this, erro == ImagemDoAparelho.Erro.FORMATO ? R.string.st_imagem_formato
+                    : erro == ImagemDoAparelho.Erro.GRANDE_DEMAIS ? R.string.st_imagem_grande
+                    : R.string.st_imagem_ilegivel, Toast.LENGTH_LONG).show();
+            return;
+        }
+        previas.put(resultado.referencia, previa);
+        if (ehCapa) {
+            capaImagem = resultado.referencia;
+            capaMexida = true;
+            montarOpcoes(findViewById(R.id.st_editar_capas), repositorio.opcoesCapa(id), true, -1);
+        } else {
+            fundoImagem = resultado.referencia;
+            fundoMexido = true;
+            montarOpcoes(findViewById(R.id.st_editar_fundos), repositorio.opcoesFundo(id), false, -1);
+        }
     }
 
     // ---- Campos (2 colunas, como no desenho) ----
@@ -292,17 +434,20 @@ public class EditarActivity extends AppCompatActivity {
         Resources res = getResources();
         int espaco = px(R.dimen.st_tv_editar_opcao_espaco, R.dimen.st_tablet_editar_opcao_espaco);
         int escolhida = ehCapa ? capa : fundo;
-        boolean mudou = escolhida != (ehCapa ? capaSalva : fundoSalvo);
+        String imagem = ehCapa ? capaImagem : fundoImagem;
+        boolean mudou = !Objects.equals(imagem, ehCapa ? capaImagemSalva : fundoImagemSalva)
+                || (imagem == null && escolhida != (ehCapa ? capaSalva : fundoSalvo));
+        int larguraPrevia = ehCapa ? px(R.dimen.st_tv_editar_previa_capa_largura, R.dimen.st_tablet_editar_previa_capa_largura)
+                : px(R.dimen.st_tv_editar_previa_fundo_largura, R.dimen.st_tablet_editar_previa_fundo_largura);
+        int alturaPrevia = ehCapa ? px(R.dimen.st_tv_editar_previa_capa_altura, R.dimen.st_tablet_editar_previa_capa_altura)
+                : px(R.dimen.st_tv_editar_previa_fundo_altura, R.dimen.st_tablet_editar_previa_fundo_altura);
 
         LinearLayout destaque = new LinearLayout(this);
         destaque.setOrientation(LinearLayout.HORIZONTAL);
         destaque.setGravity(Gravity.CENTER_VERTICAL);
-        FrameLayout previa = bloco(escolhida, ehCapa, true);
-        destaque.addView(previa, new LinearLayout.LayoutParams(
-                ehCapa ? px(R.dimen.st_tv_editar_previa_capa_largura, R.dimen.st_tablet_editar_previa_capa_largura)
-                        : px(R.dimen.st_tv_editar_previa_fundo_largura, R.dimen.st_tablet_editar_previa_fundo_largura),
-                ehCapa ? px(R.dimen.st_tv_editar_previa_capa_altura, R.dimen.st_tablet_editar_previa_capa_altura)
-                        : px(R.dimen.st_tv_editar_previa_fundo_altura, R.dimen.st_tablet_editar_previa_fundo_altura)));
+        Bitmap foto = imagem == null ? null : previaDe(imagem, larguraPrevia, alturaPrevia);
+        FrameLayout previa = foto != null ? blocoImagem(foto) : bloco(escolhida, ehCapa, true);
+        destaque.addView(previa, new LinearLayout.LayoutParams(larguraPrevia, alturaPrevia));
         LinearLayout textos = new LinearLayout(this);
         textos.setOrientation(LinearLayout.VERTICAL);
         TextView nome = texto(ehCapa ? (mudou ? R.string.st_capa_nova : R.string.st_capa_atual)
@@ -329,20 +474,28 @@ public class EditarActivity extends AppCompatActivity {
         List<View> itens = new ArrayList<>();
         int numero = 0;
         for (int cor : cores) {
-            if (cor == escolhida) continue;
+            // Com imagem do aparelho no destaque, todas as cores ficam como opção
+            if (foto == null && cor == escolhida) continue;
             final int posicao = itens.size();
             FrameLayout opcao = bloco(cor, ehCapa, false);
             opcao.setFocusable(true);
             opcao.setClickable(true);
             opcao.setContentDescription(getString(R.string.st_opcao_imagem, ++numero));
             opcao.setOnClickListener(v -> {
-                if (ehCapa) capa = cor;
-                else fundo = cor;
+                if (ehCapa) {
+                    capa = cor;
+                    capaImagem = null;
+                    capaMexida = true;
+                } else {
+                    fundo = cor;
+                    fundoImagem = null;
+                    fundoMexido = true;
+                }
                 montarOpcoes(alvo, cores, ehCapa, posicao);
             });
             itens.add(opcao);
         }
-        itens.add(doAparelho());
+        itens.add(doAparelho(ehCapa));
         int porFileira = fileiras(alvo, itens,
                 ehCapa ? px(R.dimen.st_tv_editar_capa_largura, R.dimen.st_tablet_editar_capa_largura)
                         : px(R.dimen.st_tv_editar_fundo_largura, R.dimen.st_tablet_editar_fundo_largura),
@@ -388,8 +541,46 @@ public class EditarActivity extends AppCompatActivity {
         return opcao;
     }
 
-    /** "Do aparelho" (tablet) / "Do HD" (TV) no fim das opções, ícone e nome centrados juntos (D14; navegador de pastas na fase H). */
-    private View doAparelho() {
+    /** Destaque com a imagem do aparelho, recortada nos cantos, com anel azul e ✓. */
+    private FrameLayout blocoImagem(Bitmap foto) {
+        int selo = px(R.dimen.st_tv_editar_selo, R.dimen.st_tablet_editar_selo);
+        float canto = getResources().getDimension(tv ? R.dimen.st_tv_botao_canto : R.dimen.st_tablet_botao_canto);
+        FrameLayout opcao = new FrameLayout(this);
+        opcao.setBackground(CapaAdapter.blocoDeCor(this, ContextCompat.getColor(this, R.color.st_cartao), canto, tv));
+        opcao.setClipToOutline(true);
+        opcao.setForeground(ContextCompat.getDrawable(this, R.drawable.st_opcao_imagem));
+        opcao.setSelected(true);
+
+        ImageView imagem = new ImageView(this);
+        imagem.setImageBitmap(foto);
+        imagem.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        opcao.addView(imagem, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
+        ImageView marca = new ImageView(this);
+        marca.setImageResource(R.drawable.st_ic_check);
+        marca.setBackgroundResource(R.drawable.st_selo_escolhida);
+        ImageViewCompat.setImageTintList(marca, ContextCompat.getColorStateList(this, R.color.st_texto));
+        marca.setPadding(selo / 5, selo / 5, selo / 5, selo / 5);
+        FrameLayout.LayoutParams lpMarca = new FrameLayout.LayoutParams(selo, selo, Gravity.TOP | Gravity.START);
+        lpMarca.setMargins(selo / 3, selo / 3, 0, 0);
+        opcao.addView(marca, lpMarca);
+        opcao.setContentDescription(getString(R.string.st_imagem_do_aparelho));
+        return opcao;
+    }
+
+    /** Prévia da imagem do aparelho (guardada para não abrir o arquivo a cada troca de opção). */
+    @Nullable
+    private Bitmap previaDe(String referencia, int largura, int altura) {
+        Bitmap foto = previas.get(referencia);
+        if (foto == null) {
+            foto = ImagemDoAparelho.previa(referencia, largura, altura);
+            if (foto != null) previas.put(referencia, foto);
+        }
+        return foto;
+    }
+
+    /** "Do aparelho" (tablet) / "Do HD" (TV) no fim das opções, ícone e nome centrados juntos (D3). */
+    private View doAparelho(boolean ehCapa) {
         int selo = px(R.dimen.st_tv_editar_selo, R.dimen.st_tablet_editar_selo);
         LinearLayout botao = new LinearLayout(this);
         botao.setOrientation(LinearLayout.VERTICAL);
@@ -398,7 +589,7 @@ public class EditarActivity extends AppCompatActivity {
         botao.setFocusable(true);
         botao.setClickable(true);
         if (tv) botao.setForeground(ContextCompat.getDrawable(this, R.drawable.st_foco_tv));
-        botao.setOnClickListener(v -> Navegacao.abrirImagemDoAparelho(this, id));
+        botao.setOnClickListener(v -> escolherDoAparelho(ehCapa));
 
         ImageView icone = new ImageView(this);
         icone.setImageResource(R.drawable.st_ic_pastas);

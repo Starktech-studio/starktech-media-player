@@ -8,6 +8,10 @@
     <string name="st_marca_media_player" translatable="false">Media Player</string>
     <string name="st_logo">Logo StarkTech</string>
 
+    <!-- Tela de carregamento (ao abrir o app) -->
+    <string name="st_carregando_biblioteca">Carregando biblioteca…</string>
+    <string name="st_carregamento_rodape">%1$s · versão %2$s</string>
+
     <!-- Abas -->
     <string name="st_secoes">Seções</string>
     <string name="st_aba_inicio">Início</string>

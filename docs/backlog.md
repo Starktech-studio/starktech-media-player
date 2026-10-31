@@ -2,19 +2,17 @@
 
 > Pendências fora do plano da fase em curso, separadas pela fase em que entram. Feito, sai daqui e vai para o plano da fase.
 
-## F2 — Motor
-
-| # | Item | Origem |
-|---|---|---|
-| 1 | "Do HD" (TV) e "Do aparelho" (tablet) em Editar: escolher a imagem da capa / do fundo num arquivo (hoje abre "em construção") | F1 fase G (31/10/2026) |
-| 2 | Adicionar pasta de verdade: armazenamentos e pastas do aparelho (`ExtStorageManager` do Nova) e gravar a pasta; hoje pastas de exemplo e a nova só na memória do app | F1 fase H (31/10/2026) |
-
 ## F3 — Integração
 
 | # | Item | Origem |
 |---|---|---|
 | 1 | Player: trocar a reprodução simulada pelo player do Nova (`PlayerActivity`/`PlayerController`), com os controles novos; faixas de áudio / legenda escolhidas de verdade | F1 fase F (31/10/2026) |
 | 2 | Configurações (áudio, legenda, tamanho, retomar) ligadas às preferências do player do Nova | F1 fase I (31/10/2026) |
+| 3 | Player e telas do Nova ligados: esconder baixar legendas (OpenSubtitles) e o Trakt, desligados e sem chave (D5 da F2) | F2 etapa 4 (31/10/2026) |
+| 4 | Buscar no TMDB de verdade: sem chave (`motor/ChaveTmdb.temChave`), avisar em vez de buscar | F2 etapa 4 (31/10/2026) |
+| 5 | Ligar o motor da F2 às telas (`docs/arquitetura/motor.md` §7): capítulos no player e no Detalhe, pastas e varredura na biblioteca, chave do título pelo caminho, capa e fundo do aparelho fora do Editar | F2 etapa 5 (31/10/2026) |
+| 6 | Adicionar pasta de verdade: a tela com os armazenamentos e as pastas do aparelho (hoje pastas de exemplo e a nova só na memória do app); o motor já tem as duas partes (`motor/ArquivosDoAparelho` e `motor/Pastas.adicionar`). Decisão do Gustavo: F3 | F1 fase H (31/10/2026) |
+| 7 | Tela de carregamento esperar a biblioteca real (hoje espera os dados simulados: `comum/TelaCarregamento.carregar`) | F2 fechamento (31/10/2026) |
 
 ## F4 — Empacotamento
 

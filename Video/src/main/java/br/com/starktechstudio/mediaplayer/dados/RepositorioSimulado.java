@@ -8,6 +8,7 @@ import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -27,13 +28,15 @@ import br.com.starktechstudio.mediaplayer.dados.Modelo.Tipo;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.TipoFaixa;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.TipoPasta;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Titulo;
+import br.com.starktechstudio.mediaplayer.motor.Edicoes;
 
 /**
  * Dados simulados da F1: os exemplos das 13 telas de docs/paginas/telas-f1/ (filmes,
  * capítulos, cores e números do desenho). Os textos entre colchetes do desenho
  * ("[Nome da série]", "[N] vídeos"…) viraram exemplos fictícios (D8).
- * Estado das ações em {@link EstadoSimulado}. Não usa ContentResolver, VideoStore,
- * ScraperStore nem loaders do Nova. Sai na F3 (e não pode ir para distribuição).
+ * Estado das ações em {@link EstadoSimulado}; a edição à mão já é a de verdade
+ * ({@link Edicoes}, banco do app), com o id do exemplo como chave. Não usa ContentResolver,
+ * VideoStore, ScraperStore nem loaders do Nova. Sai na F3 (e não pode ir para distribuição).
  */
 public final class RepositorioSimulado implements RepositorioBiblioteca {
 
@@ -68,6 +71,8 @@ public final class RepositorioSimulado implements RepositorioBiblioteca {
     private static RepositorioSimulado instancia;
 
     private final EstadoSimulado estado;
+    /** Edição à mão de verdade (banco do app, F2), sobre os títulos simulados. */
+    private final Edicoes edicoes;
     private final Map<String, Titulo> titulos = new LinkedHashMap<>();
     private final Map<String, List<Temporada>> temporadas = new LinkedHashMap<>();
     private final Map<String, Episodio> episodios = new LinkedHashMap<>();
@@ -76,12 +81,13 @@ public final class RepositorioSimulado implements RepositorioBiblioteca {
     private final List<String> naoIdentificados = new ArrayList<>();
 
     public static synchronized RepositorioSimulado instancia(Context contexto) {
-        if (instancia == null) instancia = new RepositorioSimulado(new EstadoSimulado(contexto));
+        if (instancia == null) instancia = new RepositorioSimulado(new EstadoSimulado(contexto), Edicoes.de(contexto));
         return instancia;
     }
 
-    private RepositorioSimulado(EstadoSimulado estado) {
+    private RepositorioSimulado(EstadoSimulado estado, Edicoes edicoes) {
         this.estado = estado;
+        this.edicoes = edicoes;
         montarFilmes();
         montarSeries();
         montarShows();
@@ -372,19 +378,39 @@ public final class RepositorioSimulado implements RepositorioBiblioteca {
                 }
             }
         }
-        String capa = estado.capa(t.id);
-        if (capa != null) t.corCapa = Integer.parseInt(capa);
-        String fundo = estado.fundo(t.id);
-        if (fundo != null) t.corFundo = Integer.parseInt(fundo);
-
+        // Edição à mão por cima do original / do TMDB: o que foi editado sempre vale
+        Map<Edicoes.Campo, String> edicao = edicoes.ler(t.id);
         for (Campo campo : Campo.values()) {
-            String valor = estado.campoEditado(t.id, campo);
+            String valor = edicao.get(Edicoes.Campo.valueOf(campo.name()));
             if (valor != null) {
                 t.aplicar(campo, valor);
                 t.editadosAMao.add(campo);
             }
         }
+        String capa = edicao.get(Edicoes.Campo.CAPA);
+        if (capa != null) {
+            if (capa.startsWith(Edicoes.PREFIXO_COR)) t.corCapa = corDe(capa);
+            else t.capaImagem = capa;
+        }
+        String fundo = edicao.get(Edicoes.Campo.FUNDO);
+        if (fundo != null) {
+            if (fundo.startsWith(Edicoes.PREFIXO_COR)) t.corFundo = corDe(fundo);
+            else t.fundoImagem = fundo;
+        }
         return t;
+    }
+
+    /** "cor:#RRGGBB" → cor ({@code #1e293b} se não der para ler). */
+    private static int corDe(String referencia) {
+        try {
+            return cor(referencia.substring(Edicoes.PREFIXO_COR.length()));
+        } catch (RuntimeException e) {
+            return cor("#1e293b");
+        }
+    }
+
+    private static String referenciaDe(int cor) {
+        return Edicoes.PREFIXO_COR + String.format(Locale.ROOT, "#%06X", cor & 0xFFFFFF);
     }
 
     private Episodio comEstado(Episodio base) {
@@ -657,32 +683,45 @@ public final class RepositorioSimulado implements RepositorioBiblioteca {
     public void salvarEdicao(String idTitulo, Map<Campo, String> valores) {
         Titulo atual = titulo(idTitulo);
         if (atual == null || valores == null) return;
+        Map<Edicoes.Campo, String> mudados = new EnumMap<>(Edicoes.Campo.class);
         for (Map.Entry<Campo, String> item : valores.entrySet()) {
             String novo = item.getValue() == null ? "" : item.getValue().trim();
             String antes = atual.valor(item.getKey());
-            if (!novo.equals(antes == null ? "" : antes)) estado.definirCampoEditado(idTitulo, item.getKey(), novo);
+            if (!novo.equals(antes == null ? "" : antes)) mudados.put(Edicoes.Campo.valueOf(item.getKey().name()), novo);
         }
+        edicoes.salvar(idTitulo, mudados);
     }
 
     @Override
     public void restaurarOriginal(String idTitulo) {
+        edicoes.restaurarOriginal(idTitulo);
         estado.restaurarOriginal(idTitulo);
     }
 
+    /** Capa e fundo editados à mão continuam: a escolha do TMDB não sobrescreve a edição. */
     @Override
     public void selecionarResultadoTmdb(String idTitulo, String idResultado) {
         estado.definirResultadoTmdb(idTitulo, idResultado);
-        estado.limparCapaFundo(idTitulo);
     }
 
     @Override
     public void escolherCapa(String idTitulo, int cor) {
-        estado.definirCapa(idTitulo, cor);
+        edicoes.salvar(idTitulo, Edicoes.Campo.CAPA, referenciaDe(cor));
     }
 
     @Override
     public void escolherFundo(String idTitulo, int cor) {
-        estado.definirFundo(idTitulo, cor);
+        edicoes.salvar(idTitulo, Edicoes.Campo.FUNDO, referenciaDe(cor));
+    }
+
+    @Override
+    public void escolherCapaImagem(String idTitulo, String referencia) {
+        edicoes.salvar(idTitulo, Edicoes.Campo.CAPA, referencia);
+    }
+
+    @Override
+    public void escolherFundoImagem(String idTitulo, String referencia) {
+        edicoes.salvar(idTitulo, Edicoes.Campo.FUNDO, referencia);
     }
 
     @Override

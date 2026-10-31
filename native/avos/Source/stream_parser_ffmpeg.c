@@ -1,5 +1,6 @@
 /*
  * Copyright 2017 Archos SA
+ * Modificado por StarkTech Studio em 2026
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2642,6 +2643,22 @@ static int _get_info_FFMPEG(const STREAM_URL *src, FILE_INFO *info, APIC *apic, 
 	}
 	info->size = priv->size;
 	info->duration = priv->duration;
+	// chapters read from the file (StarkTech): _parse_format only keeps them on a STREAM
+	info->num_chapters = 0;
+	for (unsigned i = 0; i < priv->fmt->nb_chapters && info->num_chapters < FILE_INFO_MAX_CHAPTERS; i++) {
+		AVChapter *ch = priv->fmt->chapters[i];
+		AVDictionaryEntry *t = av_dict_get(ch->metadata, "title", NULL, 0);
+		FILE_INFO_CHAPTER *c = &info->chapters[info->num_chapters++];
+		c->start = av_rescale_q(ch->start, ch->time_base, (AVRational){1, 1000});
+		c->end = av_rescale_q(ch->end, ch->time_base, (AVRational){1, 1000});
+		snprintf(c->title, sizeof(c->title), "%s", t ? t->value : "");
+	}
+	// a chapter without its own end lasts until the next one (or the end of the file)
+	for (int i = 0; i < info->num_chapters; i++) {
+		FILE_INFO_CHAPTER *c = &info->chapters[i];
+		if (c->end <= c->start)
+			c->end = i + 1 < info->num_chapters ? info->chapters[i + 1].start : (UINT64)info->duration;
+	}
 	err = metadata_interrupted(&cancel) ? 1 : 0;
 out:
 	av_dict_free(&options);
