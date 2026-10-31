@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Item da barra lateral do tablet (tablet-biblioteca.dc.html): 84 dp, ícone 30 dp, texto 13 sp Inter 800. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="@dimen/st_tablet_barra_item"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="8dp"
+    android:background="@drawable/st_item_barra_lateral"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:paddingTop="13dp"
+    android:paddingBottom="13dp">
+
+    <ImageView
+        android:id="@+id/st_item_barra_icone"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:importantForAccessibility="no"
+        app:tint="@color/st_cor_item_barra" />
+
+    <TextView
+        android:id="@+id/st_item_barra_texto"
+        style="@style/StarkTech.Texto.Botao"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="7dp"
+        android:textColor="@color/st_cor_item_barra"
+        android:textSize="@dimen/st_tablet_texto_item_barra" />
+</LinearLayout>

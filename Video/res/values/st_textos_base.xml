@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Textos da base da interface (F1 fase C): marca, abas, topo da TV, barra lateral do tablet. Só pt-BR (D4). -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="pt-BR">
+
+    <!-- Marca do topo -->
+    <string name="st_marca_stark" translatable="false">Stark</string>
+    <string name="st_marca_tech" translatable="false">Tech</string>
+    <string name="st_marca_media_player" translatable="false">Media Player</string>
+    <string name="st_logo">Logo StarkTech</string>
+
+    <!-- Abas -->
+    <string name="st_secoes">Seções</string>
+    <string name="st_aba_inicio">Início</string>
+    <string name="st_aba_filmes">Filmes</string>
+    <string name="st_aba_series">Séries</string>
+    <string name="st_aba_shows">Shows</string>
+    <string name="st_aba_pastas">Pastas</string>
+    <string name="st_aba_ajustes">Ajustes</string>
+
+    <!-- Topo da TV -->
+    <string name="st_buscar">Buscar</string>
+    <string name="st_configuracoes">Configurações</string>
+
+    <!-- Selo do HD (tablet) -->
+    <string name="st_hd_situacao">Situação do HD externo</string>
+    <string name="st_hd_conectado">HD externo</string>
+    <string name="st_hd_desconectado">Sem HD</string>
+
+    <!-- Telas ainda não feitas (EmConstrucaoActivity) -->
+    <string name="st_em_construcao">Em construção</string>
+    <string name="st_em_construcao_texto">Esta tela entra numa próxima etapa.</string>
+    <string name="st_tela_busca">Buscar</string>
+    <string name="st_tela_configuracoes">Configurações</string>
+    <string name="st_tela_detalhe">Detalhe</string>
+    <string name="st_tela_serie">Série</string>
+    <string name="st_tela_reproducao">Reprodução</string>
+    <string name="st_tela_editar">Editar</string>
+    <string name="st_tela_nao_identificados">Não identificados</string>
+    <string name="st_tela_sobre">Sobre</string>
+</resources>

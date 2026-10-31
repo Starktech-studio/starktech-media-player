@@ -133,6 +133,27 @@
             android:taskAffinity="${applicationId}"
             android:theme="@style/ArchosThemeLauncher" />
 
+        <!-- StarkTech: telas novas (F1). A EntryActivity abre a principal da TV ou do tablet. -->
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.tv.PrincipalTvActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity="${applicationId}"
+            android:theme="@style/Theme.StarkTech.Tv" />
+
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.tablet.PrincipalTabletActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:screenOrientation="sensorLandscape"
+            android:taskAffinity="${applicationId}"
+            android:theme="@style/Theme.StarkTech.Tablet" />
+
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.comum.EmConstrucaoActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech" />
+
         <activity
             android:name=".browser.MainActivity"
             android:configChanges="keyboard|keyboardHidden"
@@ -153,13 +174,12 @@
             android:exported="true"
             android:targetActivity=".EntryActivity">
 
+            <!-- StarkTech: TV e tablet entram pela EntryActivity; sem os atalhos do Nova (D21) -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
-            <meta-data
-                android:name="android.app.shortcuts"
-                android:resource="@xml/shortcuts" />
         </activity-alias>
 
         <activity-alias
@@ -1554,10 +1574,7 @@
             android:launchMode="singleTask"
             android:taskAffinity="${applicationId}"
             android:theme="@style/MyLeanbackTheme.Launcher">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
-            </intent-filter>
+            <!-- StarkTech: LEANBACK_LAUNCHER passou para o alias da EntryActivity -->
         </activity>
 
         <activity

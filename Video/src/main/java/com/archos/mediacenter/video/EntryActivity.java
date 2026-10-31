@@ -1,4 +1,5 @@
 // Copyright 2017 Archos SA
+// Modificado por StarkTech Studio em 2026
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,8 +21,6 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.archos.mediacenter.video.browser.MainActivity;
-import com.archos.mediacenter.video.leanback.MainActivityLeanback;
 import com.archos.mediacenter.video.utils.ThemeManager;
 import com.archos.mediacenter.video.utils.VideoPreferencesCommon;
 
@@ -29,6 +28,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Locale;
+
+import br.com.starktechstudio.mediaplayer.comum.Navegacao;
 
 /**
  * Hub activity to launch either the leanback activity or the regular tablet/phone activity
@@ -54,12 +55,9 @@ public class EntryActivity extends AppCompatActivity {
 
         if (log.isDebugEnabled()) log.debug("onCreate");
 
-        Class activityToLaunch = null;
-        if (UiChoiceDialog.applicationIsInLeanbackMode(this)) {
-            activityToLaunch = MainActivityLeanback.class;
-        } else {
-            activityToLaunch = MainActivity.class;
-        }
+        // StarkTech: telas novas (PrincipalTvActivity ou PrincipalTabletActivity) no lugar de
+        // MainActivityLeanback / MainActivity; TV pelo FEATURE_LEANBACK, sem escolha manual (D3)
+        Class activityToLaunch = Navegacao.telaPrincipal(this);
 
         final Intent originIntent = getIntent();
         Intent i = new Intent();

@@ -39,7 +39,14 @@ cd /mnt/d/Dev/starktech-media-player/Video
 - Chamado do Windows (`wsl -e bash -lc "…"`), o shell não é interativo e o `~/.bashrc` não exporta as variáveis da seção 1: o Gradle para com "SDK location not found". Exportar `ANDROID_SDK_ROOT` e `ANDROID_HOME` no próprio comando.
 - Alternativa equivalente ao fluxo do Nova: `make` na raiz (APKs por ABI, versão com data).
 - Antes do Java, o Gradle roda o `make` dos nativos (avos, AudioCompress, libnativehelper, JNI do FileCoreLibrary) com os binários prontos de `native/prebuilt/`.
-- O `assemble…` depende do lint (`abortOnError = true`). Só para diagnóstico, se o lint travar: `./gradlew -Puniversal assembleNoamazonDebug -x lintNoamazonDebug`.
+- O `assemble…` depende do lint (`Video/build.gradle:355-357`; `abortOnError = true` em `:307`).
+- Builds de teste da F1, fases C a H: sem lint (Gustavo, 30/10/2026), pela linha de comando, sem mexer no `build.gradle`. O `-x` tira o `lintNoamazonDebug` e as tarefas que só ele usa (`lintAnalyze…`, `lintReport…`, modelos de lint), conferido com `--dry-run`:
+
+```bash
+./gradlew -Puniversal assembleNoamazonDebug -x lintNoamazonDebug
+```
+
+- Lint completo (comando da seção 2 sem o `-x`): uma vez no fim da F1 (fase I) e de novo na F4 (`docs/backlog.md`).
 
 ## 3. Saída e instalação
 
@@ -65,6 +72,8 @@ sdkmanager "ndk;29.0.14206865" && sdkmanager --uninstall "ndk;30.0.16248370"
 | 30/10/2026 | `./gradlew -Puniversal assembleNoamazonDebug` (F1 fase A: pacote, versão, nome e idioma; daemon novo) | `BUILD SUCCESSFUL` em 18 min (65 de 131 tarefas executadas): APK pronto em ~6 min, o lint levou ~12 min; lint passou. APK `br.com.starktechstudio.mediaplayer-1-0.1.0-debug.apk`, 4 ABIs, pacote `br.com.starktechstudio.mediaplayer`, 0.1.0 / 1, idiomas no APK: padrão, `pt` e `pt-BR` |
 | 30/10/2026 | idem, incremental (uma classe Java alterada, daemon aberto) | `BUILD SUCCESSFUL` em 9 min 21 s (16 de 131 tarefas executadas): APK pronto em ~2 min, o resto é lint. APK com 103 MB. Instalado nos emuladores de TV e tablet, ao lado do Nova |
 | 30/10/2026 | idem, incremental (F1 fase B: fonte Inter, cores, estilos, fundos, ícone, banner e logo; só recursos e manifesto; daemon aberto) | `BUILD SUCCESSFUL` em 9 min 52 s (27 de 131 tarefas executadas): APK pronto em ~2 min 45 s, o resto é lint; lint passou (0 erros; os avisos novos são só `UnusedResources` dos recursos `st_*`, usados a partir da fase C). APK com 104 MB (109.264.587 bytes; as 5 fontes Inter somam ~2 MB). Ícone `res/mipmap-anydpi-v26/st_ic_launcher.xml` e banner `res/drawable-xxxhdpi-v4/st_banner.png` conferidos no `aapt2 dump badging`. Instalado nos emuladores de TV e tablet |
+| 30/10/2026 | `./gradlew -Puniversal assembleNoamazonDebug -x lintNoamazonDebug` (F1 fase C: dados simulados, navegação e rotas; primeiro build sem lint; daemon aberto) | `BUILD SUCCESSFUL` em 3 min 2 s (20 de 82 tarefas executadas; nenhuma de lint). APK com 109.422.546 bytes |
+| 30/10/2026 | idem, incremental (uma classe nova e duas alteradas) | `BUILD SUCCESSFUL` em 2 min 16 s (15 de 82 tarefas executadas). APK com 110.858.770 bytes (~106 MB). Instalado nos emuladores de TV e tablet |
 
 Avisos do build, sem erro:
 - NDK r30 aceitou o `APP_PLATFORM android-21` do avos, só com aviso: o risco do NDK (seção 4) não ocorreu.

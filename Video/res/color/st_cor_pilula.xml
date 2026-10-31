@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Texto das pílulas do topo da TV: ativa ou em foco (fundo branco) = #020617; demais #cbd5e1. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/st_texto_escuro" android:state_focused="true" />
+    <item android:color="@color/st_texto_escuro" android:state_selected="true" />
+    <item android:color="@color/st_texto_secundario" />
+</selector>

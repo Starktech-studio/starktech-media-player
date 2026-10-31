@@ -1,4 +1,5 @@
 // Copyright 2017 Archos SA
+// Modificado por StarkTech Studio em 2026
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -590,7 +591,7 @@ abstract public class BrowserCategory extends ListFragment {
     }
 
     private void addLastItems() {
-        mCategoryList.add("Nova" + " v" + getText(R.string.VERSION_NAME));
+        mCategoryList.add(getString(R.string.nova) + " v" + getText(R.string.VERSION_NAME));
         ItemData itemData = new ItemData();
         itemData.icon = R.drawable.android29_ic_settings;
         itemData.text = R.string.preferences;

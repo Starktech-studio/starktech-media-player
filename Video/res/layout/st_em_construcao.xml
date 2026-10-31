@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Conteúdo provisório (EmConstrucaoFragment). Medidas do tablet; a TV ajusta no código (px ÷ 2). -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingStart="@dimen/st_tablet_margem_h"
+    android:paddingTop="@dimen/st_tablet_margem_v"
+    android:paddingEnd="@dimen/st_tablet_margem_h"
+    android:paddingBottom="@dimen/st_tablet_margem_v">
+
+    <LinearLayout
+        android:id="@+id/st_em_construcao_painel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/st_fundo_cartao"
+        android:orientation="vertical"
+        android:padding="36dp">
+
+        <TextView
+            android:id="@+id/st_em_construcao_titulo"
+            style="@style/StarkTech.Texto.Titulo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/st_em_construcao" />
+
+        <TextView
+            android:id="@+id/st_em_construcao_texto"
+            style="@style/StarkTech.Texto.Apagado"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="@string/st_em_construcao_texto" />
+    </LinearLayout>
+</FrameLayout>

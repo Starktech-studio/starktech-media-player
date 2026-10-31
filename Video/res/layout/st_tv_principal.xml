@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!--
+     Tela principal da TV (PrincipalTvActivity): barra do topo do Main.dc.html
+     (marca, pílulas Início, Filmes, Séries, Shows, Pastas, botões Buscar e Configurações)
+     e o conteúdo da aba. Medidas: px do HTML / 2.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/st_fundo"
+    android:clipChildren="false">
+
+    <!-- Brilho azul do canto (900 px, top -380, right -200) -->
+    <View
+        android:layout_width="@dimen/st_tv_brilho"
+        android:layout_height="@dimen/st_tv_brilho"
+        android:layout_gravity="top|end"
+        android:background="@drawable/st_brilho"
+        android:importantForAccessibility="no"
+        android:translationX="100dp"
+        android:translationY="-190dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipChildren="false"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/st_barra_topo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="false"
+            android:clipChildren="false"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/st_tv_margem_lateral"
+            android:paddingTop="@dimen/st_tv_margem_topo"
+            android:paddingEnd="@dimen/st_tv_margem_lateral">
+
+            <!-- Marca: "Stark" + "Tech" azul, "Media Player" -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/st_marca"
+                    style="@style/StarkTech.Texto.Titulo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/st_tv_texto_marca" />
+
+                <TextView
+                    style="@style/StarkTech.Texto.Apagado"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:text="@string/st_marca_media_player"
+                    android:textSize="@dimen/st_tv_texto_marca_sub" />
+            </LinearLayout>
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <!-- Pílulas -->
+            <LinearLayout
+                android:id="@+id/st_pilulas"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/st_secoes"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/st_pilula_inicio"
+                    style="@style/StarkTech.Texto.Forte"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/st_pilula_menu"
+                    android:focusable="true"
+                    android:paddingStart="@dimen/st_tv_pilula_padding_h"
+                    android:paddingTop="@dimen/st_tv_pilula_padding_v"
+                    android:paddingEnd="@dimen/st_tv_pilula_padding_h"
+                    android:paddingBottom="@dimen/st_tv_pilula_padding_v"
+                    android:text="@string/st_aba_inicio"
+                    android:textColor="@color/st_cor_pilula"
+                    android:textSize="@dimen/st_tv_texto_botao" />
+
+                <TextView
+                    android:id="@+id/st_pilula_filmes"
+                    style="@style/StarkTech.Texto.Forte"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/st_tv_pilula_espaco"
+                    android:background="@drawable/st_pilula_menu"
+                    android:focusable="true"
+                    android:paddingStart="@dimen/st_tv_pilula_padding_h"
+                    android:paddingTop="@dimen/st_tv_pilula_padding_v"
+                    android:paddingEnd="@dimen/st_tv_pilula_padding_h"
+                    android:paddingBottom="@dimen/st_tv_pilula_padding_v"
+                    android:text="@string/st_aba_filmes"
+                    android:textColor="@color/st_cor_pilula"
+                    android:textSize="@dimen/st_tv_texto_botao" />
+
+                <TextView
+                    android:id="@+id/st_pilula_series"
+                    style="@style/StarkTech.Texto.Forte"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/st_tv_pilula_espaco"
+                    android:background="@drawable/st_pilula_menu"
+                    android:focusable="true"
+                    android:paddingStart="@dimen/st_tv_pilula_padding_h"
+                    android:paddingTop="@dimen/st_tv_pilula_padding_v"
+                    android:paddingEnd="@dimen/st_tv_pilula_padding_h"
+                    android:paddingBottom="@dimen/st_tv_pilula_padding_v"
+                    android:text="@string/st_aba_series"
+                    android:textColor="@color/st_cor_pilula"
+                    android:textSize="@dimen/st_tv_texto_botao" />
+
+                <TextView
+                    android:id="@+id/st_pilula_shows"
+                    style="@style/StarkTech.Texto.Forte"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/st_tv_pilula_espaco"
+                    android:background="@drawable/st_pilula_menu"
+                    android:focusable="true"
+                    android:paddingStart="@dimen/st_tv_pilula_padding_h"
+                    android:paddingTop="@dimen/st_tv_pilula_padding_v"
+                    android:paddingEnd="@dimen/st_tv_pilula_padding_h"
+                    android:paddingBottom="@dimen/st_tv_pilula_padding_v"
+                    android:text="@string/st_aba_shows"
+                    android:textColor="@color/st_cor_pilula"
+                    android:textSize="@dimen/st_tv_texto_botao" />
+
+                <TextView
+                    android:id="@+id/st_pilula_pastas"
+                    style="@style/StarkTech.Texto.Forte"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/st_tv_pilula_espaco"
+                    android:background="@drawable/st_pilula_menu"
+                    android:focusable="true"
+                    android:paddingStart="@dimen/st_tv_pilula_padding_h"
+                    android:paddingTop="@dimen/st_tv_pilula_padding_v"
+                    android:paddingEnd="@dimen/st_tv_pilula_padding_h"
+                    android:paddingBottom="@dimen/st_tv_pilula_padding_v"
+                    android:text="@string/st_aba_pastas"
+                    android:textColor="@color/st_cor_pilula"
+                    android:textSize="@dimen/st_tv_texto_botao" />
+            </LinearLayout>
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <!-- Buscar e Configurações (56 px, ícone 26 px, espaço 14 px) -->
+            <ImageButton
+                android:id="@+id/st_botao_buscar"
+                android:layout_width="29dp"
+                android:layout_height="@dimen/st_tv_botao_icone_altura"
+                android:background="@drawable/st_botao_secundario"
+                android:contentDescription="@string/st_buscar"
+                android:focusable="true"
+                android:foreground="@drawable/st_foco_tv"
+                android:paddingStart="@dimen/st_tv_botao_icone_padding"
+                android:paddingTop="7.5dp"
+                android:paddingEnd="@dimen/st_tv_botao_icone_padding"
+                android:paddingBottom="7.5dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/st_ic_buscar"
+                app:tint="@color/st_texto" />
+
+            <ImageButton
+                android:id="@+id/st_botao_configuracoes"
+                android:layout_width="29dp"
+                android:layout_height="@dimen/st_tv_botao_icone_altura"
+                android:layout_marginStart="7dp"
+                android:background="@drawable/st_botao_secundario"
+                android:contentDescription="@string/st_configuracoes"
+                android:focusable="true"
+                android:foreground="@drawable/st_foco_tv"
+                android:paddingStart="@dimen/st_tv_botao_icone_padding"
+                android:paddingTop="7.5dp"
+                android:paddingEnd="@dimen/st_tv_botao_icone_padding"
+                android:paddingBottom="7.5dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/st_ic_ajustes"
+                app:tint="@color/st_texto" />
+        </LinearLayout>
+
+        <!-- Conteúdo da aba (Navegacao.conteudoDaAba) -->
+        <FrameLayout
+            android:id="@+id/st_conteudo"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipChildren="false" />
+    </LinearLayout>
+</FrameLayout>
