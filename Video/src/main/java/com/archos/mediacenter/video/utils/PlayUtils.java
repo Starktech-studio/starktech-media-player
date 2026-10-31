@@ -1,4 +1,5 @@
 // Copyright 2017 Archos SA
+// Modificado por StarkTech Studio em 2026
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -358,7 +359,7 @@ public class PlayUtils implements IndexHelper.Listener {
                     } else {
                         // TODO FIXME passing file to 3rd party player is not working
                         subFile = new File(subPath);
-                        subUri = FileProvider.getUriForFile(context, "org.courville.nova.provider", subFile);
+                        subUri = FileProvider.getUriForFile(context, context.getPackageName() + ".provider", subFile);
                         MxSubPaths.add(subUri);
                     }
                     if (log.isDebugEnabled()) log.debug("onResumeReady: subPath {} -> subUri {}-> subLanguage {}", subPath, subUri, subLanguage);

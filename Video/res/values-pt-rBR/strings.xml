@@ -2,6 +2,7 @@
 <!--
 /*
 ** Copyright 2007, The Android Open Source Project
+** Modificado por StarkTech Studio em 2026
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -350,7 +351,7 @@
     <string name="player_plugin_purchase" tools:ignore="UnusedResources">Ir para a Loja</string>
     <string name="player_plugin_purchase_google_play_button">Acesse a Google Play</string>
     <string name="plugin_update_required_title">Atualização de codec necessária</string>
-    <string name="plugin_update_required_message">Parece que você já possui codecs adicionais instalados para o Nova Video Player.\n\nEsta nova versão do Nova Video Player exige uma atualização destes codecs.\n\nPor favor, acesse a Google Play para atualizar e reinstalar os codecs.</string>
+    <string name="plugin_update_required_message">Parece que você já possui codecs adicionais instalados para o StarkTech Media Player.\n\nEsta nova versão do StarkTech Media Player exige uma atualização destes codecs.\n\nPor favor, acesse a Google Play para atualizar e reinstalar os codecs.</string>
     <!-- Subtitles wizard -->
     <string name="get_subtitles_on_drive">Selecionar legendas no armazenamento</string>
     <string name="subtitles_wizard_no_files">Nenhum arquivo de legenda encontrado</string>
@@ -405,8 +406,8 @@
     not visible otherwise -->
     <string name="quotation_format">&#x201C;%s&#x201D;&#x2003;</string>
     <string name="error_permission" tools:ignore="UnusedResources">Sem permissões suficientes</string>
-    <string name="error_permission_storage">O Nova Video Player precisa de permissão de armazenamento para acessar vídeos locais. Por favor, conceda esta permissão.</string>
-    <string name="error_permission_all_file_access">O Nova Video Player precisa de todas as permissões de gerenciamento de armazenamento externo para gerenciar vídeos locais/arquivos NFO corretamente, por favor, conceda essa permissão.</string>
+    <string name="error_permission_storage">O StarkTech Media Player precisa de permissão de armazenamento para acessar vídeos locais. Por favor, conceda esta permissão.</string>
+    <string name="error_permission_all_file_access">O StarkTech Media Player precisa de todas as permissões de gerenciamento de armazenamento externo para gerenciar vídeos locais/arquivos NFO corretamente, por favor, conceda essa permissão.</string>
     <string name="allow">Permitir</string>
     <string name="exit">Sair</string>
     <!-- torrent -->
@@ -464,7 +465,7 @@
     <string name="preferences_force_software_decoding_summary">Você pode tentar esta opção se alguns vídeos não estiverem sendo reproduzidos corretamente.</string>
     <string name="preferences_force_audio_passthrough">Passagem direta de áudio</string>
     <string name="preferences_force_audio_passthrough_disabled">Desativado (recomendado)</string>
-    <string name="preferences_force_audio_passthrough_enable">Encapsulamento do Nova (experimental)</string>
+    <string name="preferences_force_audio_passthrough_enable">Encapsulamento do StarkTech Media Player (experimental)</string>
     <string name="preferences_force_audio_passthrough_enable2">Encapsulamento do sistema</string>
     <string name="preferences_force_audio_passthrough_ac3">Universal (recodificação AC3)</string>
     <string name="preferences_force_audio_passthrough_summary">Transmite áudio compactado via HDMI ou S/PDIF. ⚠️ Experimental: pode resultar em dessincronização de áudio e vídeo.</string>
@@ -530,7 +531,7 @@
     <string name="prefer_original_audio_track_summary">Use a faixa correspondente ao idioma original do filme ou da série quando disponível.</string>
     <string name="ui_language_title">Escolher idioma da interface</string>
     <string name="UiLang_title">Idioma da interface</string>
-    <string name="UiLang_summary">Defina o idioma da interface do Nova. Escolha \"Sistema\" para usar o padrão do sistema.</string>
+    <string name="UiLang_summary">Defina o idioma da interface do StarkTech Media Player. Escolha \"Sistema\" para usar o padrão do sistema.</string>
     <string name="ui_mode_title">Modo de interface</string>
     <string name="ui_mode_summary">Escolha entre a interface para TV e a interface para Tablet/Celular.</string>
     <string name="theme_selection_title">Tema de cores</string>
@@ -619,10 +620,10 @@
     <!--  Nfo File parsing -->
     <string name="network_nfo_parse">Processar arquivos \'.nfo\'</string>
     <string name="network_nfo_parse_summary">Leia arquivos \'.nfo\' do Kodi durante a (re)verificação para obter informações de mídia e pôsteres.</string>
-    <string name="ask_to_mail_media_DB">Deseja enviar o banco de dados de vídeos para a equipe de desenvolvimento do Nova para ajudar na análise de um erro?\n\nOs arquivos de vídeo (naturalmente) não são enviados, apenas a lista completa de nomes de arquivos.</string>
+    <string name="ask_to_mail_media_DB">Deseja enviar o banco de dados de vídeos para a equipe de desenvolvimento do StarkTech Media Player para ajudar na análise de um erro?\n\nOs arquivos de vídeo (naturalmente) não são enviados, apenas a lista completa de nomes de arquivos.</string>
     <string name="no_email_installed">Nenhum aplicativo de e-mail encontrado</string>
     <string name="zipping_library_before_mailing">Zipping uma cópia da biblioteca antes de enviá-la…</string>
-    <string name="zipped_library_mail_subject">Backup do Banco de Dados do Nova Video</string>
+    <string name="zipped_library_mail_subject">Backup do Banco de Dados do StarkTech Media Player</string>
     <string name="zipped_library_mail_text">Por favor, descreva o problema encontrado.\n\n</string>
     <string name="sort_mode">Modo de Ordenação</string>
     <string name="sort_by_name_asc">Ordenar por nome (A - Z)</string>
@@ -777,7 +778,7 @@
     <string name="trakt_force_push_summary">Envio único do status de assistido e pontos de retomada para o Trakt.</string>
     <string name="trakt_force_pull_title">Forçar reimportação do Trakt</string>
     <string name="trakt_force_pull_summary">Importação única do status de assistido e pontos de retomada do Trakt.</string>
-    <string name="trakt_sync_collection_summary" tools:ignore="UnusedResources">Adiciona automaticamente todos os vídeos da sua lista do Nova à sua coleção do Trakt.</string>
+    <string name="trakt_sync_collection_summary" tools:ignore="UnusedResources">Adiciona automaticamente todos os vídeos da sua lista do StarkTech Media Player à sua coleção do Trakt.</string>
     <string name="trakt_toast_syncing">Sincronizando com o Trakt&#8230;</string>
     <string name="trakt_device_auth_step1">1. No celular ou computador, acesse:</string>
     <string name="trakt_device_auth_step2">2. Insira este código:</string>
@@ -834,7 +835,7 @@
     <string name="leanback_unscrap">@string/scrap_remove</string>
     <string name="leanback_legacy_ui">Interface normal</string>
     <string name="leanback_hint_long_press_on_back">DICA: manter o botão VOLTAR pressionado fecha o explorador de arquivos</string>
-    <string name="leanback_archos_video_webview">Nova Video WebView</string>
+    <string name="leanback_archos_video_webview">StarkTech Media Player WebView</string>
     <string name="file_access_error">Não foi possível acessar o arquivo</string>
     <string name="always_leanback_on_tv">Sempre iniciar na interface para TV</string>
     <string name="always_leanback_on_tv_summary">Sempre iniciar o aplicativo na interface para TV. Desative se quiser iniciar na interface clássica na TV.</string>
@@ -866,7 +867,7 @@
     <string name="scheduled_rescan_time">Horário de verificação</string>
     <string name="rescan_when_opening_application">Verificação ao abrir o aplicativo</string>
     <string name="last_rescan_occured">Última verificação:</string>
-    <string name="error_permission_display_over_apps">O modo janela requer permissões especiais para ser exibido sobre outros aplicativos. Por favor, conceda esta permissão ao Nova Video Player para alternar para o modo janela.</string>
+    <string name="error_permission_display_over_apps">O modo janela requer permissões especiais para ser exibido sobre outros aplicativos. Por favor, conceda esta permissão ao StarkTech Media Player para alternar para o modo janela.</string>
     <string name="drawer_open">draweropen</string>
     <string name="drawer_close">drawer_close</string>
     <string name="view_more">Ver mais</string>
@@ -874,7 +875,7 @@
     <string name="rescrap_in_progress">Atualizando informações de toda a biblioteca</string>
     <string name="rescrap_movies_in_progress">Atualizando informações de todos os filmes</string>
     <string name="rescrap_collections_in_progress">Atualizando informações de todas as coleções</string>
-    <string name="acquire_external_usb_permission">O Nova Vídeo precisa de permissão especial para acessar o armazenamento externo. Por favor, selecione seu armazenamento na próxima tela</string>
+    <string name="acquire_external_usb_permission">O StarkTech Media Player precisa de permissão especial para acessar o armazenamento externo. Por favor, selecione seu armazenamento na próxima tela</string>
     <string name="rescrap_not_found">Atualizar vídeos sem descrição</string>
     <string name="rescrap_all_title">Atualizar todas as informações</string>
     <string name="rescrap_all_movies_title">Atualizar informações de todos os filmes</string>
@@ -912,7 +913,7 @@
     <string name="sleep_timer_description">Parar o vídeo após: </string>
     <string name="picture_in_picture">Picture-in-picture</string>
     <string name="cast" tools:ignore="UnusedResources">Transmitir</string>
-    <string name="cast_audio_background">O áudio não funcionará com o Nova Video Player em segundo plano</string>
+    <string name="cast_audio_background">O áudio não funcionará com o StarkTech Media Player em segundo plano</string>
     <string name="help_faq">Ajuda / FAQ</string>
     <string name="provider_folders">Nuvem</string>
     <string name="rate_us">Gosta do aplicativo? Apoie-nos com uma avaliação de 5 estrelas</string>
@@ -927,8 +928,8 @@
     <string name="list_title">Título da lista</string>
     <string name="loading">Carregando…</string>
     <string name="refreshrate_failed">Falha ao definir a taxa de atualização desejada</string>
-    <string name="sponsor">Patrocinar Nova</string>
-    <string name="enable_sponsor_title">Ativar link de patrocinador do Nova</string>
+    <string name="sponsor">Patrocinar StarkTech Media Player</string>
+    <string name="enable_sponsor_title">Ativar link de patrocinador do StarkTech Media Player</string>
     <string name="enable_sponsor_summary">Ativar link de patrocinador para doações: cada contribuição ajuda.</string>
     <string name="hdr_capability">Recursos HDR da tela:</string>
     <string name="hdmi_audio_capabilities">Recursos de áudio do receiver HDMI:</string>
@@ -936,10 +937,10 @@
     <string name="max_audio_channels">Máximo de canais de áudio:</string>
     <string name="supported_refresh_rates">Taxas de atualização compatíveis:</string>
     <string name="upgrade_info">Informações de atualização</string>
-    <string name="v5_v6_upgrade_info">AVISO: esta atualização principal do Nova exige uma nova verificação de toda a coleção de vídeos para obter as informações multimídia novamente.
+    <string name="v5_v6_upgrade_info">AVISO: esta atualização principal do StarkTech Media Player exige uma nova verificação de toda a coleção de vídeos para obter as informações multimídia novamente.
         É altamente recomendável reiniciar a partir de uma instalação limpa para evitar problemas. Por favor, consulte as Perguntas Frequentes (FAQ) para mais detalhes.</string>
     <string name="external_player_service_title">Reprodução em player externo</string>
-    <string name="external_player_service_description">O Nova Video Player fornece conteúdo para um player externo</string>
+    <string name="external_player_service_description">O StarkTech Media Player fornece conteúdo para um player externo</string>
     <string name="stop">Parar</string>
     <string name="s_visual_impaired">deficientes visuais</string>
     <string name="s_audio_description">audiodescrição</string>
@@ -951,9 +952,59 @@
     <string name="s_commentary">comentários</string>
     <string name="s_lyrics">letras</string>
     <string name="s_karaoke">karaokê</string>
-    <string name="ui_choice_title">Parece que você está usando o Nova Video Player em uma TV.\nSe esse for o caso, recomendamos usar nossa nova interface para TV</string>
+    <string name="ui_choice_title">Parece que você está usando o StarkTech Media Player em uma TV.\nSe esse for o caso, recomendamos usar nossa nova interface para TV</string>
     <string name="ui_choice_tv">Interface para TV</string>
     <string name="ui_choice_tablet">Interface para tablet</string>
     <string name="ui_choice_help">Você pode alterar sua escolha mais tarde nas configurações do aplicativo</string>
     <string name="workgroup">Grupo de trabalho</string>
+    <!-- StarkTech: textos que faltavam em pt-BR -->
+    <string name="skip_intro_button">Pular abertura</string>
+    <string name="skip_recap_button">Pular recapitulação</string>
+    <string name="skip_credits_button">Pular créditos</string>
+    <string name="skip_preview_button">Pular prévia</string>
+    <string name="subtitle_use_margins_title">Mostrar legendas nas barras pretas</string>
+    <string name="subtitle_use_margins_summary">Mostra as legendas na faixa preta abaixo da imagem, sem cobrir o vídeo</string>
+    <string name="subtitle_fonts_folder_title">Pasta de fontes personalizadas</string>
+    <string name="subtitle_fonts_folder_summary">Escolha uma pasta com fontes .ttf/.otf/.ttc para usar nas legendas, no lugar das fontes internas</string>
+    <string name="subtitle_default_font_title">Fonte padrão das legendas</string>
+    <string name="version_open_store_summary">Selecione para abrir a loja</string>
+    <string name="subtitle_panel_title">Ajustes de legenda</string>
+    <string name="subtitle_panel_advanced">Aparência avançada</string>
+    <string name="subtitle_panel_style">Estilo</string>
+    <string name="subtitle_panel_mode_file">Estilo do arquivo</string>
+    <string name="subtitle_panel_mode_custom">Personalizado</string>
+    <string name="subtitle_panel_mode_scale">Só tamanho</string>
+    <string name="subtitle_panel_caption_file">Usa o estilo do próprio arquivo de legenda. Nada a ajustar.</string>
+    <string name="subtitle_panel_caption_custom">Sua fonte, cores e posição substituem as do arquivo.</string>
+    <string name="subtitle_panel_caption_scale">Mantém o estilo do arquivo e só muda o tamanho do texto.</string>
+    <string name="subtitle_panel_note_plain_text">Legendas de texto simples sempre usam o seu estilo.</string>
+    <string name="subtitle_panel_note_graphic">Os ajustes não valem para legendas em imagem.</string>
+    <string name="subtitle_panel_note_unsupported">Este formato de legenda não pode ser estilizado.</string>
+    <string name="subtitle_panel_note_none">Nenhuma legenda selecionada.</string>
+    <string name="subtitle_panel_font_size">Tamanho</string>
+    <string name="subtitle_panel_bold">Negrito</string>
+    <string name="subtitle_panel_background">Fundo</string>
+    <string name="subtitle_panel_bg_off">Desligado</string>
+    <string name="subtitle_panel_bg_line">Linha</string>
+    <string name="subtitle_panel_bg_box">Caixa</string>
+    <string name="subtitle_panel_vertical_position">Posição vertical</string>
+    <string name="subtitle_panel_scale">Escala</string>
+    <string name="subtitle_panel_reset">Restaurar aparência</string>
+    <string name="subtitle_panel_reset_confirm_touch">Toque de novo para restaurar</string>
+    <string name="subtitle_panel_reset_confirm_tv">Pressione OK de novo para restaurar</string>
+    <string name="subtitle_panel_section_text">Texto</string>
+    <string name="subtitle_panel_text_color">Cor do texto</string>
+    <string name="subtitle_panel_outline_width">Largura do contorno</string>
+    <string name="subtitle_panel_outline_color">Cor do contorno</string>
+    <string name="subtitle_panel_shadow_width">Largura da sombra</string>
+    <string name="subtitle_panel_shadow_color">Cor da sombra</string>
+    <string name="subtitle_panel_background_color">Cor do fundo</string>
+    <string name="subtitle_panel_background_opacity">Opacidade do fundo</string>
+    <string name="subtitle_panel_padding">Margem interna</string>
+    <string name="subtitle_panel_preview_own_style">É usado o estilo do próprio arquivo</string>
+    <string name="subtitle_panel_red">Vermelho</string>
+    <string name="subtitle_panel_green">Verde</string>
+    <string name="subtitle_panel_blue">Azul</string>
+    <string name="subtitle_panel_decrease">Diminuir</string>
+    <string name="subtitle_panel_increase">Aumentar</string>
 </resources>

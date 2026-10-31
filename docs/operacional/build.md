@@ -42,9 +42,10 @@ cd /mnt/d/Dev/starktech-media-player/Video
 
 ## 3. Saída e instalação
 
-- APK: `Video/build/outputs/apk/noamazon/debug/` (nome na linha `generated:` que o build imprime).
+- APK: `Video/build/outputs/apk/noamazon/debug/` (nome na linha `generated:` que o build imprime): `br.com.starktechstudio.mediaplayer-1-0.1.0-debug.apk`.
+- Pacote `br.com.starktechstudio.mediaplayer`, versão 0.1.0 (versionCode 1), desde a F1 fase A; só pt-BR no APK (`androidResources.localeFilters` em `Video/build.gradle`).
 - Cópias de teste em `apks/` na raiz (fora do Git).
-- Instalar pelo Windows: `adb install -r <apk>`. O pacote ainda é `org.courville.nova` (mesmo do Nova): desinstalar o Nova do aparelho antes, senão a instalação falha por assinatura diferente.
+- Instalar pelo Windows: `adb install -r <apk>`. Pacote, authorities, `taskAffinity` e `sharedUserId` diferentes dos do Nova: instala ao lado do Nova (`org.courville.nova`), sem desinstalar.
 - Enquanto o APK tiver as chaves do Nova (`MediaLib/res/values/donottranslate.xml`), ele não sai desta máquina.
 
 ## 4. NDK
@@ -60,6 +61,8 @@ sdkmanager "ndk;29.0.14206865" && sdkmanager --uninstall "ndk;30.0.16248370"
 | Data | Comando | Resultado |
 |---|---|---|
 | 30/10/2026 | `./gradlew --no-daemon -Puniversal assembleNoamazonDebug` (código do Nova v6.6.2 sem alteração, em `/mnt/d`) | `BUILD SUCCESSFUL` em 24 min (primeira execução, com o download do Gradle e das dependências); lint passou. APK `org.courville.nova-6060002-6.6.2-debug.apk`, 105 MB, 4 ABIs (arm64-v8a, armeabi-v7a, x86, x86_64), pacote `org.courville.nova`, 6.6.2 / 6060002, targetSdk 36. Cópia em `apks/`. Teste no aparelho: não feito — o APK com as chaves do Nova não sai desta máquina |
+| 30/10/2026 | `./gradlew -Puniversal assembleNoamazonDebug` (F1 fase A: pacote, versão, nome e idioma; daemon novo) | `BUILD SUCCESSFUL` em 18 min (65 de 131 tarefas executadas): APK pronto em ~6 min, o lint levou ~12 min; lint passou. APK `br.com.starktechstudio.mediaplayer-1-0.1.0-debug.apk`, 4 ABIs, pacote `br.com.starktechstudio.mediaplayer`, 0.1.0 / 1, idiomas no APK: padrão, `pt` e `pt-BR` |
+| 30/10/2026 | idem, incremental (uma classe Java alterada, daemon aberto) | `BUILD SUCCESSFUL` em 9 min 21 s (16 de 131 tarefas executadas): APK pronto em ~2 min, o resto é lint. APK com 103 MB. Instalado nos emuladores de TV e tablet, ao lado do Nova |
 
 Avisos do build, sem erro:
 - NDK r30 aceitou o `APP_PLATFORM android-21` do avos, só com aviso: o risco do NDK (seção 4) não ocorreu.

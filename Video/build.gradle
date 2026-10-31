@@ -1,3 +1,5 @@
+// Modificado por StarkTech Studio em 2026
+
 buildscript {
     repositories {
         google()
@@ -151,7 +153,7 @@ android {
         }
     }
     defaultConfig {
-        applicationId = "org.courville.nova"
+        applicationId = "br.com.starktechstudio.mediaplayer"
         generatedDensities = []
         minSdkVersion 23
         targetSdkVersion 36
@@ -159,8 +161,8 @@ android {
         // below version tracks the one from F-Droid or universal package when generated with ./gradlew -Puniversal
         // this is overridden when using split apk and normal split apk generation or oneapk amazon generation
         // amazon apk is generated with ./gradlew -Poneapk
-        versionCode = 6060002
-        versionName = '6.6.2'
+        versionCode = 1
+        versionName = '0.1.0'
         def novaVersionName = versionName
         if (! project.hasProperty("universal")) {
             // override versionName and versionCode to get it dependent on the date
@@ -198,7 +200,11 @@ android {
             buildConfigField "String", "SENTRY_DSN", "\"\"";
         }
         resValue "string", "VERSION_NAME", versionName
-        resValue "string", "APP_INFO", "Nova v" + versionName + " (" + applicationId + ")"
+        resValue "string", "APP_INFO", "StarkTech Media Player v" + versionName + " (" + applicationId + ")"
+    }
+    androidResources {
+        // StarkTech: app só em pt-BR (os textos sem qualificador de idioma ficam como reserva)
+        localeFilters.add("pt-rBR")
     }
     bundle {
         language {

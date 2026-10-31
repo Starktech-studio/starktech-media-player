@@ -31,7 +31,7 @@ Repositório, ramo e commit de origem de cada pasta: `docs/operacional/origem-no
 ## 2. Regras do código
 
 - Pastas do Nova sem `.git` próprio. Atualizar do Nova só pelo roteiro de `docs/operacional/origem-nova.md`; a tag `nova-v6.6.2` marca o código original.
-- Manter `LICENSE`, `COPYING`, `NOTICE` e cabeçalhos de copyright de cada pasta. Arquivo do Nova alterado: acrescentar no cabeçalho "Modificado pela StarkTech Studio em AAAA" (Apache 2.0, §4b).
+- Manter `LICENSE`, `COPYING`, `NOTICE` e cabeçalhos de copyright de cada pasta. Arquivo do Nova alterado: manter o cabeçalho Apache-2.0 e acrescentar nele a linha "Modificado por StarkTech Studio em AAAA" (Apache 2.0, §4b); arquivo sem cabeçalho ganha a linha como comentário no topo.
 - Marca: StarkTech. "Nova" só no crédito "Baseado no Nova Video Player" (a Apache 2.0 não cede a marca, §6).
 - Git desta pasta só pelo WSL (`git` dentro do Ubuntu, em `/mnt/d/Dev/starktech-media-player`). Nunca usar o Git do Windows nesta pasta (nem Git Bash, nem o Git do Android Studio ou do VS Code no Windows): com `core.autocrlf=true` e `core.symlinks=false` ele troca o fim de linha dos scripts e quebra os links simbólicos. Configuração local do repositório: `core.autocrlf=false` e `core.symlinks=true`; `.gitattributes` com `* -text`.
 - Bit de execução: em `/mnt/d` o Git não enxerga `chmod` (`core.fileMode=false`). Script novo que precisa rodar: `git update-index --chmod=+x <arquivo>`.

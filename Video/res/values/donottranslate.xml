@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Modificado por StarkTech Studio em 2026 -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
 
     <string name="unknown_video_name">@string/unknown_track_name</string>
@@ -28,7 +29,7 @@
     <string name="media_library_export_prefkey">media_library_export_prefkey</string>
     <string name="media_library_import_prefkey">media_library_import_prefkey</string>
 
-    <string name="nova">Nova Video Player</string>
+    <string name="nova">StarkTech Media Player</string>
 
     <string name="resolution_4k">4k</string>
     // do not say p since it can be i too

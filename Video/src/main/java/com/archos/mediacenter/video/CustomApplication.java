@@ -1,4 +1,5 @@
 // Copyright 2017 Archos SA
+// Modificado por StarkTech Studio em 2026
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -39,6 +40,7 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Environment;
 import android.os.StrictMode;
 import android.util.Log;
@@ -811,6 +813,25 @@ public class CustomApplication extends Application implements DefaultLifecycleOb
         getDefaultLocale();
         loadLocale();
         if (log.isDebugEnabled()) log.debug("onCreate: systemLocale={}, defaultLocale={}", systemLocale, defaultLocale);
+        // StarkTech: pt-BR também nos recursos de cada activity, antes de montar as telas
+        // (sem isso, telas que só atualizam os recursos do Application saem no idioma do sistema)
+        registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
+            @Override
+            public void onActivityPreCreated(@NonNull Activity activity, Bundle savedInstanceState) {
+                setLocale(null, activity.getResources());
+            }
+            @Override
+            public void onActivityCreated(@NonNull Activity activity, Bundle savedInstanceState) {
+                // API < 29 não chama onActivityPreCreated
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) setLocale(null, activity.getResources());
+            }
+            @Override public void onActivityStarted(@NonNull Activity activity) {}
+            @Override public void onActivityResumed(@NonNull Activity activity) {}
+            @Override public void onActivityPaused(@NonNull Activity activity) {}
+            @Override public void onActivityStopped(@NonNull Activity activity) {}
+            @Override public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {}
+            @Override public void onActivityDestroyed(@NonNull Activity activity) {}
+        });
 
         // must be done before sambaDiscovery otherwise no context for jcifs
         new Thread(() -> {
@@ -1348,14 +1369,14 @@ public class CustomApplication extends Application implements DefaultLifecycleOb
             novaVersionName = info.versionName;
             try {
                 novaVersionArray = splitVersion(novaVersionName);
-                novaLongVersion = "Nova v" + novaVersionArray[0] + "." + novaVersionArray[1] + "." + novaVersionArray[2] +
+                novaLongVersion = "StarkTech Media Player v" + novaVersionArray[0] + "." + novaVersionArray[1] + "." + novaVersionArray[2] +
                         " (" + novaVersionArray[3] + String.format(Locale.ROOT, "%02d", novaVersionArray[4]) + String.format(Locale.ROOT, "%02d", novaVersionArray[5]) +
                         "." + String.format(Locale.ROOT, "%02d", novaVersionArray[6]) + String.format(Locale.ROOT, "%02d", novaVersionArray[7]) + ")";
                 novaShortVersion = "v" + novaVersionArray[0] + "." + novaVersionArray[1] + "." + novaVersionArray[2];
             } catch (IllegalArgumentException ie) {
                 novaVersionArray = new int[] { 0, 0, 0, 0, 0, 0, 0, 0};
                 log.error("updateVersionState: cannot split application version {}", novaVersionName);
-                novaLongVersion = "Nova v" + novaVersionName;
+                novaLongVersion = "StarkTech Media Player v" + novaVersionName;
             }
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
             int previousVersion = sharedPreferences.getInt("current_versionCode", -1);
@@ -1479,15 +1500,9 @@ public class CustomApplication extends Application implements DefaultLifecycleOb
     @SuppressWarnings("deprecation") // updateConfiguration: needed for locale injection pre-API 33
     public static void setLocale(String localeCode, Resources resources) {
         // Warning no log.debug at this stage
-        Locale locale;
-        if (localeCode == null || localeCode.isEmpty() || localeCode.equalsIgnoreCase(VideoPreferencesCommon.KEY_UI_LANG_SYSTEM)) {
-            locale = systemLocale; // Use system default language
-            if (DBG) Log.d("CustomApplication", "setLocale: use system default language = " + locale);
-        } else {
-            //log.debug("setLocale: use language {}", lang);
-            if (DBG) Log.d("CustomApplication", "setLocale: use localeCode " + localeCode);
-            locale = VideoPreferencesCommon.getLocaleFromCode(localeCode);
-        }
+        // StarkTech: app só em pt-BR; o idioma da preferência (localeCode) e o do sistema não são usados
+        Locale locale = Locale.forLanguageTag("pt-BR");
+        if (DBG) Log.d("CustomApplication", "setLocale: localeCode " + localeCode + " ignored, use " + locale);
         Locale.setDefault(locale);
         Configuration config = new Configuration();
         config.setLocale(locale);  // Use setLocale() instead of deprecated locale field

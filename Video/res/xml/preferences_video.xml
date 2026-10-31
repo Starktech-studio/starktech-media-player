@@ -1,3 +1,4 @@
+<!-- Modificado por StarkTech Studio em 2026 -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:title="@string/preferences">
@@ -19,7 +20,8 @@
             android:persistent="true"
             android:summary="@string/UiLang_summary"
             android:title="@string/UiLang_title"
-            app:iconSpaceReserved="false"/>
+            app:iconSpaceReserved="false"
+            app:isPreferenceVisible="false"/>
     </PreferenceCategory>
     <PreferenceCategory
         android:key="preferences_category_video"

@@ -14,12 +14,12 @@ Dados oficiais do app: identificação, caminhos, GitHub e textos. Base para o s
 | Desenvolvedor | StarkTech Studio |
 | Idioma | Só pt-BR |
 | Nome | StarkTech Media Player |
-| Pacote (sugestão) | `br.com.starktechstudio.mediaplayer` |
+| Pacote | `br.com.starktechstudio.mediaplayer` |
 | Plataforma | Android — TV e tablet (celular vem junto, mesmo APK) |
 | Preço | Gratuito |
 | Distribuição | APK baixado pelo site (sem loja) |
 | Situação | Abertura — F0 a iniciar |
-| Versão | A definir na F0 |
+| Versão | 0.1.0 (versionCode 1) |
 
 ---
 
@@ -176,5 +176,3 @@ Padrão da família (`starktech-design`): escudo + lobo do Conversor, cor e selo
 
 - Cor e selo do ícone.
 - Licença de cada sub-repositório e dos nativos.
-- Nome final do pacote.
-- Versão inicial.

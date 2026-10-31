@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?><!--
      Copyright (C) 2007 The Android Open Source Project
+     Modificado por StarkTech Studio em 2026
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -18,8 +19,6 @@
     xmlns:dist="http://schemas.android.com/apk/distribution"
     xmlns:tools="http://schemas.android.com/tools"
     android:installLocation="auto"
-    android:sharedUserId="archos.openmediacenter"
-    android:sharedUserMaxSdkVersion="32"
     tools:ignore="UnusedAttribute">
 
     <supports-screens android:largeScreens="true" />
@@ -131,14 +130,14 @@
             android:name=".EntryActivity"
             android:exported="true"
             android:launchMode="singleTask"
-            android:taskAffinity="archos.task.video"
+            android:taskAffinity="${applicationId}"
             android:theme="@style/ArchosThemeLauncher" />
 
         <activity
             android:name=".browser.MainActivity"
             android:configChanges="keyboard|keyboardHidden"
             android:launchMode="singleTask"
-            android:taskAffinity="archos.task.video"
+            android:taskAffinity="${applicationId}"
             android:theme="@style/ArchosThemeLauncher"
             android:windowSoftInputMode="adjustPan">
             <!-- Points to searchable meta data. -->
@@ -198,7 +197,7 @@
              query the suggestion cursor. -->
         <provider
             android:name="com.archos.mediacenter.video.browser.SearchProviderVideo"
-            android:authorities="browser.SearchProviderVideocommunity"
+            android:authorities="br.com.starktechstudio.mediaplayer.busca"
             android:exported="true"
             android:readPermission="android.permission.GLOBAL_SEARCH" />
 
@@ -221,7 +220,7 @@
             android:launchMode="singleTask"
             android:resizeableActivity="true"
             android:supportsPictureInPicture="true"
-            android:taskAffinity="archos.task.video"
+            android:taskAffinity="${applicationId}"
             android:theme="@style/ArchosThemeBlueOverlay">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -1175,7 +1174,7 @@
         <activity
             android:name="com.archos.mediacenter.utils.HelpOverlayActivity"
             android:configChanges="orientation|screenSize"
-            android:taskAffinity="archos.task.video"
+            android:taskAffinity="${applicationId}"
             android:theme="@style/Theme.HelpOverlay" />
 
         <service android:name="com.archos.mediacenter.filecoreextension.upnp2.NovaUpnpService" />
@@ -1248,7 +1247,7 @@
         <!-- ContentProvider for media -->
         <provider
             android:name="com.archos.mediaprovider.video.VideoProvider"
-            android:authorities="com.archos.media.videocommunity;com.archos.media.scrapercommunity"
+            android:authorities="br.com.starktechstudio.mediaplayer.media.video;br.com.starktechstudio.mediaplayer.media.scraper"
             android:exported="true"
             tools:ignore="ExportedContentProvider" />
         <!-- BroadcastReceiver to trigger database import -->
@@ -1553,7 +1552,7 @@
             android:name="com.archos.mediacenter.video.leanback.MainActivityLeanback"
             android:exported="true"
             android:launchMode="singleTask"
-            android:taskAffinity="archos.task.video"
+            android:taskAffinity="${applicationId}"
             android:theme="@style/MyLeanbackTheme.Launcher">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
