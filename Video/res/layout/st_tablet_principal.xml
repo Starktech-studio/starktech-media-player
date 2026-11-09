@@ -3,7 +3,8 @@
 <!--
      Tela principal do tablet (PrincipalTabletActivity), tablet-biblioteca.dc.html:
      barra lateral de 112 dp (logo 56 dp, itens 84 dp) e, à direita, a marca e o selo
-     do HD (só na aba Início, como no desenho) e o conteúdo da aba. Medidas: px do HTML = dp.
+     do HD (só na aba Início, como no desenho), o relógio (em todas) e o conteúdo da aba.
+     Medidas: px do HTML = dp.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -54,7 +55,7 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <!-- Marca e selo do HD (aba Início) -->
+            <!-- Marca e selo do HD (aba Início) e relógio (todas as abas) -->
             <LinearLayout
                 android:id="@+id/st_topo_inicio"
                 android:layout_width="match_parent"
@@ -68,12 +69,17 @@
 
                 <!-- Marca: ícone do app + "StarkTech" + "Media Player" amarelo -->
                 <FrameLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1">
+                    android:id="@+id/st_topo_marca"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
 
                     <include layout="@layout/st_tablet_marca" />
                 </FrameLayout>
+
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
 
                 <!-- Selo do HD: verde "HD externo" / vermelho "Sem HD ✕" -->
                 <LinearLayout
@@ -115,6 +121,18 @@
                         android:visibility="gone"
                         app:tint="@color/st_selo_sem_hd_texto" />
                 </LinearLayout>
+
+                <!-- Relógio: 24 h, pela hora do aparelho (o tablet não mostra a barra de status) -->
+                <TextClock
+                    style="@style/StarkTech.Texto.Forte"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/st_tablet_relogio_margem"
+                    android:fontFeatureSettings="tnum"
+                    android:format12Hour="HH:mm"
+                    android:format24Hour="HH:mm"
+                    android:textColor="@color/st_texto"
+                    android:textSize="@dimen/st_tablet_texto_relogio" />
             </LinearLayout>
 
             <!-- Conteúdo da aba (Navegacao.conteudoDaAba) -->

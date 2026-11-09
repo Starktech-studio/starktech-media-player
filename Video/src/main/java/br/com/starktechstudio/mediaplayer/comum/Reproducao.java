@@ -35,6 +35,7 @@ import br.com.starktechstudio.mediaplayer.dados.Modelo.Capitulo;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Episodio;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Faixa;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Temporada;
+import br.com.starktechstudio.mediaplayer.dados.Modelo.Tipo;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.TipoFaixa;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Titulo;
 import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
@@ -122,8 +123,13 @@ public final class Reproducao implements Player.Listener {
     public final String caminho;
     /** Duração em segundos (da biblioteca; o player confirma ao abrir). */
     public int duracao;
-    /** Da biblioteca; vídeo ainda não lido pela varredura: lidos ao abrir ({@link #definirAoMudarCapitulos}). */
+    /**
+     * Da biblioteca; vídeo ainda não lido pela varredura: lidos ao abrir ({@link #definirAoMudarCapitulos}).
+     * Filme sem nenhum: as marcas de 10 em 10 minutos, só aqui no player ({@link #usarMarcas}).
+     */
     public List<Capitulo> capitulos;
+    /** Filme e desenho: sem capítulos, ganham as marcas. Episódio, show e stand-up, não. */
+    private final boolean usaMarcas;
 
     private final Handler relogio = new Handler(Looper.getMainLooper());
     private Player player;
@@ -183,7 +189,8 @@ public final class Reproducao implements Player.Listener {
     };
 
     private Reproducao(Context contexto, RepositorioBiblioteca repositorio, String id, @Nullable String idSerie, String titulo,
-                       String linhaEpisodio, String caminho, int duracao, int inicio, int guardada, List<Capitulo> capitulos) {
+                       String linhaEpisodio, String caminho, int duracao, int inicio, int guardada, List<Capitulo> capitulos,
+                       boolean usaMarcas) {
         this.contexto = contexto.getApplicationContext();
         this.repositorio = repositorio;
         this.id = id;
@@ -196,6 +203,7 @@ public final class Reproducao implements Player.Listener {
         this.inicioDaSessao = inicio;
         this.posicaoGuardada = guardada;
         this.capitulos = capitulos;
+        this.usaMarcas = usaMarcas;
     }
 
     /**
@@ -234,7 +242,8 @@ public final class Reproducao implements Player.Listener {
         else if (capitulo >= 1 && capitulo <= capitulos.size()) inicio = capitulos.get(capitulo - 1).inicioSegundos;
         // A duração daqui pode ser a do TMDB ou nenhuma: quem confere o fim do vídeo é o onPrepared
         else inicio = retomar ? parou : 0;
-        return new Reproducao(contexto, repositorio, id, idSerie, nome, linha, caminho, duracao, inicio, parou, capitulos);
+        boolean usaMarcas = t != null && (t.tipo == Tipo.FILME || t.tipo == Tipo.DESENHO);
+        return new Reproducao(contexto, repositorio, id, idSerie, nome, linha, caminho, duracao, inicio, parou, capitulos, usaMarcas);
     }
 
     /** A reprodução na tela, se for do título {@code id}. */
@@ -294,6 +303,19 @@ public final class Reproducao implements Player.Listener {
         avisar();
     }
 
+    /**
+     * Filme sem capítulos em lugar nenhum: marcas de 10 em 10 minutos, com os mesmos botões e a mesma
+     * lista dos capítulos. Valem só nesta abertura do player: a biblioteca e o Detalhe não ficam sabendo.
+     */
+    private void usarMarcas() {
+        if (!usaMarcas || player == null || !capitulos.isEmpty() || duracaoDoMotor <= 0) return;
+        Capitulos marcas = Capitulos.aCadaDezMinutos(duracaoDoMotor * 1000L);
+        if (marcas.vazio()) return;
+        capitulos = RepositorioReal.paraTela(marcas);
+        if (aoMudarCapitulos != null) aoMudarCapitulos.run();
+        avisar();
+    }
+
     /** Capítulos pelo leitor do motor, fora da tela (quando o player não trouxe). */
     private void lerCapitulos() {
         final String arquivo = caminho;
@@ -314,7 +336,10 @@ public final class Reproducao implements Player.Listener {
             }
             // Reserva: direto do arquivo (MKV, MP4), sem o motor
             if (lidos.vazio()) lidos = CapitulosDoArquivo.ler(arquivo);
-            if (lidos.vazio()) return;
+            if (lidos.vazio()) {
+                relogio.post(this::usarMarcas);
+                return;
+            }
             final Capitulos achados = lidos;
             relogio.post(() -> usarCapitulos(achados));
         }, "StarkTechCapitulos").start();

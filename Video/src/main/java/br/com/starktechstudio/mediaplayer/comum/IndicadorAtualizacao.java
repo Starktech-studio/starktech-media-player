@@ -13,10 +13,10 @@ import com.archos.mediacenter.video.R;
 import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 
 /**
- * Indicador no alto das páginas (Filmes, Séries, Desenhos, Shows, Stand-up, Pastas), do lado oposto ao título:
- * durante a atualização da biblioteca, o percentual ("42 %") com o ícone de atualizar; em dia, o
- * ícone verde de ✓ e o resultado da última ("12 atualizados · 2 não identificados"). Liga no
- * onResume e desliga no onPause da página.
+ * Indicador no alto das páginas (Filmes, Séries, Desenhos, Shows, Stand-up, Pastas), do lado oposto ao título,
+ * só com o símbolo e o nome: durante a atualização da biblioteca, o ícone de atualizar e "Atualizando 42%";
+ * em dia, o ✓ verde e "Atualizado"; com algo sem resposta do TMDB, o ícone de atualizar em âmbar e
+ * "Não atualizado". Liga no onResume e desliga no onPause da página.
  */
 public final class IndicadorAtualizacao {
 
@@ -52,11 +52,14 @@ public final class IndicadorAtualizacao {
             view.setText(contexto.getString(R.string.st_atualizacao_percentual, progresso));
             Icones.noTexto(view, R.drawable.st_ic_atualizar, icone, ContextCompat.getColor(contexto, R.color.st_texto_apagado));
             view.setContentDescription(contexto.getString(R.string.st_atualizacao_andando, progresso));
-        } else {
-            String resultado = repositorio.resultadoDaAtualizacao();
-            view.setText(resultado == null ? "" : resultado);
+        } else if (repositorio.bibliotecaEmDia()) {
+            view.setText(R.string.st_atualizado);
             Icones.noTexto(view, R.drawable.st_ic_check, icone, ContextCompat.getColor(contexto, R.color.st_assistido));
             view.setContentDescription(contexto.getString(R.string.st_atualizacao_em_dia));
+        } else {
+            view.setText(R.string.st_nao_atualizado);
+            Icones.noTexto(view, R.drawable.st_ic_atualizar, icone, ContextCompat.getColor(contexto, R.color.st_aviso));
+            view.setContentDescription(contexto.getString(R.string.st_atualizacao_sem_resposta));
         }
     }
 }

@@ -17,12 +17,12 @@
     <string name="st_uso_configuracoes">Configurações</string>
 
     <string-array name="st_uso_navegar_tv">
-        <item>← e → no topo trocam entre Início, Filmes, Séries, Shows e Pastas; ↓ desce para o conteúdo.</item>
+        <item>← e → no topo trocam entre Início e as outras abas ligadas em Configurações, Navegação; ↓ desce para o conteúdo.</item>
         <item>Voltar no conteúdo leva ao menu do topo; Voltar no menu do topo fecha o app.</item>
         <item>A lupa no topo busca filmes, séries e shows pelo nome; o botão ao lado abre as Configurações.</item>
     </string-array>
     <string-array name="st_uso_navegar_tablet">
-        <item>A barra lateral leva a Início, Filmes, Séries, Shows, Pastas e Ajustes.</item>
+        <item>A barra lateral leva a Início, às abas ligadas em Configurações, Navegação, e a Ajustes.</item>
         <item>Arraste as fileiras para o lado para ver mais títulos.</item>
     </string-array>
 
@@ -65,6 +65,7 @@
     </string-array>
 
     <string-array name="st_uso_pastas">
+        <item>As pastas ficam em Configurações, Biblioteca, Pastas da biblioteca. TV Shows e Stand-up aparecem como tipo depois de ligados em Configurações, Navegação.</item>
         <item>Marque o tipo de cada pasta: Filmes, Séries, Shows ou Ignorar. Pastas com esses nomes já são reconhecidas.</item>
         <item>Nomes que o app entende: \"Nome do filme (2012).mkv\", \"Nome da série / Temporada 1 / 01.mkv\" e \"Artista - Show (2019).mkv\".</item>
         <item>O que não se encaixar vai para Não identificados e pode ser corrigido em Editar.</item>

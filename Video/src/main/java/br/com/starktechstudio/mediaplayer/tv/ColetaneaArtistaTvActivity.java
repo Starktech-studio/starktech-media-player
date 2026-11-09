@@ -2,8 +2,6 @@
 
 package br.com.starktechstudio.mediaplayer.tv;
 
-import android.view.View;
-
 import com.archos.mediacenter.video.R;
 
 import br.com.starktechstudio.mediaplayer.comum.ColetaneaArtistaActivity;
@@ -17,15 +15,27 @@ import br.com.starktechstudio.mediaplayer.dados.Modelo.Titulo;
  */
 public class ColetaneaArtistaTvActivity extends ColetaneaArtistaActivity {
 
+    private TopoSecaoTv topo;
+    private Navegacao.Aba secao;
+
     @Override
     protected void ligarTopo(Titulo titulo) {
-        TopoSecaoTv topo = new TopoSecaoTv(this);
-        topo.marcar(Navegacao.abaDoTipo(titulo.tipo), R.id.st_coletanea_editar);
+        topo = new TopoSecaoTv(this);
+        secao = Navegacao.abaDoTipo(titulo.tipo);
         findViewById(R.id.st_botao_configuracoes).setOnClickListener(v -> Navegacao.abrirConfiguracoes(this));
         for (int acao : new int[]{R.id.st_coletanea_editar, R.id.st_coletanea_ver_mais}) {
-            View botao = findViewById(acao);
-            botao.setNextFocusUpId(topo.idAtiva());
-            botao.setNextFocusDownId(R.id.st_coletanea_primeira);
+            findViewById(acao).setNextFocusDownId(R.id.st_coletanea_primeira);
+        }
+    }
+
+    /** Volta de Configurações: as abas ligadas podem ter mudado. */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (topo == null) return;
+        topo.marcar(secao, R.id.st_coletanea_editar);
+        for (int acao : new int[]{R.id.st_coletanea_editar, R.id.st_coletanea_ver_mais}) {
+            findViewById(acao).setNextFocusUpId(topo.idAtiva());
         }
     }
 

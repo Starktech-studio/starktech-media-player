@@ -37,9 +37,9 @@ import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 
 /**
  * Série no tablet (sem desenho; D12): o Detalhe do tablet com o conteúdo da Série da TV —
- * Biblioteca (voltar) e Editar, capa, título, chips (temporadas, episódios, qualidade), aviso da
+ * Biblioteca (voltar), Favoritar e Editar, capa, título, chips (temporadas, episódios, qualidade), aviso da
  * pasta e o botão do próximo episódio; as temporadas em abas e os episódios em 2 colunas, com
- * Assistido, Em andamento ou novo. Favoritar fica no menu da capa (toque longo).
+ * Assistido, Em andamento ou novo.
  */
 public class SerieTabletActivity extends AppCompatActivity {
 
@@ -51,6 +51,7 @@ public class SerieTabletActivity extends AppCompatActivity {
 
     private View capa;
     private TextView nome;
+    private Button favoritar;
     private LinearLayout chips;
     private TextView aviso;
     private Button principal;
@@ -72,6 +73,7 @@ public class SerieTabletActivity extends AppCompatActivity {
 
         capa = findViewById(R.id.st_serie_capa);
         nome = findViewById(R.id.st_serie_titulo);
+        favoritar = findViewById(R.id.st_serie_favoritar);
         chips = findViewById(R.id.st_serie_chips);
         aviso = findViewById(R.id.st_serie_aviso);
         principal = findViewById(R.id.st_serie_principal);
@@ -85,7 +87,14 @@ public class SerieTabletActivity extends AppCompatActivity {
         Icones.noTexto(editar, R.drawable.st_ic_editar, iconeTopo);
         voltar.setOnClickListener(v -> finish());
         editar.setOnClickListener(v -> Navegacao.abrirEditar(this, id));
-        // Tocar e segurar a capa: Menu da capa (Favoritar fica nele, D12)
+        favoritar.setOnClickListener(v -> {
+            repositorio.definirFavorito(id, !serie.favorito);
+            Titulo nova = repositorio.titulo(id);
+            if (nova == null) return;
+            serie = nova;
+            mostrarFavorito();
+        });
+        // Tocar e segurar a capa: Menu da capa (D12)
         capa.setOnLongClickListener(v -> {
             Navegacao.abrirMenuCapa(this, id);
             return true;
@@ -115,6 +124,7 @@ public class SerieTabletActivity extends AppCompatActivity {
         capa.setBackground(CapaAdapter.blocoDeCor(this, serie.corCapa, canto, false));
         Imagens.noFundo(capa, serie.imagemCapa(), Imagens.CAPA, canto);
         nome.setText(serie.titulo);
+        mostrarFavorito();
         List<String> textos = new ArrayList<>(Arrays.asList(
                 getResources().getQuantityString(R.plurals.st_n_temporadas, serie.numeroTemporadas, serie.numeroTemporadas),
                 getResources().getQuantityString(R.plurals.st_n_episodios, serie.numeroEpisodios, serie.numeroEpisodios)));
@@ -135,6 +145,14 @@ public class SerieTabletActivity extends AppCompatActivity {
         int inicial = temporadaAtiva;
         if (inicial < 0 || inicial >= temporadas.size()) inicial = indiceDaTemporada(proximo);
         mostrarTemporada(inicial);
+    }
+
+    /** Favorita vai para a fileira Favoritos do Início. */
+    private void mostrarFavorito() {
+        favoritar.setText(serie.favorito ? R.string.st_favorito : R.string.st_favoritar);
+        favoritar.setContentDescription(getString(serie.favorito ? R.string.st_remover_favoritos : R.string.st_favoritar));
+        Icones.noTexto(favoritar, R.drawable.st_ic_favorito, getResources().getDimensionPixelSize(R.dimen.st_tablet_detalhe_topo_botao_icone),
+                ContextCompat.getColor(this, serie.favorito ? R.color.st_favorito : R.color.st_texto));
     }
 
     private int indiceDaTemporada(Episodio e) {

@@ -56,6 +56,8 @@
     <dimen name="st_tv_texto_destaque_titulo">32sp</dimen>
     <dimen name="st_tv_texto_titulo_secao">14sp</dimen>
     <dimen name="st_tv_texto_botao">11sp</dimen>
+    <dimen name="st_tv_texto_relogio">13sp</dimen>
+    <dimen name="st_tv_relogio_margem">12dp</dimen>
     <dimen name="st_tv_texto_corpo">10sp</dimen>
     <dimen name="st_tv_texto_cartao_titulo">10sp</dimen>
     <dimen name="st_tv_texto_cartao_sub">8sp</dimen>
@@ -133,6 +135,10 @@
     <dimen name="st_tablet_texto_capa_titulo">17sp</dimen>
     <dimen name="st_tablet_texto_capa_sub">13sp</dimen>
     <dimen name="st_tablet_texto_selo_hd">15sp</dimen>
+    <dimen name="st_tablet_texto_relogio">18sp</dimen>
+    <dimen name="st_tablet_relogio_margem">18dp</dimen>
+    <!-- Abas sem a marca: só o relógio no alto -->
+    <dimen name="st_tablet_relogio_topo">12dp</dimen>
 
     <!-- Tablet: Início e listas (tablet-biblioteca.dc.html, F1 fase D) -->
     <dimen name="st_tablet_cartao_espaco">22dp</dimen>

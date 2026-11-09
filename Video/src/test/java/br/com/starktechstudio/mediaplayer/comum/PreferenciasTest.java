@@ -48,6 +48,23 @@ public class PreferenciasTest {
     }
 
     @Test
+    public void abasDoNav_tvShowsEStandupSoSeLigar() {
+        assertTrue(Preferencias.abaLigada(contexto, Navegacao.Aba.INICIO));
+        assertTrue(Preferencias.abaLigada(contexto, Navegacao.Aba.FILMES));
+        assertTrue(Preferencias.abaLigada(contexto, Navegacao.Aba.SERIES));
+        assertTrue(Preferencias.abaLigada(contexto, Navegacao.Aba.DESENHOS));
+        assertTrue(Preferencias.abaLigada(contexto, Navegacao.Aba.SHOWS));
+        assertTrue(Preferencias.abaLigada(contexto, Navegacao.Aba.AJUSTES));
+        assertFalse(Preferencias.abaLigada(contexto, Navegacao.Aba.TVSHOWS));
+        assertFalse(Preferencias.abaLigada(contexto, Navegacao.Aba.STANDUP));
+
+        Preferencias.proximo(contexto, Preferencias.Item.NAV_STANDUP);
+        assertTrue(Preferencias.abaLigada(contexto, Navegacao.Aba.STANDUP));
+        Preferencias.proximo(contexto, Preferencias.Item.NAV_SERIES);
+        assertFalse(Preferencias.abaLigada(contexto, Navegacao.Aba.SERIES));
+    }
+
+    @Test
     public void escolherGravaOValorDoSeletor() {
         Preferencias.Item item = Preferencias.Item.COR_LEGENDA;
         Preferencias.escolher(contexto, item, 2);

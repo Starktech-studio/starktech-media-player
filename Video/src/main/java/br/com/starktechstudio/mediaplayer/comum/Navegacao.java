@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import androidx.annotation.DrawableRes;
+import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.fragment.app.Fragment;
 
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Tipo;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.TipoFaixa;
+import br.com.starktechstudio.mediaplayer.dados.Modelo.TipoPasta;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Titulo;
 import br.com.starktechstudio.mediaplayer.motor.Atualizador;
 import br.com.starktechstudio.mediaplayer.tablet.DetalheTabletActivity;
@@ -52,28 +54,51 @@ public final class Navegacao {
 
     /** Abas das telas principais. TV: pílulas do topo (sem Ajustes); tablet: barra lateral. */
     public enum Aba {
-        INICIO(R.string.st_aba_inicio, R.drawable.st_ic_inicio),
-        FILMES(R.string.st_aba_filmes, R.drawable.st_ic_filmes),
-        SERIES(R.string.st_aba_series, R.drawable.st_ic_series),
-        DESENHOS(R.string.st_aba_desenhos, R.drawable.st_ic_desenhos),
-        SHOWS(R.string.st_aba_shows, R.drawable.st_ic_shows),
-        STANDUP(R.string.st_aba_standup, R.drawable.st_ic_standup),
-        PASTAS(R.string.st_aba_pastas, R.drawable.st_ic_pastas),
-        AJUSTES(R.string.st_aba_ajustes, R.drawable.st_ic_ajustes);
+        INICIO(R.string.st_aba_inicio, R.drawable.st_ic_inicio, null),
+        FILMES(R.string.st_aba_filmes, R.drawable.st_ic_filmes, Preferencias.Item.NAV_FILMES),
+        SERIES(R.string.st_aba_series, R.drawable.st_ic_series, Preferencias.Item.NAV_SERIES),
+        TVSHOWS(R.string.st_aba_tvshows, R.drawable.st_ic_tvshows, Preferencias.Item.NAV_TVSHOWS),
+        DESENHOS(R.string.st_aba_desenhos, R.drawable.st_ic_desenhos, Preferencias.Item.NAV_DESENHOS),
+        SHOWS(R.string.st_aba_shows, R.drawable.st_ic_shows, Preferencias.Item.NAV_SHOWS),
+        STANDUP(R.string.st_aba_standup, R.drawable.st_ic_standup, Preferencias.Item.NAV_STANDUP),
+        AJUSTES(R.string.st_aba_ajustes, R.drawable.st_ic_ajustes, null);
 
         @StringRes
         public final int nome;
         /** Ícone da barra lateral do tablet. */
         @DrawableRes
         public final int icone;
+        /** A escolha em Configurações &gt; Navegação; null = sempre no nav. */
+        @Nullable
+        public final Preferencias.Item itemDoNav;
 
-        Aba(@StringRes int nome, @DrawableRes int icone) {
+        Aba(@StringRes int nome, @DrawableRes int icone, @Nullable Preferencias.Item itemDoNav) {
             this.nome = nome;
             this.icone = icone;
+            this.itemDoNav = itemDoNav;
         }
     }
 
+    /** Tela com o nav à vista enquanto Configurações está aberta (tablet): a escolha das abas vale na hora. */
+    public interface TelaComAbas {
+        void aoMudarAbas();
+    }
+
     private Navegacao() {}
+
+    /** A aba do tipo de pasta; Ignorar e "sem tipo": null. */
+    @Nullable
+    public static Aba abaDaPasta(TipoPasta tipo) {
+        switch (tipo) {
+            case FILMES: return Aba.FILMES;
+            case SERIES: return Aba.SERIES;
+            case TVSHOWS: return Aba.TVSHOWS;
+            case DESENHOS: return Aba.DESENHOS;
+            case SHOWS: return Aba.SHOWS;
+            case STANDUP: return Aba.STANDUP;
+            default: return null;
+        }
+    }
 
     /** Tela principal do aparelho (EntryActivity). */
     public static Class<? extends Activity> telaPrincipal(Activity origem) {
@@ -111,7 +136,7 @@ public final class Navegacao {
         return Aba.FILMES;
     }
 
-    /** Conteúdo de cada aba: Início, Filmes, Séries, Desenhos e Stand-up (F3), Shows, Pastas (fase H) e Ajustes (fase I). */
+    /** Conteúdo de cada aba: Início, Filmes, Séries, TV Shows, Desenhos e Stand-up (F3), Shows e Ajustes (fase I). */
     public static Fragment conteudoDaAba(Context contexto, Aba aba) {
         switch (aba) {
             case INICIO:
@@ -120,14 +145,14 @@ public final class Navegacao {
                 return ListaFragment.novo(Tipo.FILME);
             case SERIES:
                 return ListaFragment.novo(Tipo.SERIE);
+            case TVSHOWS:
+                return ListaFragment.novoTvShows();
             case DESENHOS:
                 return ListaFragment.novo(Tipo.DESENHO);
             case SHOWS:
                 return ListaFragment.novo(Tipo.SHOW);
             case STANDUP:
                 return ListaFragment.novo(Tipo.STANDUP);
-            case PASTAS:
-                return new PastasFragment();
             case AJUSTES:
                 return new ConfiguracoesFragment();
             default:
@@ -202,6 +227,11 @@ public final class Navegacao {
     /** Editar (fase G): do Detalhe, da Série e do Menu da capa. */
     public static void abrirEditar(Activity origem, String idTitulo) {
         origem.startActivity(new Intent(origem, EditarActivity.class).putExtra(EXTRA_ID, idTitulo));
+    }
+
+    /** Pastas da biblioteca (1.1): em Configurações &gt; Biblioteca, fora do nav. */
+    public static void abrirPastas(Activity origem) {
+        origem.startActivity(new Intent(origem, PastasActivity.class));
     }
 
     /** Não identificados (Revisar, em Pastas; D15). */

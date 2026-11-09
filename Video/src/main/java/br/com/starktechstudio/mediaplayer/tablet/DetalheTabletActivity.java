@@ -41,11 +41,11 @@ import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 
 /**
  * Detalhe do filme ou do show no tablet (tablet-detalhe.dc.html): Biblioteca (voltar), as estrelas
- * da nota (só em filme assistido, {@link EstrelasNota}) e Editar no topo; capa, tipo, título, chips, sinopse (até 3 linhas; o resto em "Ver mais", numa janela,
+ * da nota (só em filme assistido, {@link EstrelasNota}), Favoritar e Editar no topo; capa, tipo, título, chips, sinopse (até 3 linhas; o resto em "Ver mais", numa janela,
  * para os botões não descerem) e os botões Assistir (do início), Continuar
  * (de onde parou, só com o vídeo em andamento) e Áudio e legendas; abas Capítulos (o capítulo
- * onde o vídeo parou em azul), Dados técnicos e Elenco (D12). Favoritar e Marcar como assistido
- * ficam no menu da capa (tocar e segurar a capa, aqui ou nas listas). Arquivo sem capítulos: sem
+ * onde o vídeo parou em azul), Dados técnicos e Elenco (D12). Marcar como assistido
+ * fica no menu da capa (tocar e segurar a capa, aqui ou nas listas). Arquivo sem capítulos: sem
  * a aba Capítulos. A página inteira rola: puxar leva os capítulos para cima, e dá para ver todos.
  */
 public class DetalheTabletActivity extends AppCompatActivity {
@@ -62,6 +62,7 @@ public class DetalheTabletActivity extends AppCompatActivity {
     private TextView tipo;
     private TextView nome;
     private EstrelasNota estrelas;
+    private Button favoritar;
     private LinearLayout chips;
     private TextView sinopse;
     private TextView verMais;
@@ -87,6 +88,7 @@ public class DetalheTabletActivity extends AppCompatActivity {
         tipo = findViewById(R.id.st_detalhe_tipo);
         nome = findViewById(R.id.st_detalhe_titulo);
         estrelas = findViewById(R.id.st_detalhe_nota);
+        favoritar = findViewById(R.id.st_detalhe_favoritar);
         chips = findViewById(R.id.st_detalhe_chips);
         sinopse = findViewById(R.id.st_detalhe_sinopse);
         verMais = findViewById(R.id.st_detalhe_ver_mais);
@@ -111,7 +113,8 @@ public class DetalheTabletActivity extends AppCompatActivity {
 
         voltar.setOnClickListener(v -> finish());
         editar.setOnClickListener(v -> Navegacao.abrirEditar(this, id));
-        // Tocar e segurar a capa: Menu da capa (Favoritar e Marcar como assistido ficam nele, D12)
+        favoritar.setOnClickListener(v -> alternarFavorito());
+        // Tocar e segurar a capa: Menu da capa (Marcar como assistido fica nele, D12)
         capa.setOnLongClickListener(v -> {
             Navegacao.abrirMenuCapa(this, id);
             return true;
@@ -176,6 +179,7 @@ public class DetalheTabletActivity extends AppCompatActivity {
         tipo.setText(PecasDetalhe.rotuloTipo(titulo.tipo));
         nome.setText(titulo.titulo);
         mostrarNota();
+        mostrarFavorito();
         PecasDetalhe.chips(chips, titulo, tecnicos == null ? Collections.<String>emptyList() : tecnicos.chipsCurtos,
                 tecnicos == null ? 0 : tecnicos.chipsVideo, false);
         sinopse.setText(titulo.sinopse);
@@ -200,6 +204,22 @@ public class DetalheTabletActivity extends AppCompatActivity {
         boolean pode = titulo.podeDarNota();
         estrelas.setVisibility(pode ? View.VISIBLE : View.GONE);
         if (pode) estrelas.mostrar(titulo.nota);
+    }
+
+    /** Favorito vai para a fileira Favoritos do Início. */
+    private void alternarFavorito() {
+        repositorio.definirFavorito(id, !titulo.favorito);
+        Titulo novo = repositorio.titulo(id);
+        if (novo == null) return;
+        titulo = novo;
+        mostrarFavorito();
+    }
+
+    private void mostrarFavorito() {
+        favoritar.setText(titulo.favorito ? R.string.st_favorito : R.string.st_favoritar);
+        favoritar.setContentDescription(getString(titulo.favorito ? R.string.st_remover_favoritos : R.string.st_favoritar));
+        Icones.noTexto(favoritar, R.drawable.st_ic_favorito, getResources().getDimensionPixelSize(R.dimen.st_tablet_detalhe_topo_botao_icone),
+                ContextCompat.getColor(this, titulo.favorito ? R.color.st_favorito : R.color.st_texto));
     }
 
     /** Grava e mostra só a nota; se não gravou, volta ao que está guardado. */

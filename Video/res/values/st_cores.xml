@@ -13,6 +13,8 @@
     <color name="st_ciano">#06B6D4</color>
     <!-- "Media Player" da marca do topo, como no banner -->
     <color name="st_amarelo_marca">#E8AA30</color>
+    <!-- Início ativo na barra lateral do tablet -->
+    <color name="st_amarelo_18">#2EE8AA30</color>
 
     <!-- Texto -->
     <color name="st_texto">#FFFFFF</color>

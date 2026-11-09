@@ -21,7 +21,7 @@
 | Origem | O motor já lia os capítulos do arquivo (MKV, MP4 e demais formatos do FFmpeg). Agora o player (`avos_mp_fillmetadata`, a partir do `STREAM`) e o leitor de dados sem tocar o vídeo (`_get_info_FFMPEG` → `FILE_INFO.chapters`, até 256) publicam |
 | Chaves | `NB_CHAPTER` = 9003; capítulo `i`: 40000 + `i` × 3 + campo (0 título — vazio se o arquivo não dá nome —, 1 início em ms, 2 fim em ms). Iguais no player (`IMediaPlayer`, número) e no leitor (`IMediaMetadataRetriever`, texto) |
 | Fim que falta | Início do capítulo seguinte ou duração do arquivo (motor e `Capitulos`) |
-| `Capitulos` | `doPlayer(MediaMetadata)`, `doLeitor(IMediaMetadataRetriever)`; `naPosicao`, `irPara(n)`, `anterior` (D1: depois de 3 s volta ao início do capítulo; antes, vai ao anterior), `proximo`; 1,5 s de tolerância para o quadro-chave que cai antes do início. Sem capítulos: lista vazia, a tela fica com −10 s / +10 s |
+| `Capitulos` | `doPlayer(MediaMetadata)`, `doLeitor(IMediaMetadataRetriever)`; `naPosicao`, `irPara(n)`, `anterior` (D1: depois de 3 s volta ao início do capítulo; antes, vai ao anterior), `proximo`; 1,5 s de tolerância para o quadro-chave que cai antes do início. Sem capítulos: lista vazia. `aCadaDezMinutos(duração)`: marcas para o player em filme e desenho sem capítulos ("Início", "10 min", "1 h 10 min"; vídeo até 11 min, nenhuma; marca a 1 min ou menos do fim fica de fora); não vão para o banco |
 | Conferir no emulador | APK debug: `adb shell am broadcast -n br.com.starktechstudio.mediaplayer/br.com.starktechstudio.mediaplayer.debug.CapitulosReceiver --es caminho <arquivo>` e `adb logcat -s StarkTechCapitulos` |
 
 ## 3. Banco do app (`starktech.db`, D2)
@@ -31,7 +31,7 @@ Separado do banco do Nova (o app não usa a biblioteca nem os dados do TMDB do N
 | Tabela | Colunas | O que guarda |
 |---|---|---|
 | `edicao` | `chave`, `campo`, `valor`, `alterado` (chave primária: `chave` + `campo`), `nome` (v3: nome em comum) | Um campo editado à mão por linha: TITULO, TITULO_ORIGINAL, TIPO, ANO, DURACAO, GENEROS, SINOPSE, CAPA, FUNDO, COLECAO. Sem linha = não editado. A linha `SEM_HERANCA` marca o vídeo que não herda mais (§4) |
-| `pasta` | `caminho` (chave), `origem` (HD_EXTERNO / INTERNO), `tipo` (FILMES / SERIES / SHOWS / IGNORAR; nulo = "escolha o tipo"), `escolhido`, `alterado` | Pastas da biblioteca e o tipo de cada uma |
+| `pasta` | `caminho` (chave), `origem` (HD_EXTERNO / INTERNO), `tipo` (FILMES / SERIES / TVSHOWS / DESENHOS / SHOWS / STANDUP / IGNORAR; nulo = "escolha o tipo"), `escolhido`, `alterado` | Pastas da biblioteca e o tipo de cada uma |
 | `video` (F3) | `caminho` (chave), `pasta`, classificação (`tipo`, `titulo`, `ano`, `serie`, `temporada`, `episodio`, `artista`, `grupo` (v3), `motivo`), `tamanho`, `modificado`, `adicionado`, `lido`, dados técnicos (`duracao_ms`, `largura`, `altura`, `info_video`, `audios`, `legendas`, `capitulos`), `miniatura` | Cada vídeo das pastas, lido pelo motor uma vez (de novo só se o arquivo mudar) |
 | `tmdb` (F3) | `chave` (caminho; série: `serie:` + nome sem acento), `situacao` (0 a buscar, 1 achado, 2 não achado, 3 erro de rede), `id_tmdb`, `filme`, `titulo`, `titulo_original`, `ano`, `sinopse`, `generos`, `duracao_min`, `capa`, `fundo` (arquivos baixados), `capas`, `fundos` (outras opções, endereço), `elenco`, `nome_episodio`, `miniatura`, `escolhido`, `buscado`; v3: `colecao_id` (-1 ainda não consultada, 0 sem coleção), `colecao_nome`, `colecao_capa`, `colecao_fundo` | Dados do TMDB de cada filme, show, episódio e série |
 | `estado` (F3) | `chave`, `favorito`, `assistido`, `posicao` (s), `visto`, `favoritado`, `nota` (v3; nula = sem nota), `faixa_audio` e `faixa_legenda` (v4; nulas = as preferências) | Favoritos (decisão b da F3), assistido, de onde parou, a nota do filme e as faixas escolhidas à mão |
@@ -52,7 +52,7 @@ Separado do banco do Nova (o app não usa a biblioteca nem os dados do TMDB do N
 
 | Regra | Como é |
 |---|---|
-| Nomes (D4) | Sem diferenciar maiúscula, minúscula e acento. Filmes: Filmes, Filme, Movies, Films · Séries: Séries, Série, Series, TV Shows · Shows: Shows, Show, Concerts, Concertos · Desenhos (F3): Desenhos, Desenho, Desenhos animados, Animação, Animações, Cartoons, Animation · Stand-up (F3): Stand-up, Standup, Stand up. Outro nome: sem tipo ("escolha o tipo") |
+| Nomes (D4) | Sem diferenciar maiúscula, minúscula e acento. Filmes: Filmes, Filme, Movies, Films · Séries: Séries, Série, Series · TV Shows (1.1, classificada como série, com aba própria; a pasta adicionada com esse nome liga a aba): TV Shows, TV Show, TVShows · Shows: Shows, Show, Concerts, Concertos · Desenhos (F3): Desenhos, Desenho, Desenhos animados, Animação, Animações, Cartoons, Animation · Stand-up (F3): Stand-up, Standup, Stand up. Outro nome: sem tipo ("escolha o tipo") |
 | Tipo escolhido | Vale mais que o nome; adicionar de novo não troca |
 | Pasta do arquivo | A cadastrada mais próxima acima (`Pastas.pastaDoArquivo`) |
 | Filmes | "Nome (2012).mkv"; o ano também solto ("Nome.2012.1080p") ou no nome da pasta do filme; sem ano, o título é o nome |

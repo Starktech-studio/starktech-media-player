@@ -3,6 +3,7 @@
 package br.com.starktechstudio.mediaplayer.tv;
 
 import android.app.Activity;
+import android.view.View;
 import android.widget.TextView;
 
 import androidx.core.content.res.ResourcesCompat;
@@ -11,6 +12,7 @@ import com.archos.mediacenter.video.R;
 
 import br.com.starktechstudio.mediaplayer.comum.Navegacao;
 import br.com.starktechstudio.mediaplayer.comum.Navegacao.Aba;
+import br.com.starktechstudio.mediaplayer.comum.Preferencias;
 
 /**
  * Pílulas do topo das telas abertas sobre a principal na TV (Detalhe, Série): a seção do título
@@ -20,10 +22,10 @@ import br.com.starktechstudio.mediaplayer.comum.Navegacao.Aba;
  */
 final class TopoSecaoTv {
 
-    private static final Aba[] ABAS = {Aba.INICIO, Aba.FILMES, Aba.SERIES, Aba.DESENHOS, Aba.SHOWS, Aba.STANDUP, Aba.PASTAS};
+    private static final Aba[] ABAS = {Aba.INICIO, Aba.FILMES, Aba.SERIES, Aba.TVSHOWS, Aba.DESENHOS, Aba.SHOWS, Aba.STANDUP};
     private static final int[] PILULAS = {
-            R.id.st_pilula_inicio, R.id.st_pilula_filmes, R.id.st_pilula_series,
-            R.id.st_pilula_desenhos, R.id.st_pilula_shows, R.id.st_pilula_standup, R.id.st_pilula_pastas
+            R.id.st_pilula_inicio, R.id.st_pilula_filmes, R.id.st_pilula_series, R.id.st_pilula_tvshows,
+            R.id.st_pilula_desenhos, R.id.st_pilula_shows, R.id.st_pilula_standup
     };
 
     private final Activity atividade;
@@ -40,17 +42,23 @@ final class TopoSecaoTv {
         }
     }
 
-    /** Marca a seção; ↓ em qualquer pílula vai a {@code idDescida}. */
+    /**
+     * Marca a seção; ↓ em qualquer pílula vai a {@code idDescida}. Só as abas ligadas em Configurações &gt;
+     * Navegação aparecem: chamar ao voltar à tela, porque Configurações abre daqui.
+     */
     void marcar(Aba aba, int idDescida) {
         ativa = aba;
-        for (TextView pilula : pilulas) pilula.setNextFocusDownId(idDescida);
+        for (int i = 0; i < PILULAS.length; i++) {
+            pilulas[i].setNextFocusDownId(idDescida);
+            pilulas[i].setVisibility(Preferencias.abaLigada(atividade, ABAS[i]) ? View.VISIBLE : View.GONE);
+        }
         atualizar();
     }
 
-    /** Id da pílula da seção marcada (alvo do ↑ do conteúdo). */
+    /** Id da pílula da seção marcada (alvo do ↑ do conteúdo); com a aba dela desligada, Início. */
     int idAtiva() {
         for (int i = 0; i < ABAS.length; i++) {
-            if (ABAS[i] == ativa) return PILULAS[i];
+            if (ABAS[i] == ativa && pilulas[i].getVisibility() == View.VISIBLE) return PILULAS[i];
         }
         return PILULAS[0];
     }

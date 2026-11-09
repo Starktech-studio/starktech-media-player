@@ -16,6 +16,7 @@
     <string name="st_tipo_da_pasta">Tipo da pasta</string>
     <string name="st_tipo_filmes">Filmes</string>
     <string name="st_tipo_series">Séries</string>
+    <string name="st_tipo_tvshows">TV Shows</string>
     <string name="st_tipo_desenhos">Desenhos</string>
     <string name="st_tipo_shows">Shows</string>
     <string name="st_tipo_standup">Stand-up</string>
@@ -60,9 +61,10 @@
 
     <!-- Como organizar -->
     <string name="st_como_organizar">Como organizar</string>
-    <string name="st_como_organizar_texto">O tipo da pasta manda o vídeo direto para Filmes, Séries, Desenhos, Shows ou Stand-up. Pastas com esses nomes já são reconhecidas.</string>
+    <string name="st_como_organizar_texto">O tipo da pasta manda o vídeo direto para a aba certa. Pastas com esses nomes já são reconhecidas. TV Shows e Stand-up aparecem depois de ligados em Configurações, Navegação.</string>
     <string name="st_exemplo_filme" translatable="false">Nome do filme (2012).mkv</string>
     <string name="st_exemplo_serie" translatable="false">Nome da série / Temporada 1 / 01.mkv</string>
+    <string name="st_exemplo_tvshow" translatable="false">Nome do programa / Temporada 1 / 01.mkv</string>
     <string name="st_exemplo_desenho" translatable="false">Nome do desenho (2019).mkv</string>
     <string name="st_exemplo_show" translatable="false">Artista - Show (2019).mkv</string>
     <string name="st_exemplo_standup" translatable="false">Nome do especial (2021).mkv</string>
@@ -76,10 +78,14 @@
     <string name="st_sem_subpastas">Nenhuma pasta aqui dentro</string>
     <string name="st_sem_armazenamento">Nenhum armazenamento encontrado</string>
 
-    <!-- Andamento da atualização no alto das páginas (F3) -->
-    <string name="st_atualizacao_percentual">%1$d%%</string>
+    <!-- Situação da atualização no alto das páginas: só o símbolo e o nome (1.1) -->
+    <string name="st_atualizacao_percentual">Atualizando %1$d%%</string>
+    <string name="st_atualizado">Atualizado</string>
+    <string name="st_nao_atualizado">Não atualizado</string>
     <string name="st_atualizacao_andando">Atualizando a biblioteca: %1$d%%</string>
     <string name="st_atualizacao_em_dia">Biblioteca em dia</string>
+    <string name="st_biblioteca_atualizada">Biblioteca atualizada</string>
+    <string name="st_atualizacao_sem_resposta">Biblioteca não atualizada: o TMDB não respondeu</string>
 
     <!-- Biblioteca real (F3) -->
     <string name="st_atualizando_biblioteca">Atualizando a biblioteca…</string>

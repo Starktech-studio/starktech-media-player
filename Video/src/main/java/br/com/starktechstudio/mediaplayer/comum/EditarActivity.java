@@ -46,6 +46,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -76,7 +77,8 @@ import br.com.starktechstudio.mediaplayer.motor.ImagemDoAparelho;
  * o texto e abre o teclado. Filme: Coletânea (D5), para mover a outra, tirar dela ou voltar ao TMDB.
  * Capa de coletânea e de artista: só o nome, a capa e o fundo, sem Buscar no TMDB. Capa de artista:
  * as fotos do Deezer e da Wikipédia entram nas opções da capa, e "Buscar artista" troca o artista: com
- * um que já está na biblioteca, os shows dos dois ficam juntos ("Queen + Adam Lambert" em "Queen").
+ * um que já está na biblioteca, os shows dos dois ficam juntos ("Queen + Adam Lambert" em "Queen"). O artista
+ * escolhido aparece na hora (nome, foto como capa nova e as fotos dele nas opções); só o Salvar grava.
  */
 public class EditarActivity extends AppCompatActivity {
 
@@ -139,7 +141,10 @@ public class EditarActivity extends AppCompatActivity {
     /** Capa de coletânea ou de artista, não um título. */
     private boolean capaAgrupada;
     private boolean ehArtista;
-    /** Artista escolhido em "Buscar artista": o nome dele, o que aparece no aviso e a foto; só vale no Salvar. */
+    /**
+     * Artista escolhido em "Buscar artista": o nome dele, o que aparece no aviso e a foto. A tela mostra na
+     * hora o nome, a foto como capa nova e as fotos dele nas opções, como a prévia do TMDB; só vale no Salvar.
+     */
     @Nullable
     private String artistaEscolhido;
     private String artistaEscolhidoTexto;
@@ -170,6 +175,8 @@ public class EditarActivity extends AppCompatActivity {
     private int porFileiraFundo = 1;
     /** Capa de artista: as fotos do Deezer, depois que chegam ({@link #buscarFotosDoArtista}). */
     private List<String> fotosDoArtista = new ArrayList<>();
+    /** Pedido de fotos mais recente: a resposta de um artista anterior (trocou na busca) não entra. */
+    private int pedidoDeFotos;
     private boolean carregando;
     /** TV: a caixa de texto aberta para digitar (sem nenhuma, o foco só realça e as setas andam). */
     @Nullable
@@ -198,7 +205,12 @@ public class EditarActivity extends AppCompatActivity {
                 artistaEscolhidoTexto = dados.getStringExtra(BuscaTmdbActivity.EXTRA_RESULTADO_TITULO);
                 fotoDoArtistaEscolhido = dados.getStringExtra(BuscaTmdbActivity.EXTRA_RESULTADO_FOTO);
                 restaurar = false;
+                // A capa passa a ser a do escolhido, e as opções, as fotos dele
+                capaMexida = false;
+                fotosDoArtista = new ArrayList<>();
+                carregar();
                 mostrarPendente();
+                buscarFotosDoArtista(artistaEscolhido);
                 return;
             }
             buscarPrevia(dados.getStringExtra(BuscaTmdbActivity.EXTRA_RESULTADO),
@@ -242,8 +254,13 @@ public class EditarActivity extends AppCompatActivity {
         // Restaurar original: prévia na tela; o banco só muda no Salvar
         findViewById(R.id.st_editar_restaurar).setOnClickListener(v -> {
             restaurar = true;
+            boolean tinhaArtista = artistaEscolhido != null;
             artistaEscolhido = null;
             fotoDoArtistaEscolhido = null;
+            if (tinhaArtista) {
+                fotosDoArtista = new ArrayList<>();
+                buscarFotosDoArtista(null);
+            }
             resultadoTmdb = null;
             previa = null;
             mexidos.clear();
@@ -268,7 +285,7 @@ public class EditarActivity extends AppCompatActivity {
         avisoPendente = Textos.novo(this, "", R.font.st_inter_bold, tv ? 17 : 19, R.color.st_aviso_claro);
         avisoPendente.setVisibility(View.GONE);
         ((ViewGroup) nomeDoTitulo.getParent()).addView(avisoPendente);
-        if (inicial.ehArtista()) buscarFotosDoArtista();
+        if (inicial.ehArtista()) buscarFotosDoArtista(null);
     }
 
     private void mostrarPendente() {
@@ -333,28 +350,46 @@ public class EditarActivity extends AppCompatActivity {
         List<String> capas = new ArrayList<>(repositorio.opcoesCapa(id));
         // A atual fica primeiro, e as cores, depois das fotos
         capas.addAll(Math.min(1, capas.size()), fotosDoArtista);
-        return capas;
+        // Artista escolhido na busca: a foto dele também fica entre as opções (se outra for escolhida)
+        String doEscolhido = capaDoArtistaEscolhido();
+        if (doEscolhido != null) capas.add(0, doEscolhido);
+        return new ArrayList<>(new LinkedHashSet<>(capas));
     }
 
     /**
-     * Capa de artista: as fotos do Deezer entram nas opções quando chegam, sem segurar a tela. O banco
-     * só muda no Salvar, que baixa a escolhida (como as opções do TMDB).
+     * Capa do artista escolhido em "Buscar artista": a foto do Deezer ou, se ele já está na biblioteca, a capa
+     * que ele tem; nula sem artista escolhido.
      */
-    private void buscarFotosDoArtista() {
+    @Nullable
+    private String capaDoArtistaEscolhido() {
+        if (artistaEscolhido == null) return null;
+        if (fotoDoArtistaEscolhido != null) return "url:" + fotoDoArtistaEscolhido;
+        Titulo daBiblioteca = repositorio.titulo(Acervo.chaveArtista(artistaEscolhido.trim()));
+        Titulo atual = daBiblioteca != null ? daBiblioteca : repositorio.titulo(id);
+        return atual == null ? null : atual.referenciaCapa();
+    }
+
+    /**
+     * Capa de artista: as fotos do Deezer e da Wikipédia entram nas opções quando chegam, sem segurar a tela:
+     * as deste artista ou, com {@code nome}, as do escolhido na busca. O banco só muda no Salvar, que baixa a
+     * escolhida (como as opções do TMDB).
+     */
+    private void buscarFotosDoArtista(@Nullable String nome) {
+        final int pedido = ++pedidoDeFotos;
         new Thread(() -> {
             List<String> chegou;
             try {
-                chegou = repositorio.fotosDoArtista(id);
+                chegou = nome == null ? repositorio.fotosDoArtista(id) : repositorio.fotosDoArtistaPeloNome(nome);
             } catch (RuntimeException e) {
                 chegou = null;
             }
             final List<String> fotos = chegou;
-            runOnUiThread(() -> aoChegarFotos(fotos));
+            runOnUiThread(() -> aoChegarFotos(pedido, fotos));
         }, "StarkTechFotosArtista").start();
     }
 
-    private void aoChegarFotos(@Nullable List<String> fotos) {
-        if (isFinishing() || isDestroyed()) return;
+    private void aoChegarFotos(int pedido, @Nullable List<String> fotos) {
+        if (isFinishing() || isDestroyed() || pedido != pedidoDeFotos) return;
         if (fotos == null || fotos.isEmpty()) {
             Toast.makeText(this, fotos == null ? R.string.st_fotos_sem_rede : R.string.st_fotos_nenhuma, Toast.LENGTH_LONG).show();
             return;
@@ -371,7 +406,7 @@ public class EditarActivity extends AppCompatActivity {
             finish();
             return;
         }
-        ((TextView) findViewById(R.id.st_editar_nome)).setText(t.titulo);
+        ((TextView) findViewById(R.id.st_editar_nome)).setText(artistaEscolhido != null ? artistaEscolhidoTexto : t.titulo);
         carregando = true;
         for (Map.Entry<Campo, EditText> item : campos.entrySet()) {
             if (!mexidos.contains(item.getKey())) item.getValue().setText(t.valor(item.getKey()));
@@ -382,7 +417,7 @@ public class EditarActivity extends AppCompatActivity {
         // "Atual" é o que está salvo; a prévia aparece como "nova"
         capaSalva = salvo.referenciaCapa();
         fundoSalvo = salvo.referenciaFundo();
-        if (!capaMexida) capa = t.referenciaCapa();
+        if (!capaMexida) capa = artistaEscolhido != null ? capaDoArtistaEscolhido() : t.referenciaCapa();
         if (!fundoMexido) fundo = t.referenciaFundo();
         montarOpcoes(findViewById(R.id.st_editar_capas), opcoes(true), true, -1);
         montarOpcoes(findViewById(R.id.st_editar_fundos), opcoes(false), false, -1);
@@ -426,10 +461,15 @@ public class EditarActivity extends AppCompatActivity {
             repositorio.salvarEdicao(id, valores);
             if (gravarColetanea) repositorio.definirColetanea(id, coletanea);
             boolean baixou = true;
-            if (novaCapa != null) baixou = repositorio.escolherCapa(id, novaCapa);
-            if (novoFundo != null) baixou &= repositorio.escolherFundo(id, novoFundo);
-            // Por último: depois disso, este artista pode nem existir mais (juntou-se ao outro)
-            if (artista != null) repositorio.definirArtista(id, artista, fotoDoArtista);
+            if (artista == null) {
+                if (novaCapa != null) baixou = repositorio.escolherCapa(id, novaCapa);
+                if (novoFundo != null) baixou &= repositorio.escolherFundo(id, novoFundo);
+            } else {
+                // Por último: depois disso, este artista pode nem existir mais (juntou-se ao outro). A capa e o
+                // fundo da tela vão para o escolhido: a capa trocada aqui ou, sem troca, a foto da busca
+                String capaDoEscolhido = novaCapa != null ? novaCapa : fotoDoArtista == null ? null : "url:" + fotoDoArtista;
+                baixou = repositorio.definirArtista(id, artista, capaDoEscolhido, novoFundo);
+            }
             final boolean imagens = baixou;
             runOnUiThread(() -> {
                 if (!trocou) Toast.makeText(this, R.string.st_tmdb_sem_rede, Toast.LENGTH_LONG).show();

@@ -81,7 +81,7 @@ Na TV. Prints feitos no emulador, com vídeos de teste gerados só para isso (po
 
 1. Baixe o APK e abra no aparelho. O Android pede para permitir a instalação fora da loja.
 2. Ao abrir o app, permita a leitura dos vídeos e o acesso a todos os arquivos, usado para enxergar as legendas em arquivo.
-3. Em **Pastas**, adicione as pastas dos seus vídeos.
+3. Em **Configurações > Biblioteca > Pastas da biblioteca**, adicione as pastas dos seus vídeos.
 
 Organização sugerida:
 

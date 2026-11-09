@@ -146,4 +146,33 @@ public class CapitulosTest {
         assertEquals(80_000, capitulos.lista().get(1).inicioMs);
         assertEquals(120_000, capitulos.lista().get(1).fimMs);
     }
+
+    @Test
+    public void marcasDeDezMinutos_doComecoAoFim() {
+        Capitulos marcas = Capitulos.aCadaDezMinutos(75 * 60_000L);
+        assertEquals(8, marcas.quantidade());
+        assertEquals("Início", marcas.lista().get(0).nome);
+        assertEquals(0, marcas.lista().get(0).inicioMs);
+        assertEquals("10 min", marcas.lista().get(1).nome);
+        assertEquals(10 * 60_000L, marcas.lista().get(1).inicioMs);
+        assertEquals("1 h", marcas.lista().get(6).nome);
+        assertEquals("1 h 10 min", marcas.lista().get(7).nome);
+        assertEquals(75 * 60_000L, marcas.lista().get(7).fimMs);
+        assertEquals(8, marcas.lista().get(7).numero);
+    }
+
+    @Test
+    public void marcasDeDezMinutos_videoCurto_nenhuma() {
+        assertTrue(Capitulos.aCadaDezMinutos(0).vazio());
+        assertTrue(Capitulos.aCadaDezMinutos(9 * 60_000L).vazio());
+        assertTrue(Capitulos.aCadaDezMinutos(11 * 60_000L).vazio());
+        assertEquals(2, Capitulos.aCadaDezMinutos(11 * 60_000L + 1).quantidade());
+    }
+
+    @Test
+    public void marcasDeDezMinutos_marcaColadaNoFim_ficaDeFora() {
+        // Aos 20 min faltariam só 30 s
+        assertEquals(2, Capitulos.aCadaDezMinutos(20 * 60_000L + 30_000).quantidade());
+        assertEquals(3, Capitulos.aCadaDezMinutos(21 * 60_000L + 1).quantidade());
+    }
 }

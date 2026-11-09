@@ -181,6 +181,10 @@ public interface RepositorioBiblioteca {
     @Nullable
     List<String> fotosDoArtista(String idArtista);
 
+    /** Rede. As mesmas fotos, pelo nome: o artista escolhido em "Buscar artista", antes do Salvar. */
+    @Nullable
+    List<String> fotosDoArtistaPeloNome(String nome);
+
     /**
      * Rede. "Buscar artista" no Editar: os artistas da biblioteca com esse nome, depois os do Deezer.
      * {@code ResultadoTmdb.id} é o nome e {@code sinopse}, a linha de apoio.
@@ -188,11 +192,12 @@ public interface RepositorioBiblioteca {
     List<ResultadoTmdb> buscarArtista(String idArtista, String consulta);
 
     /**
-     * Rede (com {@code foto}). Os shows de {@code idArtista} passam para o artista {@code nome}: com o
+     * Rede (com imagem {@code url:}). Os shows de {@code idArtista} passam para o artista {@code nome}: com o
      * mesmo nome de outra pasta, as duas viram uma só. Restaurar original do artista desfaz.
-     * {@code foto}: endereço da capa dele; nula = fica a que ele tem ou a que a busca achar.
+     * {@code capa} e {@code fundo}: referências ({@code url:}, {@code arquivo:}, {@code cor:}) gravadas no artista
+     * {@code nome}; nulas = ficam as que ele tem. Falso se alguma imagem não baixou (o resto vale).
      */
-    void definirArtista(String idArtista, String nome, @Nullable String foto);
+    boolean definirArtista(String idArtista, String nome, @Nullable String capa, @Nullable String fundo);
 
     /** Rede, fora da tela. Página do artista sem texto: procura uma vez por abertura do app; avisa os ouvintes. */
     void lerDadosDoArtista(String idArtista);
@@ -274,8 +279,8 @@ public interface RepositorioBiblioteca {
      */
     void atualizarAgora();
 
-    /** "12 atualizados · 2 não identificados", da última atualização; nulo antes da primeira. */
-    String resultadoDaAtualizacao();
+    /** Sem atualização em andamento: nada ficou sem resposta do TMDB (falso = "Não atualizado", no alto das páginas). */
+    boolean bibliotecaEmDia();
 
     /**
      * Ao voltar ao app: fora da tela, atualiza a biblioteca se o HD mudou ou se já faz um tempo. Com

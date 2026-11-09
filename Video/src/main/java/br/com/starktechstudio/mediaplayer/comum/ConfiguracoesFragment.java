@@ -46,7 +46,7 @@ import br.com.starktechstudio.mediaplayer.motor.Atualizador;
 
 /**
  * Configurações (D16, sem desenho; no padrão de Pastas), salvas no aparelho ({@link Preferencias}).
- * Lista curta de seções (App, Biblioteca, Início, só na TV, Legendas, Player, Séries e Shows), e cada
+ * Lista curta de seções (App, Biblioteca, Início, só na TV, Legendas, Navegação, Player, Séries e Shows), e cada
  * uma abre a própria subtela; seções e opções em ordem alfabética. Voltar retorna da subtela à lista,
  * com o foco da TV na seção de onde veio; no tablet há também o botão Voltar. Opção de dois valores:
  * OK ou toque troca na hora; com mais valores, abre um seletor em janela. O que só existe na TV não
@@ -233,6 +233,7 @@ public class ConfiguracoesFragment extends Fragment {
         definirBiblioteca();
         if (tv) definirInicio();
         definirLegendas();
+        definirNavegacao();
         definirPlayer();
         definirSeries();
         definirShows();
@@ -319,7 +320,7 @@ public class ConfiguracoesFragment extends Fragment {
         Context contexto = requireContext();
         Secao secao = secao(R.drawable.st_ic_pastas, R.string.st_cfg_grupo_biblioteca, R.string.st_cfg_grupo_biblioteca_dica);
         opcaoAcao(secao, R.drawable.st_ic_pastas, R.string.st_cfg_pastas, R.string.st_cfg_pastas_dica,
-                () -> Navegacao.abrirAba(requireActivity(), Aba.PASTAS));
+                () -> Navegacao.abrirPastas(requireActivity()));
         opcaoAcao(secao, R.drawable.st_ic_atualizar, R.string.st_atualizar_biblioteca, R.string.st_cfg_atualizar_dica, () -> {
             RepositorioBiblioteca.atual(contexto).atualizarAgora();
             Toast.makeText(contexto, R.string.st_atualizando_biblioteca, Toast.LENGTH_SHORT).show();
@@ -363,6 +364,14 @@ public class ConfiguracoesFragment extends Fragment {
         opcaoValor(secao, icone, R.string.st_cfg_sombra_legenda, R.string.st_cfg_sombra_legenda_dica, Preferencias.Item.SOMBRA_LEGENDA);
         opcaoValor(secao, icone, R.string.st_cfg_fundo_legenda, R.string.st_cfg_fundo_legenda_dica, Preferencias.Item.FUNDO_LEGENDA);
         opcaoValor(secao, icone, R.string.st_cfg_posicao_legenda, R.string.st_cfg_posicao_legenda_dica, Preferencias.Item.POSICAO_LEGENDA);
+    }
+
+    /** Quais abas aparecem no nav. Início e Ajustes ficam sempre: sem eles, não dá para voltar aqui. */
+    private void definirNavegacao() {
+        Secao secao = secao(R.drawable.st_ic_capitulos, R.string.st_cfg_grupo_navegacao, R.string.st_cfg_grupo_navegacao_dica);
+        for (Aba aba : Aba.values()) {
+            if (aba.itemDoNav != null) opcaoValor(secao, aba.icone, aba.nome, R.string.st_cfg_navegacao_dica, aba.itemDoNav);
+        }
     }
 
     private void definirPlayer() {
@@ -503,6 +512,7 @@ public class ConfiguracoesFragment extends Fragment {
                 valor.setText(Preferencias.proximo(contexto, item));
                 linha.setContentDescription(getString(nome) + ", " + valor.getText());
                 Reproducao.aoMudarConfiguracao();
+                if (getActivity() instanceof Navegacao.TelaComAbas) ((Navegacao.TelaComAbas) getActivity()).aoMudarAbas();
             });
             return;
         }

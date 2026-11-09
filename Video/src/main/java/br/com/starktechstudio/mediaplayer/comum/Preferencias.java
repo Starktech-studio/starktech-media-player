@@ -56,6 +56,13 @@ public final class Preferencias {
         ATUALIZAR_AO_ABRIR("atualizar_ao_abrir", 0, R.string.st_valor_ligado, R.string.st_valor_desligado),
         /** Procura versão nova do app ao abrir, e em Configurações ({@link Preferencias#procurarVersaoSozinho}). */
         ATUALIZAR_APP("atualizar_app", 0, R.string.st_valor_ligado, R.string.st_valor_desligado),
+        // Abas do nav ({@link Preferencias#abaLigada}): 0 = aparece. TV Shows e Stand-up, só se ligar
+        NAV_FILMES("nav_filmes", 0, R.string.st_valor_ligado, R.string.st_valor_desligado),
+        NAV_SERIES("nav_series", 0, R.string.st_valor_ligado, R.string.st_valor_desligado),
+        NAV_TVSHOWS("nav_tvshows", 1, R.string.st_valor_ligado, R.string.st_valor_desligado),
+        NAV_DESENHOS("nav_desenhos", 0, R.string.st_valor_ligado, R.string.st_valor_desligado),
+        NAV_SHOWS("nav_shows", 0, R.string.st_valor_ligado, R.string.st_valor_desligado),
+        NAV_STANDUP("nav_standup", 1, R.string.st_valor_ligado, R.string.st_valor_desligado),
 
         // Do motor do Nova: Player.java, MediaFactory.java e CustomApplication.applyAudioOutputToNative
         /** Só na TV. "1": escolhe o modo de tela pelo fps do vídeo. */
@@ -175,6 +182,11 @@ public final class Preferencias {
 
     public static void definirZoomPlayer(Context contexto, int zoom) {
         arquivo(contexto).edit().putInt(CHAVE_ZOOM_PLAYER, zoom).apply();
+    }
+
+    /** A aba aparece no nav? Início e Ajustes, sempre; as outras, pela escolha em Configurações &gt; Navegação. */
+    public static boolean abaLigada(Context contexto, Navegacao.Aba aba) {
+        return aba.itemDoNav == null || indice(contexto, aba.itemDoNav) == 0;
     }
 
     /** Aba Shows em seções por subpasta (D7); desligado de fábrica. */

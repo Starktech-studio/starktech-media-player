@@ -2,8 +2,8 @@
 <!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
 <!--
      Tela principal da TV (PrincipalTvActivity): barra do topo do Main.dc.html
-     (marca, pílulas Início, Filmes, Séries, Shows, Pastas, botões Buscar e Configurações)
-     e o conteúdo da aba. Medidas: px do HTML / 2.
+     (marca, pílulas Início, Filmes, Séries, TV Shows, Desenhos, Shows, Stand-up, as ligadas em
+     Configurações; botões Buscar e Configurações, relógio) e o conteúdo da aba. Medidas: px do HTML / 2.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -107,6 +107,22 @@
                     android:textSize="@dimen/st_tv_texto_botao" />
 
                 <TextView
+                    android:id="@+id/st_pilula_tvshows"
+                    style="@style/StarkTech.Texto.Forte"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/st_tv_pilula_espaco"
+                    android:focusable="true"
+                    android:paddingStart="@dimen/st_tv_pilula_padding_h"
+                    android:paddingTop="@dimen/st_tv_pilula_padding_v"
+                    android:paddingEnd="@dimen/st_tv_pilula_padding_h"
+                    android:paddingBottom="@dimen/st_tv_pilula_padding_v"
+                    android:text="@string/st_aba_tvshows"
+                    android:textColor="@color/st_cor_pilula"
+                    android:textSize="@dimen/st_tv_texto_botao"
+                    android:visibility="gone" />
+
+                <TextView
                     android:id="@+id/st_pilula_desenhos"
                     style="@style/StarkTech.Texto.Forte"
                     android:layout_width="wrap_content"
@@ -150,21 +166,6 @@
                     android:text="@string/st_aba_standup"
                     android:textColor="@color/st_cor_pilula"
                     android:textSize="@dimen/st_tv_texto_botao" />
-
-                <TextView
-                    android:id="@+id/st_pilula_pastas"
-                    style="@style/StarkTech.Texto.Forte"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/st_tv_pilula_espaco"
-                    android:focusable="true"
-                    android:paddingStart="@dimen/st_tv_pilula_padding_h"
-                    android:paddingTop="@dimen/st_tv_pilula_padding_v"
-                    android:paddingEnd="@dimen/st_tv_pilula_padding_h"
-                    android:paddingBottom="@dimen/st_tv_pilula_padding_v"
-                    android:text="@string/st_aba_pastas"
-                    android:textColor="@color/st_cor_pilula"
-                    android:textSize="@dimen/st_tv_texto_botao" />
             </LinearLayout>
             </FrameLayout>
 
@@ -206,6 +207,8 @@
                 android:scaleType="fitCenter"
                 android:src="@drawable/st_ic_ajustes"
                 app:tint="@color/st_texto" />
+
+            <include layout="@layout/st_tv_relogio" />
         </LinearLayout>
 
         <!-- Conteúdo da aba (Navegacao.conteudoDaAba) -->

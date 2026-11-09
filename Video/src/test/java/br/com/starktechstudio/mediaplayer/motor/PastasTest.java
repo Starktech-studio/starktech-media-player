@@ -40,7 +40,8 @@ public class PastasTest {
         assertEquals(Pastas.Tipo.SERIES, Pastas.reconhecer("Séries"));
         assertEquals(Pastas.Tipo.SERIES, Pastas.reconhecer("serie"));
         assertEquals(Pastas.Tipo.SERIES, Pastas.reconhecer("Series"));
-        assertEquals(Pastas.Tipo.SERIES, Pastas.reconhecer("TV  Shows"));
+        assertEquals(Pastas.Tipo.TVSHOWS, Pastas.reconhecer("TV  Shows"));
+        assertEquals(Pastas.Tipo.TVSHOWS, Pastas.reconhecer("tvshows"));
         assertEquals(Pastas.Tipo.SHOWS, Pastas.reconhecer("Shows"));
         assertEquals(Pastas.Tipo.SHOWS, Pastas.reconhecer("show"));
         assertEquals(Pastas.Tipo.SHOWS, Pastas.reconhecer("Concerts"));

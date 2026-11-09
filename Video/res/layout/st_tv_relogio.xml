@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!--
+     Relógio do topo na TV (Principal, Detalhe, Série, Coletânea e artista), à direita de tudo: 24 h,
+     pela hora do aparelho, sem foco. Algarismos de largura igual, para o topo não mexer a cada minuto.
+-->
+<TextClock xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/StarkTech.Texto.Forte"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="@dimen/st_tv_relogio_margem"
+    android:fontFeatureSettings="tnum"
+    android:format12Hour="HH:mm"
+    android:format24Hour="HH:mm"
+    android:textColor="@color/st_texto"
+    android:textSize="@dimen/st_tv_texto_relogio" />

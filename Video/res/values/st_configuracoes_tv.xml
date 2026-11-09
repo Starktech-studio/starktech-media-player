@@ -18,6 +18,9 @@
     <string name="st_cfg_grupo_shows_dica">Organização da aba Shows</string>
     <string name="st_cfg_grupo_app">App</string>
     <string name="st_cfg_grupo_app_dica">Uso, créditos e versão</string>
+    <string name="st_cfg_grupo_navegacao">Navegação</string>
+    <string name="st_cfg_grupo_navegacao_dica">Quais abas aparecem no menu</string>
+    <string name="st_cfg_navegacao_dica">Mostra ou esconde a aba no menu</string>
 
     <!-- Biblioteca -->
     <string name="st_cfg_atualizar_ao_abrir">Atualizar ao abrir</string>

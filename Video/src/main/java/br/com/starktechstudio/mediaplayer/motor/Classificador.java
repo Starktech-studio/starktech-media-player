@@ -160,6 +160,7 @@ public final class Classificador {
             case DESENHOS: return Item.desenho(filme(caminhoArquivo, partes));
             case STANDUP: return Item.standup(filme(caminhoArquivo, partes));
             case SHOWS: return show(caminhoArquivo, partes);
+            // Séries e TV Shows: temporadas e episódios; a aba sai do tipo da pasta
             default: return episodio(caminhoArquivo, partes);
         }
     }

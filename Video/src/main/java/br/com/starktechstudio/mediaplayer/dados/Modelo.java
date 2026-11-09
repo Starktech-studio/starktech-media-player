@@ -37,7 +37,7 @@ public final class Modelo {
     public enum Tipo { FILME, SERIE, DESENHO, SHOW, STANDUP }
 
     /** Tipo escolhido para uma pasta; NENHUM = "escolha o tipo". */
-    public enum TipoPasta { FILMES, SERIES, DESENHOS, SHOWS, STANDUP, IGNORAR, NENHUM }
+    public enum TipoPasta { FILMES, SERIES, TVSHOWS, DESENHOS, SHOWS, STANDUP, IGNORAR, NENHUM }
 
     /** Origem de uma pasta. */
     public enum Origem { HD_EXTERNO, INTERNO }
@@ -62,6 +62,13 @@ public final class Modelo {
             this.semGrupo = semGrupo;
             this.artistas = Collections.unmodifiableList(new ArrayList<>(artistas));
         }
+    }
+
+    /** Títulos do {@link Tipo#SERIE} de uma aba: TV Shows ou Séries, pelo tipo da pasta. */
+    public static List<Titulo> daAbaDeSeries(List<Titulo> titulos, boolean tvShows) {
+        List<Titulo> lista = new ArrayList<>();
+        for (Titulo t : titulos) if (t.tvShow == tvShows) lista.add(t);
+        return lista;
     }
 
     /** Filtro "Só não assistidos" das listas. */
@@ -149,6 +156,8 @@ public final class Modelo {
         // Série
         public int numeroTemporadas;
         public int numeroEpisodios;
+        /** Série de pasta TV Shows: igual a uma série em tudo, só que na aba TV Shows. */
+        public boolean tvShow;
 
         // Coletânea (D5)
         /** Filme: a coletânea em que está (do TMDB ou ajustada à mão); nulo = fora de coletânea. */
@@ -236,6 +245,7 @@ public final class Modelo {
             t.editadosAMao = editadosAMao.isEmpty() ? EnumSet.noneOf(Campo.class) : EnumSet.copyOf(editadosAMao);
             t.numeroTemporadas = numeroTemporadas;
             t.numeroEpisodios = numeroEpisodios;
+            t.tvShow = tvShow;
             t.colecaoNome = colecaoNome;
             t.idColetanea = idColetanea;
             t.colecaoCapa = colecaoCapa;

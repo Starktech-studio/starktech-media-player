@@ -61,6 +61,7 @@ public class SerieTvActivity extends AppCompatActivity {
     private TextView aviso;
     private Button principal;
     private ImageButton favoritar;
+    private TopoSecaoTv topo;
     private LinearLayout pilulasTemporada;
     private LinearLayout episodios;
     private Episodio proximo;
@@ -87,11 +88,7 @@ public class SerieTvActivity extends AppCompatActivity {
         episodios = findViewById(R.id.st_serie_episodios);
         View editar = findViewById(R.id.st_serie_editar);
 
-        // Topo: Séries marcada; ↑ dos botões vai a ela (não a Editar), ↓ das pílulas ao botão principal
-        TopoSecaoTv topo = new TopoSecaoTv(this);
-        topo.marcar(Aba.SERIES, R.id.st_serie_principal);
-        principal.setNextFocusUpId(topo.idAtiva());
-        favoritar.setNextFocusUpId(topo.idAtiva());
+        topo = new TopoSecaoTv(this);
 
         editar.setOnClickListener(v -> Navegacao.abrirEditar(this, id));
         findViewById(R.id.st_botao_configuracoes).setOnClickListener(v -> Navegacao.abrirConfiguracoes(this));
@@ -123,6 +120,11 @@ public class SerieTvActivity extends AppCompatActivity {
         }
         temporadas = repositorio.temporadas(id);
         proximo = PecasDetalhe.proximoEpisodio(temporadas);
+
+        // Topo: Séries ou TV Shows marcada; ↑ dos botões vai a ela (não a Editar), ↓ das pílulas ao botão principal
+        topo.marcar(serie.tvShow ? Aba.TVSHOWS : Aba.SERIES, R.id.st_serie_principal);
+        principal.setNextFocusUpId(topo.idAtiva());
+        favoritar.setNextFocusUpId(topo.idAtiva());
 
         fundo.setBackground(PecasDetalhe.fundoDoTitulo(this, serie.corFundo));
         Imagens.fundoDaPagina(fundo, serie.imagemFundo());

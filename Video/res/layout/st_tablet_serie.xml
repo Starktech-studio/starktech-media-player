@@ -55,6 +55,17 @@
                     android:layout_weight="1" />
 
                 <Button
+                    android:id="@+id/st_serie_favoritar"
+                    style="@style/StarkTech.Botao.Tablet.Secundario"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/st_tablet_detalhe_topo_botao_altura"
+                    android:layout_marginEnd="@dimen/st_tablet_detalhe_botao_espaco"
+                    android:minHeight="0dp"
+                    android:paddingStart="@dimen/st_tablet_detalhe_topo_botao_padding"
+                    android:paddingEnd="@dimen/st_tablet_detalhe_topo_botao_padding"
+                    android:text="@string/st_favoritar" />
+
+                <Button
                     android:id="@+id/st_serie_editar"
                     style="@style/StarkTech.Botao.Tablet.Secundario"
                     android:layout_width="wrap_content"

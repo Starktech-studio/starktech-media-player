@@ -146,7 +146,6 @@ public final class RepositorioReal implements RepositorioBiblioteca {
     private volatile boolean buscarTudo;
     /** Atualizar biblioteca ou HD ligado: mostra o resultado mesmo sem nada novo. */
     private volatile boolean mostrarResultado;
-    private volatile String resultado;
     /** Só na thread de {@link #trabalho}. */
     private int varredurasDeNovo;
     private int atualizadosNaRodada;
@@ -366,6 +365,8 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         Titulo t = new Titulo();
         t.id = chave;
         t.tipo = Tipo.SERIE;
+        Pastas.Pasta pasta = r.pastas.get(primeiro.pasta);
+        t.tvShow = pasta != null && pasta.tipo == Pastas.Tipo.TVSHOWS;
         t.titulo = dados != null && temTexto(dados.titulo) ? dados.titulo : primeiro.serie;
         t.tituloOriginal = dados != null && dados.tituloOriginal != null ? dados.tituloOriginal : primeiro.serie;
         t.ano = dados != null && dados.ano != null ? dados.ano : primeiro.ano == null ? "" : String.valueOf(primeiro.ano);
@@ -1125,8 +1126,14 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         Titulo artista = titulo(idArtista);
         // "Sem artista" não é ninguém para buscar
         if (artista == null || !artista.ehArtista() || idArtista.equals(Acervo.chaveArtista(null))) return Collections.emptyList();
-        List<String> doDeezer = new BuscaArtista(app).fotosDeezer(artista.titulo);
-        List<String> daWikipedia = new WikipediaArtista().fotos(artista.titulo);
+        return fotosDoArtistaPeloNome(artista.titulo);
+    }
+
+    @Override
+    public List<String> fotosDoArtistaPeloNome(String nome) {
+        if (!temTexto(nome)) return Collections.emptyList();
+        List<String> doDeezer = new BuscaArtista(app).fotosDeezer(nome.trim());
+        List<String> daWikipedia = new WikipediaArtista().fotos(nome.trim());
         if (doDeezer == null && daWikipedia.isEmpty()) return null;
         List<String> referencias = new ArrayList<>();
         if (doDeezer != null) for (String foto : doDeezer) referencias.add("url:" + foto);
@@ -1157,18 +1164,21 @@ public final class RepositorioReal implements RepositorioBiblioteca {
     }
 
     @Override
-    public void definirArtista(String idArtista, String nome, String foto) {
-        if (!Acervo.ehArtista(idArtista) || !temTexto(nome)) return;
+    public boolean definirArtista(String idArtista, String nome, String capa, String fundo) {
+        if (!Acervo.ehArtista(idArtista) || !temTexto(nome)) return true;
         String limpo = nome.trim();
         String destino = Acervo.chaveArtista(limpo);
-        if (foto != null) escolherImagem(destino, Edicoes.Campo.CAPA, "url:" + foto);
-        if (destino.equals(idArtista)) return;
+        boolean baixou = true;
+        if (capa != null) baixou = escolherImagem(destino, Edicoes.Campo.CAPA, capa);
+        if (fundo != null) baixou &= escolherImagem(destino, Edicoes.Campo.FUNDO, fundo);
+        if (destino.equals(idArtista)) return baixou;
         // O outro já tinha sido juntado a este: agora quem manda é o outro, sem dar a volta
         if (idArtista.equals(Acervo.chaveArtista(artistaFinal(limpo)))) edicoes.salvar(destino, Edicoes.Campo.ARTISTA, null);
         edicoes.salvar(idArtista, Edicoes.Campo.ARTISTA, limpo);
         apelidos = edicoes.doCampo(Edicoes.Campo.ARTISTA);
         notificar();
         pedirArtistas(false);
+        return baixou;
     }
 
     /** O nome que vale para o artista, depois das pastas juntadas no Editar; {@code nome} se não há nenhuma. */
@@ -1464,6 +1474,7 @@ public final class RepositorioReal implements RepositorioBiblioteca {
     @Override
     public void definirTipoPasta(String idPasta, TipoPasta tipo) {
         Pastas.Tipo novo = tipo == TipoPasta.FILMES ? Pastas.Tipo.FILMES : tipo == TipoPasta.SERIES ? Pastas.Tipo.SERIES
+                : tipo == TipoPasta.TVSHOWS ? Pastas.Tipo.TVSHOWS
                 : tipo == TipoPasta.DESENHOS ? Pastas.Tipo.DESENHOS
                 : tipo == TipoPasta.SHOWS ? Pastas.Tipo.SHOWS : tipo == TipoPasta.STANDUP ? Pastas.Tipo.STANDUP
                 : tipo == TipoPasta.IGNORAR ? Pastas.Tipo.IGNORAR : null;
@@ -1473,7 +1484,10 @@ public final class RepositorioReal implements RepositorioBiblioteca {
 
     @Override
     public void adicionarPasta(Origem origem, String caminho) {
-        pastas.adicionar(caminho, origem == Origem.HD_EXTERNO ? Pastas.Origem.HD_EXTERNO : Pastas.Origem.INTERNO);
+        Pastas.Pasta nova = pastas.adicionar(caminho, origem == Origem.HD_EXTERNO ? Pastas.Origem.HD_EXTERNO : Pastas.Origem.INTERNO);
+        // Pasta reconhecida pelo nome como TV Shows ou Stand-up: a aba, desligada de fábrica, passa a aparecer
+        if (nova.tipo == Pastas.Tipo.TVSHOWS) Preferencias.escolher(app, Preferencias.Item.NAV_TVSHOWS, 0);
+        if (nova.tipo == Pastas.Tipo.STANDUP) Preferencias.escolher(app, Preferencias.Item.NAV_STANDUP, 0);
         atualizarBiblioteca();
     }
 
@@ -1489,6 +1503,7 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         switch (tipo) {
             case FILMES: return TipoPasta.FILMES;
             case SERIES: return TipoPasta.SERIES;
+            case TVSHOWS: return TipoPasta.TVSHOWS;
             case DESENHOS: return TipoPasta.DESENHOS;
             case SHOWS: return TipoPasta.SHOWS;
             case STANDUP: return TipoPasta.STANDUP;
@@ -1649,13 +1664,19 @@ public final class RepositorioReal implements RepositorioBiblioteca {
     }
 
     @Override
-    public String resultadoDaAtualizacao() {
-        return resultado;
+    public boolean bibliotecaEmDia() {
+        Retrato r = retrato;
+        for (Acervo.Video v : r.videos.values()) {
+            Acervo.Tmdb t = r.tmdb.get(v.caminho);
+            if (t != null && t.situacao == Acervo.ERRO) return false;
+        }
+        return true;
     }
 
     /**
-     * "12 atualizados · 2 não identificados", ao terminar o TMDB: se foi pedido (Atualizar, HD ligado)
-     * ou se veio algo novo. Com uma tela da biblioteca aberta, aparece também como aviso.
+     * Ao terminar o TMDB, se foi pedido (Atualizar, HD ligado) ou se veio algo novo: as contagens vão
+     * para o log ("12 atualizados · 2 não identificados"); com uma tela da biblioteca aberta, aviso só de
+     * atualizada ou não.
      */
     private void fecharResultado() {
         if (!mostrarResultado && atualizadosNaRodada == 0) return;
@@ -1672,13 +1693,12 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         StringBuilder texto = new StringBuilder(quantos(res, R.plurals.st_n_atualizados, atualizadosNaRodada))
                 .append(" · ").append(quantos(res, R.plurals.st_n_nao_identificados, naoIdentificados));
         if (semResposta > 0) texto.append(" · ").append(quantos(res, R.plurals.st_n_sem_resposta, semResposta));
-        final String pronto = texto.toString();
+        final int aviso = semResposta > 0 ? R.string.st_atualizacao_sem_resposta : R.string.st_biblioteca_atualizada;
         atualizadosNaRodada = 0;
-        resultado = pronto;
-        Log.i(LOG, "TMDB: " + pronto);
+        Log.i(LOG, "TMDB: " + texto);
         tela.post(() -> {
             avisarAndamento.run();
-            if (!ouvintes.isEmpty()) Toast.makeText(app, pronto, Toast.LENGTH_LONG).show();
+            if (!ouvintes.isEmpty()) Toast.makeText(app, aviso, Toast.LENGTH_LONG).show();
         });
     }
 

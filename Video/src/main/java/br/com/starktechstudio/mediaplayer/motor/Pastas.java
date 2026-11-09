@@ -16,13 +16,13 @@ import java.util.Map;
 
 /**
  * Pastas da biblioteca e o tipo de cada uma (F2, etapa 3), no {@link BancoStarkTech}: Filmes,
- * Séries, Desenhos, Shows, Stand-up (F3) ou Ignorar. Ao adicionar, o tipo vem do nome da pasta (D4) — sem diferenciar
+ * Séries, TV Shows (como Séries, em aba própria), Desenhos, Shows, Stand-up (F3) ou Ignorar. Ao adicionar, o tipo vem do nome da pasta (D4) — sem diferenciar
  * maiúscula, minúscula e acento — ou fica em branco ("escolha o tipo"); o usuário pode trocar.
  * Um arquivo pertence à pasta cadastrada mais próxima acima dele.
  */
 public final class Pastas {
 
-    public enum Tipo { FILMES, SERIES, DESENHOS, SHOWS, STANDUP, IGNORAR }
+    public enum Tipo { FILMES, SERIES, TVSHOWS, DESENHOS, SHOWS, STANDUP, IGNORAR }
 
     public enum Origem { HD_EXTERNO, INTERNO }
 
@@ -51,7 +51,8 @@ public final class Pastas {
 
     static {
         for (String nome : new String[]{"filmes", "filme", "movies", "films"}) NOMES.put(nome, Tipo.FILMES);
-        for (String nome : new String[]{"series", "serie", "tv shows"}) NOMES.put(nome, Tipo.SERIES);
+        for (String nome : new String[]{"series", "serie"}) NOMES.put(nome, Tipo.SERIES);
+        for (String nome : new String[]{"tv shows", "tv show", "tvshows"}) NOMES.put(nome, Tipo.TVSHOWS);
         for (String nome : new String[]{"desenhos", "desenho", "desenhos animados", "animacao", "animacoes",
                 "cartoons", "cartoon", "animation", "animations"}) NOMES.put(nome, Tipo.DESENHOS);
         for (String nome : new String[]{"shows", "show", "concerts", "concertos"}) NOMES.put(nome, Tipo.SHOWS);

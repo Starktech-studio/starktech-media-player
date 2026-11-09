@@ -39,6 +39,12 @@ public class ClassificadorTest {
     }
 
     @Test
+    public void pastaTvShows_classificaComoSerie() {
+        Pastas.Pasta tvShows = new Pastas.Pasta("/hd/TV Shows", Pastas.Origem.HD_EXTERNO, Pastas.Tipo.TVSHOWS, false);
+        episodio(Classificador.classificar("/hd/TV Shows/Programa/Temporada 2/03.mkv", tvShows), "Programa", 2, 3);
+    }
+
+    @Test
     public void filme_nomeEAno() {
         Classificador.Item item = Classificador.classificar("/hd/Filmes/Nome do filme (2012).mkv", FILMES);
         assertEquals(Classificador.Tipo.FILME, item.tipo);

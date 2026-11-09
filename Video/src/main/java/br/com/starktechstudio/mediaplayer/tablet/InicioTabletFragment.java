@@ -32,10 +32,9 @@ import br.com.starktechstudio.mediaplayer.dados.Modelo.Titulo;
 import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 
 /**
- * Início do tablet (tablet-biblioteca.dc.html): Continuar assistindo, com rolagem lateral, e
+ * Início do tablet (tablet-biblioteca.dc.html): Continuar assistindo e Favoritos, com rolagem lateral, e
  * Adicionados recentemente em páginas de 5 capas — arrastar traz mais 5 ({@link PagerSnapHelper}),
- * com pontos de página. Sem Favoritos, como no desenho (D12). A marca e o selo do HD ficam na
- * {@link PrincipalTabletActivity}.
+ * com pontos de página. A marca e o selo do HD ficam na {@link PrincipalTabletActivity}.
  */
 public class InicioTabletFragment extends Fragment {
 
@@ -44,8 +43,10 @@ public class InicioTabletFragment extends Fragment {
 
     private RepositorioBiblioteca repositorio;
     private View secaoContinuar;
+    private View secaoFavoritos;
     private View secaoAdicionados;
     private CartaoAdapter continuar;
+    private CartaoAdapter favoritos;
     private PaginaAdapter paginas;
     private RecyclerView listaPaginas;
     private LinearLayoutManager gerentePaginas;
@@ -66,6 +67,7 @@ public class InicioTabletFragment extends Fragment {
     public void onViewCreated(@NonNull View raiz, @Nullable Bundle savedInstanceState) {
         repositorio = RepositorioBiblioteca.atual(requireContext());
         secaoContinuar = raiz.findViewById(R.id.st_secao_continuar);
+        secaoFavoritos = raiz.findViewById(R.id.st_secao_favoritos);
         secaoAdicionados = raiz.findViewById(R.id.st_secao_adicionados);
         pontos = raiz.findViewById(R.id.st_adicionados_pontos);
         // A rolagem passa por trás da barra de navegação do sistema
@@ -75,19 +77,10 @@ public class InicioTabletFragment extends Fragment {
         ((ViewGroup) ((ViewGroup) raiz).getChildAt(0)).addView(vazio, 0, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-        // Continuar assistindo: 22 dp entre os cartões
-        RecyclerView fileira = raiz.findViewById(R.id.st_fileira_continuar);
-        fileira.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
-        final int espaco = getResources().getDimensionPixelSize(R.dimen.st_tablet_cartao_espaco);
-        fileira.addItemDecoration(new RecyclerView.ItemDecoration() {
-            @Override
-            public void getItemOffsets(@NonNull Rect saida, @NonNull View item, @NonNull RecyclerView pai,
-                                       @NonNull RecyclerView.State estado) {
-                saida.set(pai.getChildAdapterPosition(item) > 0 ? espaco : 0, 0, 0, 0);
-            }
-        });
         continuar = new CartaoAdapter(requireActivity(), repositorio, false, CartaoAdapter.Modo.CONTINUAR);
-        fileira.setAdapter(continuar);
+        configurarFileira(raiz.findViewById(R.id.st_fileira_continuar), continuar);
+        favoritos = new CartaoAdapter(requireActivity(), repositorio, false, CartaoAdapter.Modo.FAVORITOS);
+        configurarFileira(raiz.findViewById(R.id.st_fileira_favoritos), favoritos);
 
         // Adicionados recentemente: uma página = 5 capas; o encaixe para em página inteira
         listaPaginas = raiz.findViewById(R.id.st_paginas_adicionados);
@@ -107,10 +100,24 @@ public class InicioTabletFragment extends Fragment {
         });
     }
 
+    /** Fileira de cartões com rolagem lateral: 22 dp entre eles. */
+    private void configurarFileira(RecyclerView fileira, CartaoAdapter adapter) {
+        fileira.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
+        final int espaco = getResources().getDimensionPixelSize(R.dimen.st_tablet_cartao_espaco);
+        fileira.addItemDecoration(new RecyclerView.ItemDecoration() {
+            @Override
+            public void getItemOffsets(@NonNull Rect saida, @NonNull View item, @NonNull RecyclerView pai,
+                                       @NonNull RecyclerView.State estado) {
+                saida.set(pai.getChildAdapterPosition(item) > 0 ? espaco : 0, 0, 0, 0);
+            }
+        });
+        fileira.setAdapter(adapter);
+    }
+
     @Override
     public void onResume() {
         super.onResume();
-        // Volta de outra tela (assistido, posição) ou a varredura / o TMDB mudaram a biblioteca
+        // Volta de outra tela (favorito, assistido, posição) ou a varredura / o TMDB mudaram a biblioteca
         recarregar();
         repositorio.ouvir(aoMudarBiblioteca);
     }
@@ -129,6 +136,10 @@ public class InicioTabletFragment extends Fragment {
         List<Titulo> lista = repositorio.continuarAssistindo();
         continuar.atualizar(lista);
         secaoContinuar.setVisibility(lista.isEmpty() ? View.GONE : View.VISIBLE);
+
+        List<Titulo> favoritados = repositorio.favoritos();
+        favoritos.atualizar(favoritados);
+        secaoFavoritos.setVisibility(favoritados.isEmpty() ? View.GONE : View.VISIBLE);
 
         List<Titulo> adicionados = repositorio.adicionadosRecentemente();
         paginas.atualizar(adicionados);

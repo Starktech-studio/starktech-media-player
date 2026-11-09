@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Texto da pílula Início da TV (destaque da 1.1): ativa ou em foco (fundo amarelo) = #020617; parada, amarelo. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/st_texto_escuro" android:state_focused="true" />
+    <item android:color="@color/st_texto_escuro" android:state_selected="true" />
+    <item android:color="@color/st_amarelo_marca" />
+</selector>

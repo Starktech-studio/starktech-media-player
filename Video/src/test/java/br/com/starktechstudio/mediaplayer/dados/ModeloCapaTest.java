@@ -32,6 +32,17 @@ public class ModeloCapaTest {
     }
 
     @Test
+    public void series_cadaUmaNaSuaAba() {
+        Titulo serie = titulo("serie:a", false);
+        Titulo programa = titulo("serie:b", false);
+        programa.tvShow = true;
+        List<Titulo> todos = Arrays.asList(serie, programa);
+        assertEquals(Arrays.asList(serie), Modelo.daAbaDeSeries(todos, false));
+        assertEquals(Arrays.asList(programa), Modelo.daAbaDeSeries(todos, true));
+        assertTrue(programa.copia().tvShow);
+    }
+
+    @Test
     public void selos_pelaQualidade() {
         assertTrue(comQualidade("4K").eh4k());
         assertFalse(comQualidade("4K").ehHdr());

@@ -24,17 +24,18 @@ import br.com.starktechstudio.mediaplayer.comum.Navegacao;
 import br.com.starktechstudio.mediaplayer.comum.Navegacao.Aba;
 import br.com.starktechstudio.mediaplayer.comum.AvisoDeVersao;
 import br.com.starktechstudio.mediaplayer.comum.PermissaoVideos;
+import br.com.starktechstudio.mediaplayer.comum.Preferencias;
 import br.com.starktechstudio.mediaplayer.comum.TelaCarregamento;
 import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 
 /**
  * Tela principal do tablet (tablet-biblioteca.dc.html): barra lateral com logo e os itens
- * Início, Filmes, Séries, Desenhos, Shows, Stand-up, Pastas e Ajustes (ativo com fundo azul 18 %; a barra
- * rola se não couber); na aba
- * Início, a marca e o selo do HD (verde "HD externo" / vermelho "Sem HD ✕"). Sem busca
+ * Início (em amarelo), as abas ligadas em Configurações &gt; Navegação e Ajustes (ativo com fundo azul 18 %; a
+ * barra rola se não couber); na aba
+ * Início, a marca e o selo do HD (verde "HD externo" / vermelho "Sem HD ✕"); em todas, o relógio. Sem busca
  * e sem filtros. O selo segue o HD de verdade (ligado ou desligado com o app aberto).
  */
-public class PrincipalTabletActivity extends AppCompatActivity {
+public class PrincipalTabletActivity extends AppCompatActivity implements Navegacao.TelaComAbas {
 
     private static final String ESTADO_ABA = "aba";
 
@@ -42,6 +43,7 @@ public class PrincipalTabletActivity extends AppCompatActivity {
 
     private final View[] itens = new View[ABAS.length];
     private View topoInicio;
+    private View topoMarca;
     private View seloHd;
     private ImageView seloHdIcone;
     private TextView seloHdTexto;
@@ -56,6 +58,7 @@ public class PrincipalTabletActivity extends AppCompatActivity {
         repositorio = RepositorioBiblioteca.atual(this);
 
         topoInicio = findViewById(R.id.st_topo_inicio);
+        topoMarca = findViewById(R.id.st_topo_marca);
         seloHd = findViewById(R.id.st_selo_hd);
         seloHdIcone = findViewById(R.id.st_selo_hd_icone);
         seloHdTexto = findViewById(R.id.st_selo_hd_texto);
@@ -71,12 +74,22 @@ public class PrincipalTabletActivity extends AppCompatActivity {
         for (int i = 0; i < ABAS.length; i++) {
             final int indice = i;
             View item = inflater.inflate(R.layout.st_tablet_item_barra, barra, false);
-            ((ImageView) item.findViewById(R.id.st_item_barra_icone)).setImageResource(ABAS[i].icone);
-            ((TextView) item.findViewById(R.id.st_item_barra_texto)).setText(ABAS[i].nome);
+            ImageView icone = item.findViewById(R.id.st_item_barra_icone);
+            TextView texto = item.findViewById(R.id.st_item_barra_texto);
+            icone.setImageResource(ABAS[i].icone);
+            texto.setText(ABAS[i].nome);
+            // Início em destaque: ícone e texto em amarelo, parado ou ativo
+            if (ABAS[i] == Aba.INICIO) {
+                int amarelo = ContextCompat.getColor(this, R.color.st_amarelo_marca);
+                ImageViewCompat.setImageTintList(icone, ColorStateList.valueOf(amarelo));
+                texto.setTextColor(amarelo);
+                item.setBackgroundResource(R.drawable.st_item_barra_inicio);
+            }
             item.setOnClickListener(v -> selecionarAba(indice));
             barra.addView(item);
             itens[i] = item;
         }
+        mostrarAbasLigadas();
 
         Aba pedida = Navegacao.abaDoIntent(getIntent());
         int inicial = savedInstanceState != null ? savedInstanceState.getInt(ESTADO_ABA, 0)
@@ -99,7 +112,7 @@ public class PrincipalTabletActivity extends AppCompatActivity {
         PermissaoVideos.aoResponder(this, pedido, respostas);
     }
 
-    /** Pastas da biblioteca (em Ajustes) e outras telas que pedem uma aba. */
+    /** Telas que pedem uma aba. */
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -111,6 +124,7 @@ public class PrincipalTabletActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        mostrarAbasLigadas();
         atualizarSeloHd();
         // O HD pode ter saído ou voltado com o app fora da tela
         repositorio.conferirBiblioteca();
@@ -132,6 +146,19 @@ public class PrincipalTabletActivity extends AppCompatActivity {
         outState.putInt(ESTADO_ABA, Math.max(abaAtiva, 0));
     }
 
+    @Override
+    public void aoMudarAbas() {
+        mostrarAbasLigadas();
+    }
+
+    /** Só as abas ligadas em Configurações &gt; Navegação; a aba aberta que foi desligada volta ao Início. */
+    private void mostrarAbasLigadas() {
+        for (int i = 0; i < ABAS.length; i++) {
+            itens[i].setVisibility(Preferencias.abaLigada(this, ABAS[i]) ? View.VISIBLE : View.GONE);
+        }
+        if (abaAtiva >= 0 && itens[abaAtiva].getVisibility() != View.VISIBLE) selecionarAba(Aba.INICIO.ordinal());
+    }
+
     private void selecionarAba(int indice) {
         if (indice == abaAtiva) return;
         marcarItem(indice);
@@ -144,8 +171,13 @@ public class PrincipalTabletActivity extends AppCompatActivity {
     private void marcarItem(int indice) {
         abaAtiva = indice;
         for (int i = 0; i < itens.length; i++) itens[i].setSelected(i == indice);
-        // Marca e selo do HD só no Início (nas outras abas o desenho começa pelo título)
-        topoInicio.setVisibility(ABAS[indice] == Aba.INICIO ? View.VISIBLE : View.GONE);
+        // Marca e selo do HD só no Início (nas outras abas o desenho começa pelo título); o relógio fica em todas
+        boolean inicio = ABAS[indice] == Aba.INICIO;
+        topoMarca.setVisibility(inicio ? View.VISIBLE : View.GONE);
+        seloHd.setVisibility(inicio ? View.VISIBLE : View.GONE);
+        topoInicio.setPaddingRelative(topoInicio.getPaddingStart(),
+                getResources().getDimensionPixelSize(inicio ? R.dimen.st_tablet_margem_v : R.dimen.st_tablet_relogio_topo),
+                topoInicio.getPaddingEnd(), topoInicio.getPaddingBottom());
     }
 
     private void atualizarSeloHd() {

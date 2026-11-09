@@ -54,6 +54,7 @@ import br.com.starktechstudio.mediaplayer.dados.Modelo.TipoFaixa;
  * com Voltar, título grande e o capítulo; embaixo, barra (tocar ou arrastar muda a posição),
  * Capítulos (abre a faixa de capítulos, que arrasta para o lado, sem "Ver todos"), Áudio e Legendas
  * à esquerda; Cap. anterior, Pausar, Próx. capítulo no centro (os de capítulo somem sem capítulos;
+ * filme e desenho ganham marcas de 10 em 10 minutos, que usam os mesmos botões;
  * o pulo de Configurações, 10 s de fábrica, só com dois toques nas laterais); "Próximo capítulo em…"
  * e Expandir à direita.
  * Um toque mostra ou esconde os controles; à vista, somem no tempo de Configurações (5 s de fábrica)

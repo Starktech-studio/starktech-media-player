@@ -13,6 +13,15 @@
 | 5 | Selo HDR da capa: conferir com um vídeo HDR de verdade. O código lê a cor do arquivo pelo motor, mas no teste do emulador os vídeos gerados saíram sem a marca de HDR, e o selo não foi visto | Versão 1 (09/11/2026) |
 | 6 | Tablet: conferir os capítulos do Detalhe rolando a página inteira e a nova página do artista, e tirar os prints para o README, que hoje só tem os da TV | Versão 1 (09/11/2026) |
 
+## Depois da 1.1
+
+| # | Item | Origem |
+|---|---|---|
+| 1 | Player: botão de configurar a legenda, do lado esquerdo, quando o vídeo tiver legenda. Configuração rápida: adiantar ou atrasar a legenda e aumentar ou diminuir o tamanho; o resto continua em Configurações | Gustavo, 09/11/2026 |
+| 2 | Configurações: limpar o cache | Gustavo, 09/11/2026 |
+| 3 | Legendas: buscar e baixar legenda para o vídeo pela API do OpenSubtitles. Hoje está desligado e sem chave: vai precisar de uma, fora do Git | Gustavo, 09/11/2026 |
+| 4 | Refazer os prints do README: os de hoje ainda mostram Pastas no nav e não têm o relógio | Versão 1.1 (09/11/2026) |
+
 ## F4 — Empacotamento
 
 | # | Item | Origem |

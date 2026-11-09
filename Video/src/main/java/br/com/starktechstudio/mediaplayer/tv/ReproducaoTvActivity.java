@@ -36,7 +36,8 @@ import br.com.starktechstudio.mediaplayer.dados.Modelo.TipoFaixa;
 /**
  * Player da TV (tv-player.dc.html), tocando o arquivo pelo motor do Nova ({@link Reproducao}): topo com o título e o
  * capítulo, barra com as marcas dos capítulos, "Próximo capítulo em…", botões Cap. anterior,
- * Pausar e Próx. capítulo (os de capítulo somem em arquivo sem capítulos), Áudio,
+ * Pausar e Próx. capítulo (os de capítulo somem em arquivo sem capítulos; filme e desenho ganham marcas
+ * de 10 em 10 minutos, que usam os mesmos botões), Áudio,
  * Legendas, Zoom (troca e guarda) e Capítulos (lista à direita; OK leva ao capítulo).
  * Barra: ↑ dos botões dá o foco a ela; ← / → movem 10 s e, segurando, 30 s e 60 s: o ponto anda na
  * tela e o motor só busca ao soltar (busca a cada repetição travaria em HD USB).

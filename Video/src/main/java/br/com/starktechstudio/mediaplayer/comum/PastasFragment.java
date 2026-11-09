@@ -37,26 +37,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import br.com.starktechstudio.mediaplayer.comum.Navegacao.Aba;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Origem;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Pasta;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.TipoPasta;
 import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 
 /**
- * Aba Pastas (tv-pastas.dc.html; tablet-pastas.dc.html, a mesma tela compacta): Atualizar
+ * Pastas, aberta em Configurações &gt; Biblioteca (tv-pastas.dc.html; tablet-pastas.dc.html, a mesma tela compacta): Atualizar
  * biblioteca e Adicionar pasta; pastas por origem (HD externo "conectado" / "desconectado" e
  * armazenamento interno), cada uma com "reconhecida pelo nome" ou "escolha o tipo", o caminho e a
- * contagem, e o tipo Filmes, Séries, Desenhos, Shows, Stand-up ou Ignorar (marcado em verde / laranja e gravado no Salvar,
- * que varre de novo), e Remover;
+ * contagem, e o tipo Filmes, Séries, TV Shows, Desenhos, Shows, Stand-up, os de abas ligadas em Configurações &gt; Navegação,
+ * ou Ignorar (marcado em verde / laranja e gravado no Salvar, que varre de novo), e Remover;
  * "Não identificados" com Revisar; painel "Como organizar". Montada no código, medidas do desenho
  * da TV ({@link Medidas}).
  */
 public class PastasFragment extends Fragment {
 
-    private static final TipoPasta[] TIPOS = {TipoPasta.FILMES, TipoPasta.SERIES, TipoPasta.DESENHOS, TipoPasta.SHOWS,
-            TipoPasta.STANDUP, TipoPasta.IGNORAR};
-    private static final int[] NOMES_TIPOS = {R.string.st_tipo_filmes, R.string.st_tipo_series, R.string.st_tipo_desenhos,
-            R.string.st_tipo_shows, R.string.st_tipo_standup, R.string.st_tipo_ignorar};
+    private static final TipoPasta[] TIPOS = {TipoPasta.FILMES, TipoPasta.SERIES, TipoPasta.TVSHOWS, TipoPasta.DESENHOS,
+            TipoPasta.SHOWS, TipoPasta.STANDUP, TipoPasta.IGNORAR};
+    private static final int[] NOMES_TIPOS = {R.string.st_tipo_filmes, R.string.st_tipo_series, R.string.st_tipo_tvshows,
+            R.string.st_tipo_desenhos, R.string.st_tipo_shows, R.string.st_tipo_standup, R.string.st_tipo_ignorar};
 
     private RepositorioBiblioteca repositorio;
     private boolean tv;
@@ -82,6 +83,17 @@ public class PastasFragment extends Fragment {
         int lateral = getResources().getDimensionPixelSize(tv ? R.dimen.st_tv_margem_lateral : R.dimen.st_tablet_margem_h);
         int topo = tv ? Medidas.px(contexto, 44) : getResources().getDimensionPixelSize(R.dimen.st_tablet_margem_v);
         pagina.setPadding(lateral, topo, lateral, Medidas.px(contexto, 44));
+        // Tablet: sem tecla Voltar à vista, a tela tem o botão (como as subtelas de Configurações)
+        if (!tv) {
+            Button voltar = new Button(contexto, null, 0, R.style.StarkTech_Botao_Tablet_Secundario);
+            voltar.setText(R.string.st_voltar);
+            voltar.setSingleLine(true);
+            Icones.noTexto(voltar, R.drawable.st_ic_voltar, getResources().getDimensionPixelSize(R.dimen.st_tablet_botao_icone));
+            voltar.setOnClickListener(v -> requireActivity().finish());
+            LinearLayout.LayoutParams lpVoltar = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, alturaBotao(contexto));
+            lpVoltar.bottomMargin = Medidas.px(contexto, 22);
+            pagina.addView(voltar, lpVoltar);
+        }
         pagina.addView(cabecalho(contexto));
 
         LinearLayout corpo = new LinearLayout(contexto);
@@ -100,7 +112,7 @@ public class PastasFragment extends Fragment {
         // TV: rolagem padrão (segue o foco); tablet: passa por trás da barra de navegação
         ViewGroup rolagem;
         if (tv) {
-            // ↓ da pílula para em Adicionar pasta, o primeiro botão da página; a lista desce dali
+            // O foco entra em Adicionar pasta, o primeiro botão da página; a lista desce dali
             ScrollView sv = new ScrollView(contexto) {
                 @Override
                 protected boolean onRequestFocusInDescendants(int direcao, Rect anterior) {
@@ -118,6 +130,7 @@ public class PastasFragment extends Fragment {
         rolagem.setVerticalScrollBarEnabled(false);
         rolagem.setOverScrollMode(View.OVER_SCROLL_NEVER);
         rolagem.addView(pagina, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        if (tv) adicionar.post(() -> adicionar.requestFocus());
         return rolagem;
     }
 
@@ -198,7 +211,7 @@ public class PastasFragment extends Fragment {
             repositorio.definirTipoPasta(item.getKey(), item.getValue());
         }
         pendentes.clear();
-        // O Salvar some: o foco vai antes para Adicionar pasta (senão cairia na barra do topo e trocaria de aba)
+        // O Salvar some: o foco vai antes para Adicionar pasta (senão ficaria sem lugar certo)
         if (salvar.hasFocus()) adicionar.requestFocus();
         montarLista();
         Toast.makeText(requireContext(), R.string.st_tipos_salvos, Toast.LENGTH_SHORT).show();
@@ -234,8 +247,8 @@ public class PastasFragment extends Fragment {
         if (contexto == null || lista == null) return;
         View foco = lista.findFocus();
         Object marca = foco == null ? null : foco.getTag();
-        // Refazer a lista com o foco nela jogaria o foco na barra do topo (e a TV trocaria de aba):
-        // o foco passa por Adicionar pasta e volta ao mesmo lugar no fim
+        // Refazer a lista com o foco nela perderia o foco: ele passa por Adicionar pasta e volta ao
+        // mesmo lugar no fim
         if (foco != null && adicionar != null) adicionar.requestFocus();
         lista.removeAllViews();
         // Pasta que saiu (Remover) não tem mais tipo pendente
@@ -350,7 +363,7 @@ public class PastasFragment extends Fragment {
     }
 
     private String contagem(Pasta p) {
-        if (p.tipo == TipoPasta.SERIES || p.series > 0) {
+        if (p.tipo == TipoPasta.SERIES || p.tipo == TipoPasta.TVSHOWS || p.series > 0) {
             return getResources().getQuantityString(R.plurals.st_n_series, p.series, p.series) + " · "
                     + getResources().getQuantityString(R.plurals.st_n_episodios, p.episodios, p.episodios);
         }
@@ -358,8 +371,9 @@ public class PastasFragment extends Fragment {
     }
 
     /**
-     * Grupo Filmes / Séries / Desenhos / Shows / Stand-up / Ignorar (48 px, Inter 800): o escolhido em verde
-     * (Ignorar em laranja), marcado na hora e gravado só no Salvar. No fim, Remover.
+     * Grupo Filmes / Séries / TV Shows / Desenhos / Shows / Stand-up / Ignorar (48 px, Inter 800): o escolhido em
+     * verde (Ignorar em laranja), marcado na hora e gravado só no Salvar. Tipo de aba desligada em Navegação só
+     * aparece se a pasta já é dele. No fim, Remover.
      */
     private View tipos(Context contexto, Pasta p) {
         LinearLayout grupo = new LinearLayout(contexto);
@@ -373,6 +387,8 @@ public class PastasFragment extends Fragment {
         primeiraLinha = false;
         for (int i = 0; i < TIPOS.length; i++) {
             final TipoPasta tipo = TIPOS[i];
+            Aba aba = Navegacao.abaDaPasta(tipo);
+            if (aba != null && !Preferencias.abaLigada(contexto, aba) && tipoMarcado(p) != tipo) continue;
             TextView opcao = Textos.novo(contexto, getString(NOMES_TIPOS[i]), R.font.st_inter_extrabold, 17, R.color.st_texto_secundario);
             opcao.setTextColor(ContextCompat.getColorStateList(contexto, R.color.st_cor_segmento));
             opcao.setBackgroundResource(tipo == TipoPasta.IGNORAR ? R.drawable.st_segmento_laranja : R.drawable.st_segmento_verde);
@@ -384,7 +400,7 @@ public class PastasFragment extends Fragment {
             opcao.setTag(p.id + ":" + tipo.name());
             if (primeira) {
                 opcao.setNextFocusUpId(R.id.st_pastas_adicionar);
-                if (tipoMarcado(p) == tipo || (i == 0 && tipoMarcado(p) == TipoPasta.NENHUM)) opcao.setId(R.id.st_pastas_primeira);
+                if (tipoMarcado(p) == tipo || (grupo.getChildCount() == 0 && tipoMarcado(p) == TipoPasta.NENHUM)) opcao.setId(R.id.st_pastas_primeira);
             }
             if (tv) opcao.setForeground(ContextCompat.getDrawable(contexto, R.drawable.st_foco_tv));
             // Marca na hora (sem refazer a lista); vale só depois de Salvar
@@ -401,7 +417,7 @@ public class PastasFragment extends Fragment {
                 mostrarSalvar();
             });
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, Medidas.px(contexto, 48));
-            if (i > 0) lp.setMarginStart(folga);
+            if (grupo.getChildCount() > 0) lp.setMarginStart(folga);
             grupo.addView(opcao, lp);
         }
         // Remover (em vermelho): tira a pasta da biblioteca, depois de confirmar
@@ -496,23 +512,26 @@ public class PastasFragment extends Fragment {
         TextView texto = Textos.novo(contexto, getString(R.string.st_como_organizar_texto), R.font.st_inter_semibold, 17, R.color.st_texto_secundario);
         texto.setLineSpacing(0f, 1.24f);
         adicionar(painel, texto, espaco);
-        int[][] exemplos = {
-                {R.string.st_tipo_filmes, R.string.st_exemplo_filme},
-                {R.string.st_tipo_series, R.string.st_exemplo_serie},
-                {R.string.st_tipo_desenhos, R.string.st_exemplo_desenho},
-                {R.string.st_tipo_shows, R.string.st_exemplo_show},
-                {R.string.st_tipo_standup, R.string.st_exemplo_standup}
-        };
-        for (int[] exemplo : exemplos) {
-            adicionar(painel, Textos.rotulo(contexto, getString(exemplo[0]), 14), espaco);
-            TextView mono = Textos.novo(contexto, getString(exemplo[1]), R.font.st_inter_medium, 17, R.color.st_texto_secundario);
-            mono.setTypeface(Typeface.MONOSPACE);
-            adicionar(painel, mono, Medidas.px(contexto, 4));
-        }
+        exemplo(painel, Aba.FILMES, R.string.st_tipo_filmes, R.string.st_exemplo_filme, espaco);
+        exemplo(painel, Aba.SERIES, R.string.st_tipo_series, R.string.st_exemplo_serie, espaco);
+        exemplo(painel, Aba.TVSHOWS, R.string.st_tipo_tvshows, R.string.st_exemplo_tvshow, espaco);
+        exemplo(painel, Aba.DESENHOS, R.string.st_tipo_desenhos, R.string.st_exemplo_desenho, espaco);
+        exemplo(painel, Aba.SHOWS, R.string.st_tipo_shows, R.string.st_exemplo_show, espaco);
+        exemplo(painel, Aba.STANDUP, R.string.st_tipo_standup, R.string.st_exemplo_standup, espaco);
         TextView fim = Textos.novo(contexto, getString(R.string.st_como_organizar_fim), R.font.st_inter_semibold, 16, R.color.st_texto_apagado);
         fim.setLineSpacing(0f, 1.24f);
         adicionar(painel, fim, espaco);
         return painel;
+    }
+
+    /** Exemplo de nome de arquivo do tipo, se a aba dele está ligada em Navegação. */
+    private void exemplo(LinearLayout painel, Aba aba, @StringRes int tipo, @StringRes int nome, int espaco) {
+        Context contexto = painel.getContext();
+        if (!Preferencias.abaLigada(contexto, aba)) return;
+        adicionar(painel, Textos.rotulo(contexto, getString(tipo), 14), espaco);
+        TextView mono = Textos.novo(contexto, getString(nome), R.font.st_inter_medium, 17, R.color.st_texto_secundario);
+        mono.setTypeface(Typeface.MONOSPACE);
+        adicionar(painel, mono, Medidas.px(contexto, 4));
     }
 
     private static void adicionar(LinearLayout pai, View filho, int topo) {

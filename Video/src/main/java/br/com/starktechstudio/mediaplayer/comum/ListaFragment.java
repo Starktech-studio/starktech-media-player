@@ -42,6 +42,7 @@ import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 public class ListaFragment extends Fragment {
 
     private static final String ARG_TIPO = "tipo";
+    private static final String ARG_TV_SHOWS = "tvShows";
     /** Capas por linha na TV. */
     private static final int COLUNAS_TV = 6;
 
@@ -56,6 +57,8 @@ public class ListaFragment extends Fragment {
     private GridLayoutManager gerenteTablet;
     private int colunasTablet = 5;
     private Tipo tipo;
+    /** Aba TV Shows: séries das pastas desse tipo; na aba Séries, as outras. */
+    private boolean tvShows;
     private TextView vazio;
     private Button filtro;
     private IndicadorAtualizacao indicador;
@@ -66,6 +69,13 @@ public class ListaFragment extends Fragment {
         Bundle args = new Bundle();
         args.putString(ARG_TIPO, tipo.name());
         fragmento.setArguments(args);
+        return fragmento;
+    }
+
+    /** Aba TV Shows. */
+    public static ListaFragment novoTvShows() {
+        ListaFragment fragmento = novo(Tipo.SERIE);
+        fragmento.requireArguments().putBoolean(ARG_TV_SHOWS, true);
         return fragmento;
     }
 
@@ -81,9 +91,10 @@ public class ListaFragment extends Fragment {
         tv = Aparelho.ehTv(requireContext());
         Bundle args = getArguments();
         tipo = Tipo.valueOf(args == null ? Tipo.FILME.name() : args.getString(ARG_TIPO, Tipo.FILME.name()));
+        tvShows = args != null && args.getBoolean(ARG_TV_SHOWS);
 
         TextView titulo = raiz.findViewById(R.id.st_lista_titulo);
-        titulo.setText(tipo == Tipo.SERIE ? R.string.st_aba_series
+        titulo.setText(tvShows ? R.string.st_aba_tvshows : tipo == Tipo.SERIE ? R.string.st_aba_series
                 : tipo == Tipo.DESENHO ? R.string.st_aba_desenhos
                 : tipo == Tipo.SHOW ? R.string.st_aba_shows : tipo == Tipo.STANDUP ? R.string.st_aba_standup
                 : R.string.st_aba_filmes);
@@ -164,7 +175,9 @@ public class ListaFragment extends Fragment {
             nada = lista.isEmpty();
         } else {
             List<Titulo> todos = tipo == Tipo.FILME ? repositorio.filmesEColetaneas()
-                    : tipo == Tipo.SHOW ? repositorio.artistas() : repositorio.titulos(tipo);
+                    : tipo == Tipo.SHOW ? repositorio.artistas()
+                    : tipo == Tipo.SERIE ? Modelo.daAbaDeSeries(repositorio.titulos(tipo), tvShows)
+                    : repositorio.titulos(tipo);
             List<Titulo> titulos = soNaoAssistidos ? Modelo.naoAssistidos(todos) : todos;
             adapter.atualizar(titulos);
             temTitulos = !todos.isEmpty();
@@ -175,7 +188,8 @@ public class ListaFragment extends Fragment {
         if (nada && temTitulos) {
             vazio.setText(R.string.st_lista_tudo_assistido);
         } else if (nada) {
-            vazio.setText(AvisoVazio.texto(requireContext(), repositorio, tipo == Tipo.SERIE ? R.string.st_lista_vazia_series
+            vazio.setText(AvisoVazio.texto(requireContext(), repositorio, tvShows ? R.string.st_lista_vazia_tvshows
+                    : tipo == Tipo.SERIE ? R.string.st_lista_vazia_series
                     : tipo == Tipo.DESENHO ? R.string.st_lista_vazia_desenhos
                     : tipo == Tipo.SHOW ? R.string.st_lista_vazia_shows : tipo == Tipo.STANDUP ? R.string.st_lista_vazia_standup
                     : R.string.st_lista_vazia_filmes));

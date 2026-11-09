@@ -87,7 +87,9 @@
                             style="@style/StarkTech.Pilula.Tv"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/st_aba_inicio" />
+                            android:background="@drawable/st_pilula_menu_inicio"
+                            android:text="@string/st_aba_inicio"
+                            android:textColor="@color/st_cor_pilula_inicio" />
 
                         <TextView
                             android:id="@+id/st_pilula_filmes"
@@ -104,6 +106,15 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="@dimen/st_tv_pilula_espaco"
                             android:text="@string/st_aba_series" />
+
+                        <TextView
+                            android:id="@+id/st_pilula_tvshows"
+                            style="@style/StarkTech.Pilula.Tv"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/st_tv_pilula_espaco"
+                            android:text="@string/st_aba_tvshows"
+                            android:visibility="gone" />
 
                         <TextView
                             android:id="@+id/st_pilula_desenhos"
@@ -128,14 +139,6 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="@dimen/st_tv_pilula_espaco"
                             android:text="@string/st_aba_standup" />
-
-                        <TextView
-                            android:id="@+id/st_pilula_pastas"
-                            style="@style/StarkTech.Pilula.Tv"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/st_tv_pilula_espaco"
-                            android:text="@string/st_aba_pastas" />
                     </LinearLayout>
 
                     <Space
@@ -176,6 +179,8 @@
                         android:scaleType="fitCenter"
                         android:src="@drawable/st_ic_ajustes"
                         app:tint="@color/st_texto" />
+
+                    <include layout="@layout/st_tv_relogio" />
                 </LinearLayout>
 
                 <!-- Capa (250x375 px) e informações, alinhadas embaixo, 56 px entre elas -->

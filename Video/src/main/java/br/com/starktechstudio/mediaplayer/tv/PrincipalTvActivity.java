@@ -37,13 +37,14 @@ import br.com.starktechstudio.mediaplayer.comum.ListaFragment;
 import br.com.starktechstudio.mediaplayer.comum.Navegacao;
 import br.com.starktechstudio.mediaplayer.comum.Navegacao.Aba;
 import br.com.starktechstudio.mediaplayer.comum.PermissaoVideos;
+import br.com.starktechstudio.mediaplayer.comum.Preferencias;
 import br.com.starktechstudio.mediaplayer.comum.TelaCarregamento;
 import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 
 /**
  * Tela principal da TV (Main.dc.html): barra do topo com a marca, as pílulas
- * Início, Filmes, Séries, Desenhos, Shows, Stand-up e Pastas e os botões Buscar e Configurações; abaixo,
- * o conteúdo da aba. Abre com o foco na pílula Início, com Novidades à vista (D1).
+ * Início (em amarelo) e as abas ligadas em Configurações &gt; Navegação, os botões Buscar e Configurações e o
+ * relógio; abaixo, o conteúdo da aba. Abre com o foco na pílula Início, com Novidades à vista (D1).
  * ← / → anda entre as pílulas (a pílula em foco vira a aba ativa),
  * ↓ desce ao conteúdo, ↑ no topo do conteúdo volta à pílula ativa; Voltar no conteúdo
  * também volta à pílula ativa. Com o foco no conteúdo, a barra do topo fica fora da busca de foco:
@@ -56,10 +57,10 @@ public class PrincipalTvActivity extends AppCompatActivity {
 
     private static final String ESTADO_ABA = "aba";
 
-    private static final Aba[] ABAS = {Aba.INICIO, Aba.FILMES, Aba.SERIES, Aba.DESENHOS, Aba.SHOWS, Aba.STANDUP, Aba.PASTAS};
+    private static final Aba[] ABAS = {Aba.INICIO, Aba.FILMES, Aba.SERIES, Aba.TVSHOWS, Aba.DESENHOS, Aba.SHOWS, Aba.STANDUP};
     private static final int[] PILULAS = {
-            R.id.st_pilula_inicio, R.id.st_pilula_filmes, R.id.st_pilula_series,
-            R.id.st_pilula_desenhos, R.id.st_pilula_shows, R.id.st_pilula_standup, R.id.st_pilula_pastas
+            R.id.st_pilula_inicio, R.id.st_pilula_filmes, R.id.st_pilula_series, R.id.st_pilula_tvshows,
+            R.id.st_pilula_desenhos, R.id.st_pilula_shows, R.id.st_pilula_standup
     };
 
     private final TextView[] pilulas = new TextView[ABAS.length];
@@ -74,6 +75,10 @@ public class PrincipalTvActivity extends AppCompatActivity {
     private TelaCarregamento carregamento;
     private int corTexto;
     private int corTextoAtivo;
+    private int corInicio;
+    private int corPilulaBranca;
+    /** A cor da pílula agora, para a animação sair dela. */
+    private int corIndicador;
     private int abaAtiva = -1;
 
     @Override
@@ -86,6 +91,9 @@ public class PrincipalTvActivity extends AppCompatActivity {
         indicador = findViewById(R.id.st_pilula_indicador);
         corTexto = ContextCompat.getColor(this, R.color.st_texto_secundario);
         corTextoAtivo = ContextCompat.getColor(this, R.color.st_texto_escuro);
+        corInicio = ContextCompat.getColor(this, R.color.st_amarelo_marca);
+        corPilulaBranca = ContextCompat.getColor(this, R.color.st_texto);
+        corIndicador = corPilulaBranca;
 
         for (int i = 0; i < PILULAS.length; i++) {
             final int indice = i;
@@ -95,6 +103,7 @@ public class PrincipalTvActivity extends AppCompatActivity {
             });
             pilulas[i].setOnClickListener(v -> selecionarAba(indice));
         }
+        mostrarAbasLigadas();
         findViewById(R.id.st_botao_buscar).setOnClickListener(v -> Navegacao.abrirBusca(this));
         findViewById(R.id.st_botao_configuracoes).setOnClickListener(v -> Navegacao.abrirConfiguracoes(this));
 
@@ -172,6 +181,35 @@ public class PrincipalTvActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        // Volta de Configurações: as abas ligadas podem ter mudado
+        mostrarAbasLigadas();
+    }
+
+    /**
+     * Só as pílulas ligadas em Configurações &gt; Navegação. A aba aberta que foi desligada volta ao Início; se a
+     * ativa só mudou de lugar, a pílula branca vai atrás dela.
+     */
+    private void mostrarAbasLigadas() {
+        boolean mudou = false;
+        for (int i = 0; i < ABAS.length; i++) {
+            int visivel = Preferencias.abaLigada(this, ABAS[i]) ? View.VISIBLE : View.GONE;
+            if (pilulas[i].getVisibility() != visivel) {
+                pilulas[i].setVisibility(visivel);
+                mudou = true;
+            }
+        }
+        if (abaAtiva < 0) return;
+        if (pilulas[abaAtiva].getVisibility() != View.VISIBLE) {
+            selecionarAba(0);
+            focarPilula(0);
+        } else if (mudou) {
+            marcarPilula(abaAtiva);
+        }
+    }
+
+    @Override
     protected void onPause() {
         // Troca ainda esperando: monta já (antes de o estado ser salvo)
         aplicarTrocaPendente();
@@ -224,10 +262,10 @@ public class PrincipalTvActivity extends AppCompatActivity {
     }
 
     /**
-     * Pílula ativa: Inter 800 e texto escuro sobre a pílula branca, que vai da aba anterior até
-     * ela esticando e encolhendo (a borda da frente chega antes da de trás), com as cores dos dois
-     * textos passando junto; demais Inter 700. O indicador é medido depois do layout (a troca de
-     * peso da fonte muda a largura).
+     * Pílula ativa: Inter 800 e texto escuro sobre a pílula branca (amarela no Início), que vai da aba
+     * anterior até ela esticando e encolhendo (a borda da frente chega antes da de trás), com as cores
+     * dos dois textos e a da pílula passando junto; demais Inter 700. O indicador é medido depois do
+     * layout (a troca de peso da fonte muda a largura).
      */
     private void marcarPilula(int indice) {
         final int anterior = abaAtiva;
@@ -250,6 +288,21 @@ public class PrincipalTvActivity extends AppCompatActivity {
         area.invalidate();
     }
 
+    /** Início em destaque: texto amarelo, parado; as outras abas, cinza. */
+    private int corDoTextoParado(int indice) {
+        return ABAS[indice] == Aba.INICIO ? corInicio : corTexto;
+    }
+
+    /** Início em destaque: pílula amarela, ativo; as outras abas, branca. */
+    private int corDaPilula(int indice) {
+        return ABAS[indice] == Aba.INICIO ? corInicio : corPilulaBranca;
+    }
+
+    private void pintarIndicador(int cor) {
+        corIndicador = cor;
+        indicador.getBackground().mutate().setTint(cor);
+    }
+
     private void moverIndicador(int de, int para) {
         if (para != abaAtiva) return;
         TextView alvo = pilulas[para];
@@ -259,15 +312,16 @@ public class PrincipalTvActivity extends AppCompatActivity {
         lp.height = alvo.getHeight();
         if (animacaoPilula != null) animacaoPilula.cancel();
         for (int i = 0; i < pilulas.length; i++) {
-            if (i != de && i != para) pilulas[i].setTextColor(corTexto);
+            if (i != de && i != para) pilulas[i].setTextColor(corDoTextoParado(i));
         }
 
         if (de < 0 || lp.width <= 0 || !Animacoes.ligadas(this)) {
             lp.width = larguraFim;
             indicador.setLayoutParams(lp);
             indicador.setTranslationX(xFim);
+            pintarIndicador(corDaPilula(para));
             alvo.setTextColor(corTextoAtivo);
-            if (de >= 0 && de != para) pilulas[de].setTextColor(corTexto);
+            if (de >= 0 && de != para) pilulas[de].setTextColor(corDoTextoParado(de));
             return;
         }
 
@@ -280,7 +334,10 @@ public class PrincipalTvActivity extends AppCompatActivity {
         final Interpolator tras = new AccelerateDecelerateInterpolator();
         final TextView saindo = de != para ? pilulas[de] : null;
         final int corSaindoIni = saindo == null ? corTexto : saindo.getCurrentTextColor();
+        final int corSaindoFim = saindo == null ? corTexto : corDoTextoParado(de);
         final int corAlvoIni = alvo.getCurrentTextColor();
+        final int corPilulaIni = corIndicador;
+        final int corPilulaFim = corDaPilula(para);
         final ArgbEvaluator cores = new ArgbEvaluator();
         animacaoPilula = ValueAnimator.ofFloat(0f, 1f);
         animacaoPilula.setDuration(Animacoes.PILULA_MS);
@@ -294,8 +351,9 @@ public class PrincipalTvActivity extends AppCompatActivity {
             indicador.setTranslationX(esquerda);
             lp.width = Math.max(1, Math.round(direita - esquerda));
             indicador.setLayoutParams(lp);
+            pintarIndicador((int) cores.evaluate(fFrente, corPilulaIni, corPilulaFim));
             alvo.setTextColor((int) cores.evaluate(fFrente, corAlvoIni, corTextoAtivo));
-            if (saindo != null) saindo.setTextColor((int) cores.evaluate(fTras, corSaindoIni, corTexto));
+            if (saindo != null) saindo.setTextColor((int) cores.evaluate(fTras, corSaindoIni, corSaindoFim));
         });
         animacaoPilula.start();
     }

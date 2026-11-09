@@ -15,7 +15,8 @@ import java.util.List;
  * vídeo. Vêm dos metadados do player ({@link IMediaPlayer#getMediaMetadata}) ou do leitor de
  * dados, sem tocar o vídeo ({@link IMediaMetadataRetriever#extractMetadata}); os dois usam as
  * mesmas chaves ({@code METADATA_KEY_CHAPTER*}). Navegação: ir para um capítulo, anterior (D1) e
- * próximo. Sem capítulos no arquivo a lista fica vazia, e a tela fica só com −10 s / +10 s.
+ * próximo. Sem capítulos no arquivo a lista fica vazia; para o filme, o player pode usar
+ * {@link #aCadaDezMinutos}, que nunca vai para a biblioteca nem para o Detalhe.
  */
 public final class Capitulos {
 
@@ -26,6 +27,10 @@ public final class Capitulos {
      * até 1,5 s antes ainda conta como dentro dele (senão "próximo" repetiria o mesmo capítulo).
      */
     static final long PRECISAO_MS = 1500;
+    /** Distância entre as marcas do player em filme sem capítulos. */
+    static final long INTERVALO_MARCAS_MS = 10 * 60_000L;
+    /** Marca a menos disso do fim não entra: seria um capítulo que acaba logo em seguida. */
+    static final long FOLGA_FIM_MS = 60_000L;
 
     /** Um capítulo do arquivo; {@code numero} começa em 1. */
     public static final class Capitulo {
@@ -142,6 +147,28 @@ public final class Capitulos {
             lista.add(new Capitulo(i + 1, c.nome, c.inicioMs, Math.max(fim, c.inicioMs)));
         }
         return new Capitulos(Collections.unmodifiableList(lista));
+    }
+
+    /**
+     * Marcas de 10 em 10 minutos para o filme sem capítulos: "Início", "10 min", "1 h 10 min"…, a
+     * partir do começo do vídeo. Vídeo curto demais para ter uma segunda marca: nenhuma.
+     */
+    public static Capitulos aCadaDezMinutos(long duracaoMs) {
+        if (duracaoMs <= INTERVALO_MARCAS_MS + FOLGA_FIM_MS) return VAZIO;
+        List<Capitulo> marcas = new ArrayList<>();
+        for (long inicio = 0; inicio + FOLGA_FIM_MS < duracaoMs; inicio += INTERVALO_MARCAS_MS) {
+            marcas.add(new Capitulo(0, nomeDaMarca(inicio), inicio, Math.min(inicio + INTERVALO_MARCAS_MS, duracaoMs)));
+        }
+        return de(marcas);
+    }
+
+    private static String nomeDaMarca(long inicioMs) {
+        long minutos = inicioMs / 60_000;
+        if (minutos == 0) return "Início";
+        long horas = minutos / 60;
+        long resto = minutos % 60;
+        if (horas == 0) return resto + " min";
+        return resto == 0 ? horas + " h" : horas + " h " + resto + " min";
     }
 
     /** Para guardar no banco (F3): uma linha por capítulo, "início\tfim\tnome" em ms. */
