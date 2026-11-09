@@ -64,6 +64,8 @@ nova.json
 
 # APKs gerados e cópias de teste
 apks/
+# Vídeos de teste do Gustavo (ex.: Media/Show/...), fora do Git
+/Media/
 *.apk
 *.aab
 *.idsig

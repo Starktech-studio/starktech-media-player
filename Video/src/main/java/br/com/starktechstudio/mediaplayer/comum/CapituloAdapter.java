@@ -21,7 +21,7 @@ import java.util.Locale;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Capitulo;
 
 /**
- * Capítulos (F1: lista simulada; F2: lidos do arquivo pelo motor), em quatro desenhos:
+ * Capítulos (lidos do arquivo pelo motor), em quatro desenhos:
  * Detalhe da TV (fileira de miniaturas 16:9, foco na miniatura), Detalhe do tablet (linhas, o
  * capítulo onde o vídeo parou em azul), lista do player da TV (o atual com "Agora", os vistos com
  * ✓) e faixa do player do tablet (o atual com contorno azul). OK ou toque leva ao capítulo (D22).

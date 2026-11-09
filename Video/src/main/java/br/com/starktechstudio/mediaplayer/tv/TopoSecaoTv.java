@@ -20,10 +20,10 @@ import br.com.starktechstudio.mediaplayer.comum.Navegacao.Aba;
  */
 final class TopoSecaoTv {
 
-    private static final Aba[] ABAS = {Aba.INICIO, Aba.FILMES, Aba.SERIES, Aba.SHOWS, Aba.PASTAS};
+    private static final Aba[] ABAS = {Aba.INICIO, Aba.FILMES, Aba.SERIES, Aba.DESENHOS, Aba.SHOWS, Aba.STANDUP, Aba.PASTAS};
     private static final int[] PILULAS = {
             R.id.st_pilula_inicio, R.id.st_pilula_filmes, R.id.st_pilula_series,
-            R.id.st_pilula_shows, R.id.st_pilula_pastas
+            R.id.st_pilula_desenhos, R.id.st_pilula_shows, R.id.st_pilula_standup, R.id.st_pilula_pastas
     };
 
     private final Activity atividade;

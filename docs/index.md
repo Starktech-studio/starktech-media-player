@@ -5,10 +5,10 @@
 
 | Pasta / arquivo | O que contém |
 |---|---|
-| `arquitetura/interface.md` | Telas novas no código: pacotes, regra TV × tablet, medidas, recursos, navegação e rotas, dados simulados e o que ligar na F3 |
+| `arquitetura/interface.md` | Telas novas no código: pacotes, regra TV × tablet, medidas, recursos, navegação e rotas, dados reais (F3) |
 | `arquitetura/licencas.md` | Licença de cada pasta do Nova e de cada nativo do APK; obrigações para distribuir |
-| `arquitetura/motor.md` | Lógica da F2: capítulos do arquivo (motor → Java), banco do app (edição à mão, tipo por pasta), imagem do aparelho, classificação de filmes, séries e shows, chave do TMDB; o que a F3 liga |
-| `backlog.md` | Pendências fora do plano da fase em curso, separadas pela fase em que entram (F2, F3 e F4) |
+| `arquitetura/motor.md` | Lógica da F2 (capítulos, banco do app, edição à mão, tipo por pasta, imagem do aparelho, classificação, chave do TMDB) e a biblioteca real da F3 (varredura, dados técnicos, TMDB, estado, player) |
+| `backlog.md` | Pendências fora do plano da fase em curso, separadas pela fase em que entram (F3, F4 e F5) |
 | `imagens/f0/tablet.png` | F0 — tela inicial do APK debug sem alteração no emulador de tablet (Tablet_API37, 2560×1600) |
 | `imagens/f0/tv.png` | F0 — tela inicial do APK debug sem alteração no emulador de TV (TV_1080p_API36, 1920×1080) |
 | `imagens/f1/a-tablet-inicio.png` | F1 fase A — tela inicial no tablet com pacote, nome e idioma novos (ainda a tela do Nova), em pt-BR com o sistema em inglês |
@@ -66,7 +66,20 @@
 | `imagens/f1/fim-tv-sobre.png` | F1 final — TV: Sobre |
 | `paginas/INTERFACE.md` | F1 — telas aprovadas (TV e tablet), comportamentos, regras e identidade visual |
 | `paginas/telas-f1/` | Código HTML de cada tela do Claude Design (referência visual exata: cores, tamanhos, textos) |
-| `operacional/build.md` | Ambiente (WSL, JDK, SDK, NDK), comando de build, saída do APK e teste no aparelho |
+| `imagens/v1/tv-inicio.png` | Versão 1 — TV (emulador, vídeos de teste): Início: Novidades, Continuar assistindo e Filmes adicionados recentemente |
+| `imagens/v1/tv-filmes.png` | Versão 1 — TV (emulador, vídeos de teste): Filmes: capas, selos 4K, coletânea e o botão "Só não assistidos" |
+| `imagens/v1/tv-detalhe.png` | Versão 1 — TV (emulador, vídeos de teste): Detalhe do filme: dados do TMDB, dados técnicos e capítulos |
+| `imagens/v1/tv-player.png` | Versão 1 — TV (emulador, vídeos de teste): Player pausado: barra com as marcas dos capítulos, botões e Áudio, Legendas, Zoom e Capítulos |
+| `imagens/v1/tv-legendas.png` | Versão 1 — TV (emulador, vídeos de teste): Legenda em arquivo ligada sozinha, painel de Legendas e "Carregar legenda" |
+| `imagens/v1/tv-series.png` | Versão 1 — TV (emulador, vídeos de teste): Aba Séries |
+| `imagens/v1/tv-shows.png` | Versão 1 — TV (emulador, vídeos de teste): Aba Shows depois de juntar "Queen + Adam Lambert" em "Queen": 3 shows |
+| `imagens/v1/tv-artista.png` | Versão 1 — TV (emulador, vídeos de teste): Página do artista: foto, chips, texto da Wikipédia, Editar e os shows em destaque |
+| `imagens/v1/tv-editar-artista.png` | Versão 1 — TV (emulador, vídeos de teste): Editar do artista: opções de foto do Deezer e da Wikipédia e "Buscar artista" |
+| `imagens/v1/tv-buscar-artista.png` | Versão 1 — TV (emulador, vídeos de teste): Buscar artista: da biblioteca e do Deezer, com o número de fãs |
+| `imagens/v1/tv-pastas.png` | Versão 1 — TV (emulador, vídeos de teste): Pastas: tipo de cada pasta e como organizar |
+| `imagens/v1/tv-configuracoes.png` | Versão 1 — TV (emulador, vídeos de teste): Configurações, seção App: Atualizar automaticamente, Versão instalada e Versão disponível |
+| `operacional/build.md` | Ambiente (WSL, JDK, SDK, NDK), comando de build, saída do APK, teste no aparelho, versão publicada e assinatura |
+| `operacional/liberar-ao-publico.md` | O que resolver antes de liberar o app ao público: termos de cada serviço, licenças, repositório e ordem sugerida |
 | `operacional/nova-manifest-v6.6.2.xml` | Manifesto da release v6.6.2 do Nova, com os commits fixos (cópia sem alteração) |
 | `operacional/origem-nova.md` | Registro de origem: repositório, ramo e commit de cada pasta; roteiro para atualizar do Nova |
 

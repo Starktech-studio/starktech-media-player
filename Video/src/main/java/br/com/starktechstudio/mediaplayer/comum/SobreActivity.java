@@ -22,12 +22,14 @@ import androidx.core.content.ContextCompat;
 import androidx.core.widget.ImageViewCompat;
 
 import com.archos.mediacenter.video.R;
+import com.archos.medialib.LibAvos;
 
 /**
  * Sobre (D17, sem desenho; no padrão das outras telas): ícone, nome e versão do app, descrição
  * (DADOS §2) e site; Créditos ("Baseado no Nova Video Player", Apache-2.0); avisos de terceiros, um
  * por biblioteca (docs/arquitetura/licencas.md §2 e §6), os primeiros e "Ver todos"; logo e aviso
- * do TMDB; direitos. A logo StarkTech não entra aqui (D5: só no rodapé da TV e na barra do tablet).
+ * do TMDB; fonte das fotos de artista; direitos. A logo StarkTech não entra aqui (D5: só no rodapé da
+ * TV e na barra do tablet).
  * Os textos completos das licenças entram na F4.
  */
 public class SobreActivity extends AppCompatActivity {
@@ -93,6 +95,8 @@ public class SobreActivity extends AppCompatActivity {
         mostrarAvisos();
 
         pagina.addView(tmdb(), comTopo(Medidas.px(this, 36)));
+        pagina.addView(Textos.novo(this, getString(R.string.st_credito_artistas), R.font.st_inter_semibold, 17, R.color.st_texto_secundario),
+                comTopo(Medidas.px(this, 18)));
         pagina.addView(Textos.novo(this, getString(R.string.st_direitos), R.font.st_inter_semibold, 16, R.color.st_texto_apagado),
                 comTopo(Medidas.px(this, 36)));
 
@@ -120,7 +124,8 @@ public class SobreActivity extends AppCompatActivity {
         if (tv) voltar.setForeground(ContextCompat.getDrawable(this, R.drawable.st_foco_tv));
         voltar.setOnClickListener(v -> finish());
         topo.addView(voltar, new LinearLayout.LayoutParams(lado, lado));
-        TextView titulo = Textos.novo(this, getString(R.string.st_cfg_sobre), R.font.st_inter_black, tv ? 48 : 43, R.color.st_texto);
+        TextView titulo = Textos.novo(this, getString(R.string.st_cfg_sobre), R.font.st_inter_black,
+                tv ? Medidas.TITULO_PAGINA_TV : Medidas.TITULO_PAGINA_TABLET, R.color.st_texto);
         titulo.setLetterSpacing(-0.02f);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         lp.setMarginStart(Medidas.px(this, 24));
@@ -146,6 +151,11 @@ public class SobreActivity extends AppCompatActivity {
         textos.addView(nome);
         textos.addView(Textos.novo(this, getString(R.string.st_versao, versao()), R.font.st_inter_bold, 18, R.color.st_ciano),
                 comTopo(Medidas.px(this, 6)));
+        // Motor de vídeo em uso: o do app (FFmpeg, capítulos, legendas) ou o do Android (o do app não carregou)
+        LibAvos.init(getApplicationContext());
+        textos.addView(Textos.novo(this, getString(LibAvos.isAvailable() ? R.string.st_motor_app : R.string.st_motor_android),
+                R.font.st_inter_semibold, 16, LibAvos.isAvailable() ? R.color.st_texto_apagado : R.color.st_aviso_claro),
+                comTopo(Medidas.px(this, 4)));
         TextView descricao = Textos.novo(this, getString(R.string.st_sobre_descricao), R.font.st_inter_medium, 19, R.color.st_texto_secundario);
         descricao.setLineSpacing(0f, 1.24f);
         descricao.setMaxWidth(Medidas.px(this, 1100));

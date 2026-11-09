@@ -107,6 +107,21 @@
                     android:textSize="@dimen/st_tv_texto_botao" />
 
                 <TextView
+                    android:id="@+id/st_pilula_desenhos"
+                    style="@style/StarkTech.Texto.Forte"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/st_tv_pilula_espaco"
+                    android:focusable="true"
+                    android:paddingStart="@dimen/st_tv_pilula_padding_h"
+                    android:paddingTop="@dimen/st_tv_pilula_padding_v"
+                    android:paddingEnd="@dimen/st_tv_pilula_padding_h"
+                    android:paddingBottom="@dimen/st_tv_pilula_padding_v"
+                    android:text="@string/st_aba_desenhos"
+                    android:textColor="@color/st_cor_pilula"
+                    android:textSize="@dimen/st_tv_texto_botao" />
+
+                <TextView
                     android:id="@+id/st_pilula_shows"
                     style="@style/StarkTech.Texto.Forte"
                     android:layout_width="wrap_content"
@@ -118,6 +133,21 @@
                     android:paddingEnd="@dimen/st_tv_pilula_padding_h"
                     android:paddingBottom="@dimen/st_tv_pilula_padding_v"
                     android:text="@string/st_aba_shows"
+                    android:textColor="@color/st_cor_pilula"
+                    android:textSize="@dimen/st_tv_texto_botao" />
+
+                <TextView
+                    android:id="@+id/st_pilula_standup"
+                    style="@style/StarkTech.Texto.Forte"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/st_tv_pilula_espaco"
+                    android:focusable="true"
+                    android:paddingStart="@dimen/st_tv_pilula_padding_h"
+                    android:paddingTop="@dimen/st_tv_pilula_padding_v"
+                    android:paddingEnd="@dimen/st_tv_pilula_padding_h"
+                    android:paddingBottom="@dimen/st_tv_pilula_padding_v"
+                    android:text="@string/st_aba_standup"
                     android:textColor="@color/st_cor_pilula"
                     android:textSize="@dimen/st_tv_texto_botao" />
 

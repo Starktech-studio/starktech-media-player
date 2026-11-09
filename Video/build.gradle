@@ -41,7 +41,9 @@ if (hasProperty('bugReport')) {
     }
 }
 
-def keystorePropertiesFile = rootProject.file("keystore.properties");
+// StarkTech: a chave definitiva fica fora do repositório, no WSL (docs/operacional/build.md §7). Sem o arquivo,
+// o debug assina com a chave de teste do Android e o release sai sem assinatura.
+def keystorePropertiesFile = new File(System.getProperty("user.home"), ".starktech/media-player-assinatura.properties");
 def keystoreProperties = new Properties()
 if (keystorePropertiesFile.exists()) keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 
@@ -161,8 +163,11 @@ android {
         // below version tracks the one from F-Droid or universal package when generated with ./gradlew -Puniversal
         // this is overridden when using split apk and normal split apk generation or oneapk amazon generation
         // amazon apk is generated with ./gradlew -Poneapk
-        versionCode = 1
-        versionName = '0.1.0'
+        // StarkTech: a cada versão publicada, sobe os dois aqui ou no comando, com -Pstarktech.versionCode=3 e
+        // -Pstarktech.versionName=1.1.0. O versionCode é o que o app compara com o version.json publicado
+        // (motor/Atualizador). 1 foi o dos APKs de teste, por isso a 1.0.0 é o 2.
+        versionCode = (project.findProperty('starktech.versionCode') ?: '2').toString().trim().toInteger()
+        versionName = (project.findProperty('starktech.versionName') ?: '1.0.0').toString().trim()
         def novaVersionName = versionName
         if (! project.hasProperty("universal")) {
             // override versionName and versionCode to get it dependent on the date
@@ -201,6 +206,10 @@ android {
         }
         resValue "string", "VERSION_NAME", versionName
         resValue "string", "APP_INFO", "StarkTech Media Player v" + versionName + " (" + applicationId + ")"
+        // StarkTech: chave da TheAudioDB (capa de artista) fora do repositório — linha
+        // "starktech.theaudiodb.chave=" do ~/.gradle/gradle.properties do WSL; sem a linha, fica vazia
+        // e a busca usa só o Deezer, que responde sem chave.
+        resValue "string", "st_chave_theaudiodb", (project.findProperty('starktech.theaudiodb.chave') ?: '').toString().trim()
     }
     androidResources {
         // StarkTech: app só em pt-BR (os textos sem qualificador de idioma ficam como reserva)
@@ -255,8 +264,10 @@ android {
     buildTypes {
         println("buildTypes archivesBaseName : " + archivesNameValue)
         release {
-            minifyEnabled = true
-            shrinkResources = true
+            // StarkTech: sem encolher o código na 1.0.0. O ganho é pouco (o peso do APK vem dos nativos), e o que
+            // foi testado até aqui, sem encolher, é o que vai para quem instala
+            minifyEnabled = false
+            shrinkResources = false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-project.txt'
         }
     }

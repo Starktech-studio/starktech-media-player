@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Atualização do app pelo site (motor/Atualizador e comum/AtualizacaoActivity; D11 e D12 do plano 004). -->
+<resources>
+    <!-- Configurações, linha Versão -->
+    <string name="st_versao_verificar">Verificar</string>
+    <string name="st_versao_verificando">Verificando…</string>
+    <string name="st_versao_verificar_descricao">Verificar se há versão nova. Versão instalada: %1$s</string>
+    <string name="st_versao_atualizado">Você está com a última versão instalada.</string>
+    <string name="st_versao_sem_resposta">Não deu para verificar agora. Tente de novo mais tarde.</string>
+
+    <!-- Modal da versão nova -->
+    <string name="st_versao_nova_titulo">Versão %1$s disponível</string>
+    <string name="st_versao_novidade">• %1$s</string>
+    <string name="st_versao_sem_novidades">Esta versão não informou as novidades.</string>
+    <string name="st_versao_baixar_instalar">Baixar e instalar</string>
+    <string name="st_versao_baixando">Baixando…</string>
+    <string name="st_versao_baixando_percentual">Baixando… %1$d%%</string>
+    <string name="st_versao_preparando">Preparando a instalação…</string>
+    <string name="st_versao_confirmar">O Android vai pedir a sua confirmação para instalar.</string>
+
+    <!-- Avisos: nada foi instalado e o app segue normal -->
+    <string name="st_versao_fonte_nao_liberada">A instalação ainda não foi liberada. Libere este app na tela do Android e tente de novo.</string>
+    <string name="st_versao_sem_tela_liberacao">Este aparelho não abriu a tela de liberação. Nas configurações do Android, procure \"Instalar apps desconhecidos\", libere este app e tente de novo.</string>
+    <string name="st_versao_falha_baixar">Não deu para baixar. Confira a conexão e o espaço livre e tente de novo.</string>
+    <string name="st_versao_apk_invalido">O arquivo baixado não é válido. Nada foi instalado.</string>
+    <string name="st_versao_falha_instalar">Não deu para instalar. Nada foi alterado.</string>
+    <string name="st_versao_instalacao_cancelada">Instalação cancelada.</string>
+    <string name="st_versao_assinatura">O Android não aceitou instalar por cima da versão atual: a assinatura do arquivo pode ser outra. Nada foi alterado.</string>
+    <string name="st_versao_sem_espaco">Falta espaço no aparelho para instalar. Nada foi alterado.</string>
+</resources>

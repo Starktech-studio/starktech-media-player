@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<resources>
+    <!-- Novidades da TV (DestaqueTv): quanto a capa e os textos deslizam na troca de item -->
+    <dimen name="st_tv_novidades_deslize">24dp</dimen>
+    <!-- Item expandido (foco em Assistir): imagem 16:9 de 768x432 px e o item acompanha (432 + padding 36 x 2) -->
+    <dimen name="st_tv_destaque_altura_expandido">252dp</dimen>
+    <dimen name="st_tv_destaque_capa_largura_expandida">384dp</dimen>
+    <dimen name="st_tv_destaque_capa_altura_expandida">216dp</dimen>
+</resources>

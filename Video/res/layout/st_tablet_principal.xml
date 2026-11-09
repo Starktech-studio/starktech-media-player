@@ -23,16 +23,23 @@
         android:baselineAligned="false"
         android:orientation="horizontal">
 
-        <!-- Barra lateral -->
-        <LinearLayout
-            android:id="@+id/st_barra_lateral"
+        <!-- Barra lateral (rola quando as abas não cabem na altura do tablet) -->
+        <ScrollView
             android:layout_width="@dimen/st_tablet_barra_lateral"
             android:layout_height="match_parent"
             android:background="@color/st_barra_lateral"
-            android:contentDescription="@string/st_secoes"
-            android:gravity="center_horizontal"
-            android:orientation="vertical"
-            android:paddingTop="22dp" />
+            android:fillViewport="true"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/st_barra_lateral"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/st_secoes"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingTop="22dp" />
+        </ScrollView>
 
         <!-- Borda direita da barra (1 px #1e293b) -->
         <View

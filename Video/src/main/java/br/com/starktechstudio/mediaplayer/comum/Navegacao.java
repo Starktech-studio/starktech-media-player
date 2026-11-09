@@ -12,14 +12,20 @@ import androidx.fragment.app.Fragment;
 
 import com.archos.mediacenter.video.R;
 
+import java.util.ArrayList;
+
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Tipo;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.TipoFaixa;
+import br.com.starktechstudio.mediaplayer.dados.Modelo.Titulo;
+import br.com.starktechstudio.mediaplayer.motor.Atualizador;
 import br.com.starktechstudio.mediaplayer.tablet.DetalheTabletActivity;
 import br.com.starktechstudio.mediaplayer.tablet.InicioTabletFragment;
 import br.com.starktechstudio.mediaplayer.tablet.PrincipalTabletActivity;
 import br.com.starktechstudio.mediaplayer.tablet.ReproducaoTabletActivity;
 import br.com.starktechstudio.mediaplayer.tablet.SerieTabletActivity;
+import br.com.starktechstudio.mediaplayer.tablet.SinopseActivity;
 import br.com.starktechstudio.mediaplayer.tv.BuscaTvActivity;
+import br.com.starktechstudio.mediaplayer.tv.ColetaneaArtistaTvActivity;
 import br.com.starktechstudio.mediaplayer.tv.DetalheTvActivity;
 import br.com.starktechstudio.mediaplayer.tv.InicioTvFragment;
 import br.com.starktechstudio.mediaplayer.tv.PrincipalTvActivity;
@@ -49,7 +55,9 @@ public final class Navegacao {
         INICIO(R.string.st_aba_inicio, R.drawable.st_ic_inicio),
         FILMES(R.string.st_aba_filmes, R.drawable.st_ic_filmes),
         SERIES(R.string.st_aba_series, R.drawable.st_ic_series),
+        DESENHOS(R.string.st_aba_desenhos, R.drawable.st_ic_desenhos),
         SHOWS(R.string.st_aba_shows, R.drawable.st_ic_shows),
+        STANDUP(R.string.st_aba_standup, R.drawable.st_ic_standup),
         PASTAS(R.string.st_aba_pastas, R.drawable.st_ic_pastas),
         AJUSTES(R.string.st_aba_ajustes, R.drawable.st_ic_ajustes);
 
@@ -97,11 +105,13 @@ public final class Navegacao {
     /** Aba onde o tipo de título aparece (seção marcada no topo do Detalhe da TV). */
     public static Aba abaDoTipo(Tipo tipo) {
         if (tipo == Tipo.SERIE) return Aba.SERIES;
+        if (tipo == Tipo.DESENHO) return Aba.DESENHOS;
         if (tipo == Tipo.SHOW) return Aba.SHOWS;
+        if (tipo == Tipo.STANDUP) return Aba.STANDUP;
         return Aba.FILMES;
     }
 
-    /** Conteúdo de cada aba: Início, Filmes, Séries, Shows, Pastas (fase H) e Ajustes (fase I). */
+    /** Conteúdo de cada aba: Início, Filmes, Séries, Desenhos e Stand-up (F3), Shows, Pastas (fase H) e Ajustes (fase I). */
     public static Fragment conteudoDaAba(Context contexto, Aba aba) {
         switch (aba) {
             case INICIO:
@@ -110,8 +120,12 @@ public final class Navegacao {
                 return ListaFragment.novo(Tipo.FILME);
             case SERIES:
                 return ListaFragment.novo(Tipo.SERIE);
+            case DESENHOS:
+                return ListaFragment.novo(Tipo.DESENHO);
             case SHOWS:
                 return ListaFragment.novo(Tipo.SHOW);
+            case STANDUP:
+                return ListaFragment.novo(Tipo.STANDUP);
             case PASTAS:
                 return new PastasFragment();
             case AJUSTES:
@@ -143,6 +157,16 @@ public final class Navegacao {
         origem.startActivity(new Intent(origem, tela).putExtra(EXTRA_ID, idTitulo));
     }
 
+    /** Capa de uma lista: coletânea e artista abrem a lista deles (D5, D7); o resto, como {@link #abrirTitulo}. */
+    public static void abrirCapa(Activity origem, Titulo titulo) {
+        if (titulo.ehColetanea() || titulo.ehArtista()) {
+            Class<? extends Activity> tela = Aparelho.ehTv(origem) ? ColetaneaArtistaTvActivity.class : ColetaneaArtistaActivity.class;
+            origem.startActivity(new Intent(origem, tela).putExtra(EXTRA_ID, titulo.id));
+        } else {
+            abrirTitulo(origem, titulo.id, titulo.tipo == Tipo.SERIE);
+        }
+    }
+
     /**
      * Player (fase F) do título ou do episódio; {@code capitulo}: número do capítulo (1…),
      * {@link #DE_ONDE_PAROU} ou {@link #DO_INICIO}.
@@ -168,14 +192,16 @@ public final class Navegacao {
                 .putExtra(FaixasActivity.EXTRA_TIPO, tipo.name()));
     }
 
+    /** Sinopse inteira ("Ver mais" do Detalhe do tablet). */
+    public static void abrirSinopse(Activity origem, String titulo, String sinopse) {
+        origem.startActivity(new Intent(origem, SinopseActivity.class)
+                .putExtra(SinopseActivity.EXTRA_TITULO, titulo)
+                .putExtra(SinopseActivity.EXTRA_SINOPSE, sinopse));
+    }
+
     /** Editar (fase G): do Detalhe, da Série e do Menu da capa. */
     public static void abrirEditar(Activity origem, String idTitulo) {
         origem.startActivity(new Intent(origem, EditarActivity.class).putExtra(EXTRA_ID, idTitulo));
-    }
-
-    /** Buscar no TMDB, sobre Editar. */
-    public static void abrirBuscaTmdb(Activity origem, String idTitulo) {
-        origem.startActivity(new Intent(origem, BuscaTmdbActivity.class).putExtra(EXTRA_ID, idTitulo));
     }
 
     /** Não identificados (Revisar, em Pastas; D15). */
@@ -188,6 +214,19 @@ public final class Navegacao {
         origem.startActivity(new Intent(origem, NavegadorPastasActivity.class));
     }
 
+    /** Remover uma pasta da biblioteca (Pastas), com confirmação; {@code exibido}: "HD / Filmes". */
+    public static void abrirRemoverPasta(Activity origem, String idPasta, String exibido) {
+        origem.startActivity(new Intent(origem, RemoverPastaActivity.class)
+                .putExtra(EXTRA_ID, idPasta)
+                .putExtra(RemoverPastaActivity.EXTRA_CAMINHO_EXIBIDO, exibido));
+    }
+
+    /** Pasta de imagens do Editar (Configurações): o mesmo navegador de pastas, com "Usar esta pasta". */
+    public static void abrirPastaImagens(Activity origem) {
+        origem.startActivity(new Intent(origem, NavegadorPastasActivity.class)
+                .putExtra(NavegadorPastasActivity.EXTRA_PASTA_IMAGENS, true));
+    }
+
     /** Sobre (D17), em Configurações. */
     public static void abrirSobre(Activity origem) {
         origem.startActivity(new Intent(origem, SobreActivity.class));
@@ -195,5 +234,14 @@ public final class Navegacao {
 
     public static void abrirInformacoesUso(Activity origem) {
         origem.startActivity(new Intent(origem, InformacoesUsoActivity.class));
+    }
+
+    /** Versão nova do site (Configurações, linha Versão): número, novidades e Baixar e instalar. */
+    public static void abrirAtualizacao(Activity origem, Atualizador.Versao versao) {
+        origem.startActivity(new Intent(origem, AtualizacaoActivity.class)
+                .putExtra(AtualizacaoActivity.EXTRA_NOME, versao.nome)
+                .putExtra(AtualizacaoActivity.EXTRA_CODIGO, versao.codigo)
+                .putStringArrayListExtra(AtualizacaoActivity.EXTRA_NOVIDADES, new ArrayList<>(versao.novidades))
+                .putExtra(AtualizacaoActivity.EXTRA_APK, versao.apk));
     }
 }

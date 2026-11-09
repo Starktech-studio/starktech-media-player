@@ -424,7 +424,8 @@ public interface IMediaMetadataRetriever {
     public static final int METADATA_KEY_VIDEO_TRACK_S3D_MODE       = 10;
     public static final int METADATA_KEY_VIDEO_TRACK_FPS_RATE       = 11;
     public static final int METADATA_KEY_VIDEO_TRACK_FPS_SCALE      = 12;
-    public static final int METADATA_KEY_VIDEO_TRACK_MAX            = 13;
+    public static final int METADATA_KEY_VIDEO_TRACK_COLOR_TRC      = 13;
+    public static final int METADATA_KEY_VIDEO_TRACK_MAX            = 14;
 
     public static final int METADATA_KEY_AUDIO_TRACK_NAME           = 0;
     public static final int METADATA_KEY_AUDIO_TRACK_FORMAT         = 1;

@@ -13,7 +13,7 @@
     <string name="st_cfg_legenda">Legenda preferida</string>
     <string name="st_cfg_legenda_dica">Idioma da legenda ao abrir um vídeo</string>
     <string name="st_cfg_tamanho_legenda">Tamanho da legenda</string>
-    <string name="st_cfg_tamanho_legenda_dica">Pequena, média ou grande</string>
+    <string name="st_cfg_tamanho_legenda_dica">Cinco tamanhos, de muito pequena a muito grande</string>
     <string name="st_cfg_retomar">Retomar de onde parou</string>
     <string name="st_cfg_retomar_dica">Continuar do ponto em que o vídeo parou</string>
     <string name="st_cfg_sobre">Sobre</string>
@@ -38,6 +38,17 @@
     <string name="st_aviso_tmdb">Este produto usa a API do TMDB, mas não é endossado nem certificado pelo TMDB.</string>
     <string name="st_logo_tmdb">Logo do TMDB</string>
     <string name="st_direitos">© 2026 StarkTech Studio. Todos os direitos reservados.</string>
+
+    <!-- Sobre: motor de vídeo em uso (F3) -->
+    <string name="st_motor_app">Motor de vídeo: o do app</string>
+    <string name="st_motor_android">Motor de vídeo: o do Android (o do app não carregou neste aparelho)</string>
+
+    <!-- Pasta de imagens do Editar (F3) -->
+    <string name="st_cfg_pasta_imagens">Pasta de imagens</string>
+    <string name="st_cfg_pasta_imagens_dica">Onde o Editar procura capas e fundos. Sem escolha, a pasta Imagens do HD ou do aparelho</string>
+    <string name="st_pasta_imagens_nenhuma">Não achada</string>
+    <string name="st_pasta_imagens_escolhida">Pasta de imagens: %1$s</string>
+    <string name="st_usar_esta_pasta">Usar esta pasta</string>
 
     <!-- Buscar da TV (D11) -->
     <string name="st_busca_dica">Digite o nome de um filme, série ou show</string>

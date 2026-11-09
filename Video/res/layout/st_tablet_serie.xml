@@ -85,6 +85,7 @@
                         android:layout_height="@dimen/st_tablet_detalhe_capa_icone"
                         android:layout_gravity="top|end"
                         android:importantForAccessibility="no"
+                        android:id="@+id/st_imagem_reserva"
                         android:src="@drawable/st_ic_imagem"
                         app:tint="@color/st_branco_35" />
                 </FrameLayout>

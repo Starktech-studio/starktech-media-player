@@ -70,6 +70,7 @@ public final class CartaoEpisodio {
         Resources res = contexto.getResources();
         float canto = res.getDimension(tv ? R.dimen.st_tv_episodio_miniatura_canto : R.dimen.st_tablet_episodio_miniatura_canto);
         miniatura.setBackground(CapaAdapter.blocoDeCor(contexto, e.corMiniatura, canto, tv));
+        Imagens.noFundo(miniatura, e.miniatura, Imagens.CARTAO, canto);
         numero.setText(String.format(Locale.ROOT, "%02d", e.numero));
         rotulo.setText(contexto.getString(R.string.st_episodio_n, e.numero));
         nome.setText(e.nome);

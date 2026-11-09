@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!--
+     Mover para a coletânea (EscolherColetaneaActivity): o Menu da capa com as opções rolando, porque
+     a lista cresce com a biblioteca. Medidas da TV ou do tablet aplicadas no código; as opções são
+     criadas no código.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/st_menu_caixa"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/st_fundo_menu"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/st_menu_titulo"
+        style="@style/StarkTech.Texto.Titulo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:letterSpacing="0"
+        android:maxLines="2" />
+
+    <TextView
+        android:id="@+id/st_menu_dica"
+        style="@style/StarkTech.Texto.Apagado"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:focusable="false"
+        android:overScrollMode="never"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/st_menu_opcoes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </ScrollView>
+</LinearLayout>

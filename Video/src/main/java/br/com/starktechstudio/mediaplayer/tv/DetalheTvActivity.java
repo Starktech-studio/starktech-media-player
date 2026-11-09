@@ -23,10 +23,13 @@ import com.archos.mediacenter.video.R;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import br.com.starktechstudio.mediaplayer.comum.CapaAdapter;
 import br.com.starktechstudio.mediaplayer.comum.CapituloAdapter;
+import br.com.starktechstudio.mediaplayer.comum.EstrelasNota;
 import br.com.starktechstudio.mediaplayer.comum.Icones;
+import br.com.starktechstudio.mediaplayer.comum.Imagens;
 import br.com.starktechstudio.mediaplayer.comum.Navegacao;
 import br.com.starktechstudio.mediaplayer.comum.PecasDetalhe;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Capitulo;
@@ -37,13 +40,15 @@ import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 /**
  * Detalhe do filme ou do show na TV (tv-detalhe.dc.html): fundo do título atrás (bloco de cor
  * na F1, véu 72 % e degradê); no topo, as seções com a do título marcada ({@link TopoSecaoTv}:
- * ↑ do conteúdo vai a ela, OK leva à aba) e Editar só com o ícone, no lugar da busca;
+ * ↑ do conteúdo vai a ela, OK leva à aba) e Configurações;
  * capa, tipo e origem dos dados, chips, sinopse, progresso com "Marcar como assistido", botões
- * Continuar, Do início, Capítulos, Áudio e legendas e Favoritar, dados técnicos e a fileira de
+ * Continuar, Do início, Capítulos, Áudio e legendas, Editar e Favoritar (os dois só com o ícone),
+ * dados técnicos e a fileira de
  * capítulos. D22: título sem progresso mostra "Assistir" no lugar de Continuar e Do início; os
  * textos alternam ("Marcar como não assistido", "Remover dos favoritos"); "Capítulos" leva o
  * foco ao capítulo onde o vídeo parou; OK num capítulo abre o player nele. Arquivo sem
- * capítulos: sem o botão e sem a fileira.
+ * capítulos: sem o botão e sem a fileira. Filme assistido: as estrelas da nota ao lado de "Marcar
+ * como não assistido" ({@link EstrelasNota}; mudar a nota não relê a tela nem tira o foco).
  */
 public class DetalheTvActivity extends AppCompatActivity {
 
@@ -64,6 +69,7 @@ public class DetalheTvActivity extends AppCompatActivity {
     private ProgressBar progresso;
     private TextView parou;
     private Button marcar;
+    private EstrelasNota estrelas;
     private Button principal;
     private Button doInicio;
     private Button botaoCapitulos;
@@ -95,6 +101,7 @@ public class DetalheTvActivity extends AppCompatActivity {
         progresso = findViewById(R.id.st_detalhe_progresso);
         parou = findViewById(R.id.st_detalhe_parou);
         marcar = findViewById(R.id.st_detalhe_marcar);
+        estrelas = findViewById(R.id.st_detalhe_nota);
         principal = findViewById(R.id.st_detalhe_principal);
         doInicio = findViewById(R.id.st_detalhe_do_inicio);
         botaoCapitulos = findViewById(R.id.st_detalhe_capitulos);
@@ -117,8 +124,8 @@ public class DetalheTvActivity extends AppCompatActivity {
 
         editar.setOnClickListener(v -> Navegacao.abrirEditar(this, id));
         findViewById(R.id.st_botao_configuracoes).setOnClickListener(v -> Navegacao.abrirConfiguracoes(this));
-        principal.setOnClickListener(v -> Navegacao.abrirReproducao(this, id,
-                titulo.emAndamento() ? Navegacao.DE_ONDE_PAROU : Navegacao.DO_INICIO));
+        // Sempre de onde parou: "Do início" é o outro botão (sem posição guardada, dá no mesmo)
+        principal.setOnClickListener(v -> Navegacao.abrirReproducao(this, id, Navegacao.DE_ONDE_PAROU));
         doInicio.setOnClickListener(v -> Navegacao.abrirReproducao(this, id, Navegacao.DO_INICIO));
         botaoCapitulos.setOnClickListener(v -> focarCapituloAtual());
         faixas.setOnClickListener(v -> Navegacao.abrirFaixas(this, id));
@@ -131,10 +138,16 @@ public class DetalheTvActivity extends AppCompatActivity {
             carregar();
         });
 
-        // ↑ dos botões e de "Marcar como assistido" vai à seção do título no topo, não a Editar
+        // ↑ dos botões (Editar agora fica ao lado do Favoritar) vai a "Marcar como assistido"
         int[] botoes = {R.id.st_detalhe_principal, R.id.st_detalhe_do_inicio, R.id.st_detalhe_capitulos,
-                R.id.st_detalhe_faixas, R.id.st_detalhe_favoritar};
+                R.id.st_detalhe_faixas, R.id.st_detalhe_editar, R.id.st_detalhe_favoritar};
         for (int botao : botoes) findViewById(botao).setNextFocusUpId(R.id.st_detalhe_marcar);
+
+        estrelas.preparar(true, this::aoEscolherNota);
+        // Nas pontas da nota, ← e → saem para os vizinhos; ↓ vai ao botão principal (↑: em carregar)
+        estrelas.setNextFocusLeftId(R.id.st_detalhe_marcar);
+        estrelas.setNextFocusRightId(R.id.st_detalhe_favoritar);
+        estrelas.setNextFocusDownId(R.id.st_detalhe_principal);
 
         adapterCapitulos = new CapituloAdapter(true, c -> Navegacao.abrirReproducao(this, id, c.numero));
         fileiraCapitulos.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -145,12 +158,56 @@ public class DetalheTvActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Volta de outra tela (Editar, player): o estado simulado pode ter mudado
-        carregar();
+        // Volta de outra tela (Editar, player): o estado pode ter mudado
+        relerSemTirarFoco();
+        repositorio.lerDadosDoArquivo(id);
+        repositorio.ouvir(aoMudarBiblioteca);
         if (primeiraVez) {
             primeiraVez = false;
             principal.requestFocus();
         }
+    }
+
+    @Override
+    protected void onPause() {
+        repositorio.deixarDeOuvir(aoMudarBiblioteca);
+        super.onPause();
+    }
+
+    /**
+     * Vídeo que a varredura ainda não leu (ou cuja leitura falhou): o repositório lê na hora; quando
+     * os capítulos ou a duração chegam, a tela relê. Posição e assistido (o player grava ao sair, com
+     * esta tela já de volta): só a parte do progresso. Nos outros avisos da varredura, nada, para não
+     * mexer no foco.
+     */
+    private final Runnable aoMudarBiblioteca = () -> {
+        Titulo novo = repositorio.titulo(id);
+        if (novo == null || titulo == null) return;
+        if (novo.duracaoSegundos != titulo.duracaoSegundos || repositorio.capitulos(id).size() != capitulos.size()
+                || !Objects.equals(novo.titulo, titulo.titulo) || !Objects.equals(novo.sinopse, titulo.sinopse)
+                || !Objects.equals(novo.imagemCapa(), titulo.imagemCapa())) {
+            relerSemTirarFoco();
+        } else if (novo.posicaoSegundos != titulo.posicaoSegundos || novo.assistido != titulo.assistido) {
+            titulo = novo;
+            mostrarProgresso();
+            adapterCapitulos.definirAtual(PecasDetalhe.capituloAtual(capitulos, titulo));
+        } else if (!Objects.equals(novo.nota, titulo.nota)) {
+            titulo = novo;
+            mostrarNota();
+        }
+    };
+
+    /**
+     * Relê com a tela aberta e o foco onde estava (no controle da TV, perder o foco é perder o lugar).
+     * Os dados técnicos são refeitos: o foco volta para eles. Quem sumiu passa o foco ao botão principal.
+     */
+    private void relerSemTirarFoco() {
+        View antes = getCurrentFocus();
+        boolean nosDados = dados.hasFocus();
+        carregar();
+        if (antes == null || (antes.isFocused() && antes.isShown())) return;
+        if (antes.isShown()) antes.requestFocus();
+        else if (!nosDados || !dados.requestFocus()) principal.requestFocus();
     }
 
     private void carregar() {
@@ -164,9 +221,12 @@ public class DetalheTvActivity extends AppCompatActivity {
 
         topo.marcar(Navegacao.abaDoTipo(titulo.tipo), R.id.st_detalhe_principal);
         marcar.setNextFocusUpId(topo.idAtiva());
+        estrelas.setNextFocusUpId(topo.idAtiva());
         fundo.setBackground(PecasDetalhe.fundoDoTitulo(this, titulo.corFundo));
-        capa.setBackground(CapaAdapter.blocoDeCor(this, titulo.corCapa,
-                getResources().getDimension(R.dimen.st_tv_detalhe_capa_canto), true));
+        Imagens.fundoDaPagina(fundo, titulo.imagemFundo());
+        float canto = getResources().getDimension(R.dimen.st_tv_detalhe_capa_canto);
+        capa.setBackground(CapaAdapter.blocoDeCor(this, titulo.corCapa, canto, true));
+        Imagens.noFundo(capa, titulo.imagemCapa(), Imagens.CAPA, canto);
         tipo.setText(PecasDetalhe.rotuloTipo(titulo.tipo));
         origemDados.setVisibility(titulo.naoIdentificado ? View.GONE : View.VISIBLE);
         origemDados.setText(titulo.editadosAMao.isEmpty() ? R.string.st_dados_tmdb : R.string.st_dados_tmdb_corrigidos);
@@ -176,6 +236,23 @@ public class DetalheTvActivity extends AppCompatActivity {
         sinopse.setText(titulo.sinopse);
         sinopse.setVisibility(titulo.sinopse == null || titulo.sinopse.isEmpty() ? View.GONE : View.VISIBLE);
 
+        mostrarProgresso();
+        botaoCapitulos.setVisibility(capitulos.isEmpty() ? View.GONE : View.VISIBLE);
+
+        favoritar.setContentDescription(getString(titulo.favorito ? R.string.st_remover_favoritos : R.string.st_favoritar));
+        ImageViewCompat.setImageTintList(favoritar, ColorStateList.valueOf(
+                ContextCompat.getColor(this, titulo.favorito ? R.color.st_favorito : R.color.st_texto)));
+
+        if (tecnicos != null) PecasDetalhe.dadosTecnicos(dados, tecnicos, true, () -> Navegacao.abrirFaixas(this, id));
+        dados.setVisibility(tecnicos == null ? View.GONE : View.VISIBLE);
+
+        secaoCapitulos.setVisibility(capitulos.isEmpty() ? View.GONE : View.VISIBLE);
+        capitulosSub.setText(getString(R.string.st_capitulos_lidos, capitulos.size(), PecasDetalhe.extensao(titulo.arquivo)));
+        adapterCapitulos.atualizar(capitulos, PecasDetalhe.capituloAtual(capitulos, titulo));
+    }
+
+    /** O que depende da posição e do assistido: não refaz nada que o foco possa estar usando. */
+    private void mostrarProgresso() {
         // Progresso só com o vídeo em andamento; "Marcar como assistido" sempre
         boolean andamento = titulo.emAndamento();
         progresso.setVisibility(andamento ? View.VISIBLE : View.GONE);
@@ -192,19 +269,28 @@ public class DetalheTvActivity extends AppCompatActivity {
         // D22: sem progresso, "Assistir" no lugar de Continuar e Do início
         principal.setText(andamento ? R.string.st_continuar : R.string.st_assistir);
         Icones.noTexto(principal, R.drawable.st_ic_assistir, getResources().getDimensionPixelSize(R.dimen.st_tv_botao_icone));
+        // "Do início" vai sumir com o foco nele: passa antes, para não cair no topo da tela
+        if (!andamento && doInicio.hasFocus()) principal.requestFocus();
         doInicio.setVisibility(andamento ? View.VISIBLE : View.GONE);
-        botaoCapitulos.setVisibility(capitulos.isEmpty() ? View.GONE : View.VISIBLE);
+        mostrarNota();
+    }
 
-        favoritar.setContentDescription(getString(titulo.favorito ? R.string.st_remover_favoritos : R.string.st_favoritar));
-        ImageViewCompat.setImageTintList(favoritar, ColorStateList.valueOf(
-                ContextCompat.getColor(this, titulo.favorito ? R.color.st_favorito : R.color.st_texto)));
+    /** Estrelas só em filme assistido (D6). A fileira não é refeita: o foco fica nela. */
+    private void mostrarNota() {
+        boolean pode = titulo.podeDarNota();
+        // Vai sumir com o foco nela: passa antes, para não cair no topo da tela
+        if (!pode && estrelas.hasFocus()) marcar.requestFocus();
+        estrelas.setVisibility(pode ? View.VISIBLE : View.GONE);
+        if (pode) estrelas.mostrar(titulo.nota);
+    }
 
-        if (tecnicos != null) PecasDetalhe.dadosTecnicos(dados, tecnicos, true);
-        dados.setVisibility(tecnicos == null ? View.GONE : View.VISIBLE);
-
-        secaoCapitulos.setVisibility(capitulos.isEmpty() ? View.GONE : View.VISIBLE);
-        capitulosSub.setText(getString(R.string.st_capitulos_lidos, capitulos.size(), PecasDetalhe.extensao(titulo.arquivo)));
-        adapterCapitulos.atualizar(capitulos, PecasDetalhe.capituloAtual(capitulos, titulo));
+    /** Grava e mostra só a nota; se não gravou, volta ao que está guardado. */
+    private void aoEscolherNota(Integer nota) {
+        repositorio.definirNota(id, nota);
+        Titulo novo = repositorio.titulo(id);
+        if (novo == null) return;
+        titulo = novo;
+        mostrarNota();
     }
 
     /** "Capítulos": foco no capítulo onde o vídeo parou (ou no primeiro). */

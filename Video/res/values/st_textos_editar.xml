@@ -31,6 +31,8 @@
     <string name="st_imagem_ilegivel">Não deu para ler essa imagem.</string>
     <string name="st_imagem_sem_permissao">Sem permissão para ver as imagens do aparelho.</string>
     <string name="st_imagem_do_aparelho">Imagem do aparelho</string>
+    <string name="st_fotos_sem_rede">Sem resposta do Deezer: não deu para buscar outras fotos.</string>
+    <string name="st_fotos_nenhuma">O Deezer não tem outras fotos deste artista.</string>
 
     <!-- Campos -->
     <string name="st_campo_titulo">Título</string>
@@ -45,9 +47,23 @@
     <string name="st_escolher_filme">Escolher o filme certo</string>
     <string name="st_escolher_serie">Escolher a série certa</string>
     <string name="st_escolher_show">Escolher o show certo</string>
+    <string name="st_escolher_desenho">Escolher o desenho certo</string>
+    <string name="st_escolher_standup">Escolher o stand-up certo</string>
     <string name="st_buscar_acao">Buscar</string>
     <string name="st_resultado_linha">%1$s · %2$s · TMDB</string>
     <string name="st_atual">Atual</string>
     <string name="st_selecionar">Selecionar</string>
+    <string name="st_tmdb_buscando">Buscando no TMDB…</string>
+    <string name="st_tmdb_nada">Nada encontrado. Mude o nome ou acrescente o ano.</string>
+    <string name="st_tmdb_sem_chave">A busca no TMDB não está disponível nesta versão do app.</string>
+    <string name="st_tmdb_sem_rede">Não deu para falar com o TMDB. Confira a internet e tente de novo.</string>
+    <string name="st_pagina_anterior">‹ Anterior</string>
+    <string name="st_pagina_proxima">Próxima ›</string>
+    <string name="st_pagina_de">%1$d de %2$d</string>
+    <string name="st_tmdb_pendente">Do TMDB: %1$s · salve para usar</string>
+    <string name="st_tmdb_buscando_dados">Buscando no TMDB os dados de %1$s…</string>
+    <string name="st_restaurar_pendente">Restaurar original · salve para confirmar</string>
+    <string name="st_salvando">Salvando…</string>
+    <string name="st_imagem_nao_baixou">Não deu para baixar a imagem do TMDB.</string>
     <string name="st_ajuda_tmdb">Não achou? Mude o nome ou acrescente o ano. Ao selecionar, título, sinopse, capa e fundo são trocados — os campos editados à mão ficam como estão.</string>
 </resources>

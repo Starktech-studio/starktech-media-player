@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- "Só não assistidos" das listas do tablet (ListaFragment): como os botões do topo do Detalhe. -->
+<Button xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/StarkTech.Botao.Tablet.Secundario"
+    android:layout_width="wrap_content"
+    android:layout_height="@dimen/st_tablet_detalhe_topo_botao_altura"
+    android:minHeight="0dp"
+    android:paddingStart="@dimen/st_tablet_detalhe_topo_botao_padding"
+    android:paddingEnd="@dimen/st_tablet_detalhe_topo_botao_padding"
+    android:text="@string/st_so_nao_assistidos" />

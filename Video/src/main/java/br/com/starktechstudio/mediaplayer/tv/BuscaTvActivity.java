@@ -28,7 +28,7 @@ import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 /**
  * Buscar da TV (lupa do topo; D11 c, sem desenho): campo e grade de capas no padrão das abas
  * Filmes, Séries e Shows; o resultado muda a cada letra (filmes, séries e shows juntos). OK numa
- * capa abre o título; segurar OK abre o Menu da capa. ↓ do campo vai à grade. F1: busca no simulado.
+ * capa abre o título; segurar OK abre o Menu da capa. ↓ do campo vai à grade. Busca na biblioteca.
  */
 public class BuscaTvActivity extends AppCompatActivity {
 
@@ -84,7 +84,7 @@ public class BuscaTvActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Volta do título: estado simulado (assistido, título) pode ter mudado
+        // Volta do título: o estado (assistido, título) pode ter mudado
         buscar();
     }
 

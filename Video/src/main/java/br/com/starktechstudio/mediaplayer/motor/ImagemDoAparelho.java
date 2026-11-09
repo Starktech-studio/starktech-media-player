@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PushbackInputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.UUID;
 
 /**
@@ -99,6 +101,25 @@ public final class ImagemDoAparelho {
             return importar(pasta(contexto), entrada, arquivo.length());
         } catch (IOException | RuntimeException e) {
             return Resultado.falha(Erro.ILEGIVEL);
+        }
+    }
+
+    /** F3: opção do TMDB escolhida no Editar (endereço https), baixada como as do aparelho. */
+    public static Resultado doEndereco(Context contexto, String endereco) {
+        HttpURLConnection conexao = null;
+        try {
+            conexao = (HttpURLConnection) new URL(endereco).openConnection();
+            conexao.setConnectTimeout(15_000);
+            conexao.setReadTimeout(30_000);
+            conexao.setRequestProperty("User-Agent", BuscaArtista.IDENTIFICACAO);
+            if (conexao.getResponseCode() != HttpURLConnection.HTTP_OK) return Resultado.falha(Erro.ILEGIVEL);
+            try (InputStream entrada = conexao.getInputStream()) {
+                return importar(pasta(contexto), entrada, conexao.getContentLength());
+            }
+        } catch (IOException | RuntimeException e) {
+            return Resultado.falha(Erro.ILEGIVEL);
+        } finally {
+            if (conexao != null) conexao.disconnect();
         }
     }
 

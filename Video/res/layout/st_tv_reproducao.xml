@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
 <!--
-     Player da TV (ReproducaoTvActivity), tv-player.dc.html: vídeo (simulado na F1), topo com o título
+     Player da TV (ReproducaoTvActivity), tv-player.dc.html: vídeo (motor do Nova, F3), topo com o título
      e o capítulo, lista de capítulos à direita (abre em "Capítulos"), barra com as marcas dos
-     capítulos, "Próximo capítulo em…" à esquerda, botões com nome no centro e Áudio, Legendas e
-     Capítulos à direita. Controles somem após 5 s (D13). Medidas: px do HTML / 2. Sem fundo animado.
+     capítulos (recebe foco: ← / → movem a posição), "Próximo capítulo em…" à esquerda, botões com nome
+     no centro e Áudio, Legendas, Zoom e Capítulos à direita. Controles somem após 5 s (D13).
+     Medidas: px do HTML / 2. Sem fundo animado.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -12,16 +13,41 @@
     android:layout_height="match_parent"
     android:background="@color/st_video">
 
-    <TextView
-        style="@style/StarkTech.Texto.Botao"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="@string/st_video_simulado"
-        android:textColor="@color/st_branco_12"
-        android:textSize="@dimen/st_tv_texto_rep_video" />
+    <!-- Vídeo: as superfícies do motor do Nova (SurfaceController, legendas do motor por cima) -->
+    <FrameLayout
+        android:id="@+id/st_rep_superficie"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <TextureView
+                android:id="@+id/gl_surface_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center" />
+        </FrameLayout>
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <SurfaceView
+                android:id="@+id/surface_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center" />
+        </FrameLayout>
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <TextureView
+                android:id="@+id/gl_subtitle_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center" />
+        </FrameLayout>
+    </FrameLayout>
 
-    <!-- Aviso no centro: "−10 s", "+10 s", "Capítulo 4 · A memória" (controles ocultos) -->
+    <!-- Aviso no centro: "−10 s", "+10 s", "Capítulo 4 · A memória" (controles ocultos), Zoom e Voltar de novo -->
     <TextView
         android:id="@+id/st_rep_aviso"
         style="@style/StarkTech.Texto.Titulo"
@@ -146,13 +172,18 @@
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/st_tv_texto_rep_tempo" />
 
+            <!-- ↑ dos botões chega aqui, ↓ volta a Pausar; ← / → ficam em ReproducaoTvActivity -->
             <br.com.starktechstudio.mediaplayer.comum.BarraCapitulosView
                 android:id="@+id/st_rep_barra"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="@dimen/st_tv_rep_barra_altura"
                 android:layout_marginStart="6dp"
                 android:layout_marginEnd="6dp"
-                android:layout_weight="1" />
+                android:layout_weight="1"
+                android:contentDescription="@string/st_linha_do_tempo"
+                android:focusable="true"
+                android:foreground="@drawable/st_foco_tv"
+                android:nextFocusDown="@+id/st_rep_pausar" />
 
             <TextView
                 android:id="@+id/st_rep_duracao"
@@ -175,7 +206,7 @@
             <TextView
                 android:id="@+id/st_rep_proximo"
                 style="@style/StarkTech.Texto.Forte"
-                android:layout_width="@dimen/st_tv_rep_lado_largura"
+                android:layout_width="@dimen/st_tv_rep_lado_largura_zoom"
                 android:layout_height="wrap_content"
                 android:textColor="@color/st_texto_apagado"
                 android:textSize="@dimen/st_tv_texto_rep_proximo" />
@@ -192,6 +223,7 @@
                     android:id="@+id/st_rep_grupo_cap_anterior"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/st_tv_rep_botao_espaco"
                     android:gravity="center_horizontal"
                     android:orientation="vertical">
 
@@ -224,40 +256,6 @@
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/st_tv_rep_botao_espaco"
-                    android:gravity="center_horizontal"
-                    android:orientation="vertical">
-
-                    <ImageButton
-                        android:id="@+id/st_rep_menos_10"
-                        android:layout_width="wrap_content"
-                        android:layout_height="@dimen/st_tv_rep_botao_altura"
-                        android:adjustViewBounds="true"
-                        android:background="@drawable/st_botao_secundario"
-                        android:contentDescription="@string/st_voltar_10"
-                        android:foreground="@drawable/st_foco_tv"
-                        android:paddingStart="@dimen/st_tv_rep_botao_padding"
-                        android:paddingTop="11.5dp"
-                        android:paddingEnd="@dimen/st_tv_rep_botao_padding"
-                        android:paddingBottom="11.5dp"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/st_ic_do_inicio"
-                        app:tint="@color/st_texto" />
-
-                    <TextView
-                        style="@style/StarkTech.Texto.Botao"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="5dp"
-                        android:text="@string/st_menos_10"
-                        android:textColor="@color/st_texto_secundario"
-                        android:textSize="@dimen/st_tv_texto_rep_rotulo" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/st_tv_rep_botao_espaco"
                     android:gravity="center_horizontal"
                     android:orientation="vertical">
 
@@ -284,39 +282,6 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="5dp"
                         android:text="@string/st_pausar"
-                        android:textColor="@color/st_texto_secundario"
-                        android:textSize="@dimen/st_tv_texto_rep_rotulo" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/st_tv_rep_botao_espaco"
-                    android:gravity="center_horizontal"
-                    android:orientation="vertical">
-
-                    <ImageButton
-                        android:id="@+id/st_rep_mais_10"
-                        android:layout_width="wrap_content"
-                        android:layout_height="@dimen/st_tv_rep_botao_altura"
-                        android:adjustViewBounds="true"
-                        android:background="@drawable/st_botao_secundario"
-                        android:contentDescription="@string/st_avancar_10"
-                        android:foreground="@drawable/st_foco_tv"
-                        android:paddingStart="@dimen/st_tv_rep_botao_padding"
-                        android:paddingTop="11.5dp"
-                        android:paddingEnd="@dimen/st_tv_rep_botao_padding"
-                        android:paddingBottom="11.5dp"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/st_ic_mais_10"
-                        app:tint="@color/st_texto" />
-
-                    <TextView
-                        style="@style/StarkTech.Texto.Botao"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="5dp"
-                        android:text="@string/st_mais_10"
                         android:textColor="@color/st_texto_secundario"
                         android:textSize="@dimen/st_tv_texto_rep_rotulo" />
                 </LinearLayout>
@@ -356,9 +321,9 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Direita: Áudio, Legendas, Capítulos (este em azul com a lista aberta) -->
+            <!-- Direita: Áudio, Legendas, Zoom, Capítulos (este em azul com a lista aberta) -->
             <LinearLayout
-                android:layout_width="@dimen/st_tv_rep_lado_largura"
+                android:layout_width="@dimen/st_tv_rep_lado_largura_zoom"
                 android:layout_height="wrap_content"
                 android:gravity="end|center_vertical"
                 android:orientation="horizontal">
@@ -384,6 +349,18 @@
                     android:paddingStart="@dimen/st_tv_rep_lado_botao_padding"
                     android:paddingEnd="@dimen/st_tv_rep_lado_botao_padding"
                     android:text="@string/st_legendas"
+                    android:textSize="@dimen/st_tv_texto_rep_lado_botao" />
+
+                <Button
+                    android:id="@+id/st_rep_zoom"
+                    style="@style/StarkTech.Botao.Tv.Secundario"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/st_tv_rep_lado_botao_altura"
+                    android:layout_marginStart="6dp"
+                    android:minHeight="0dp"
+                    android:paddingStart="@dimen/st_tv_rep_lado_botao_padding"
+                    android:paddingEnd="@dimen/st_tv_rep_lado_botao_padding"
+                    android:text="@string/st_zoom"
                     android:textSize="@dimen/st_tv_texto_rep_lado_botao" />
 
                 <Button

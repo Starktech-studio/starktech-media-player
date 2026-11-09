@@ -27,20 +27,28 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.fragment.app.Fragment;
 
 import com.archos.mediacenter.video.R;
 
 import br.com.starktechstudio.mediaplayer.comum.Animacoes;
+import br.com.starktechstudio.mediaplayer.comum.AvisoDeVersao;
+import br.com.starktechstudio.mediaplayer.comum.ListaFragment;
 import br.com.starktechstudio.mediaplayer.comum.Navegacao;
 import br.com.starktechstudio.mediaplayer.comum.Navegacao.Aba;
+import br.com.starktechstudio.mediaplayer.comum.PermissaoVideos;
 import br.com.starktechstudio.mediaplayer.comum.TelaCarregamento;
+import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 
 /**
  * Tela principal da TV (Main.dc.html): barra do topo com a marca, as pílulas
- * Início, Filmes, Séries, Shows e Pastas e os botões Buscar e Configurações; abaixo,
- * o conteúdo da aba. ← / → anda entre as pílulas (a pílula em foco vira a aba ativa),
+ * Início, Filmes, Séries, Desenhos, Shows, Stand-up e Pastas e os botões Buscar e Configurações; abaixo,
+ * o conteúdo da aba. Abre com o foco na pílula Início, com Novidades à vista (D1).
+ * ← / → anda entre as pílulas (a pílula em foco vira a aba ativa),
  * ↓ desce ao conteúdo, ↑ no topo do conteúdo volta à pílula ativa; Voltar no conteúdo
- * também volta à pílula ativa. Na troca de aba, a pílula branca estica até a aba nova e encolhe
+ * também volta à pílula ativa. Com o foco no conteúdo, a barra do topo fica fora da busca de foco:
+ * o foco nunca cai sozinho numa pílula (o que trocaria de aba) e, no topo, ← → ↑ não caem no conteúdo.
+ * Na troca de aba, a pílula branca estica até a aba nova e encolhe
  * nela (260 ms); o conteúdo atual sai para o outro lado e o novo, montado quando o menu para,
  * entra deslizando (sem animação com "remover animações").
  */
@@ -48,10 +56,10 @@ public class PrincipalTvActivity extends AppCompatActivity {
 
     private static final String ESTADO_ABA = "aba";
 
-    private static final Aba[] ABAS = {Aba.INICIO, Aba.FILMES, Aba.SERIES, Aba.SHOWS, Aba.PASTAS};
+    private static final Aba[] ABAS = {Aba.INICIO, Aba.FILMES, Aba.SERIES, Aba.DESENHOS, Aba.SHOWS, Aba.STANDUP, Aba.PASTAS};
     private static final int[] PILULAS = {
             R.id.st_pilula_inicio, R.id.st_pilula_filmes, R.id.st_pilula_series,
-            R.id.st_pilula_shows, R.id.st_pilula_pastas
+            R.id.st_pilula_desenhos, R.id.st_pilula_shows, R.id.st_pilula_standup, R.id.st_pilula_pastas
     };
 
     private final TextView[] pilulas = new TextView[ABAS.length];
@@ -98,8 +106,11 @@ public class PrincipalTvActivity extends AppCompatActivity {
             }
         };
         getOnBackPressedDispatcher().addCallback(this, voltarAoMenu);
-        getWindow().getDecorView().getViewTreeObserver().addOnGlobalFocusChangeListener(
-                (antes, depois) -> voltarAoMenu.setEnabled(depois != null && dentroDe(depois, conteudo)));
+        getWindow().getDecorView().getViewTreeObserver().addOnGlobalFocusChangeListener((antes, depois) -> {
+            boolean noConteudo = depois != null && dentroDe(depois, conteudo);
+            voltarAoMenu.setEnabled(noConteudo);
+            barraTopo.setDescendantFocusability(noConteudo ? ViewGroup.FOCUS_BLOCK_DESCENDANTS : ViewGroup.FOCUS_BEFORE_DESCENDANTS);
+        });
 
         int inicial = savedInstanceState == null ? indiceDaAba(Navegacao.abaDoIntent(getIntent()))
                 : savedInstanceState.getInt(ESTADO_ABA, 0);
@@ -110,7 +121,22 @@ public class PrincipalTvActivity extends AppCompatActivity {
         else selecionarAba(inicial);
         pilulas[inicial].requestFocus();
         // Ao abrir o app: tela de carregamento por cima até a biblioteca ficar pronta
-        if (savedInstanceState == null) carregamento = TelaCarregamento.mostrar(this);
+        if (savedInstanceState == null) {
+            carregamento = TelaCarregamento.mostrar(this);
+            PermissaoVideos.pedirAoAbrirOApp(this);
+            AvisoDeVersao.procurarAoAbrir(this);
+            // D1: se o foco não ficou na barra (um item do conteúdo pode pegá-lo no primeiro layout), volta à pílula
+            barraTopo.post(() -> {
+                View foco = getCurrentFocus();
+                if (foco == null || !dentroDe(foco, barraTopo)) focarPilulaAtiva();
+            });
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int pedido, @NonNull String[] permissoes, @NonNull int[] respostas) {
+        super.onRequestPermissionsResult(pedido, permissoes, respostas);
+        PermissaoVideos.aoResponder(this, pedido, respostas);
     }
 
     /** OK numa pílula do Detalhe ou da Série: volta para cá, na aba pedida, com o foco nela. */
@@ -122,7 +148,7 @@ public class PrincipalTvActivity extends AppCompatActivity {
         if (aba == null) return;
         int indice = indiceDaAba(aba);
         selecionarAba(indice);
-        pilulas[indice].requestFocus();
+        focarPilula(indice);
     }
 
     private static int indiceDaAba(Aba aba) {
@@ -136,6 +162,13 @@ public class PrincipalTvActivity extends AppCompatActivity {
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt(ESTADO_ABA, Math.max(abaAtiva, 0));
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // O HD pode ter saído ou voltado com o app fora da tela
+        RepositorioBiblioteca.atual(this).conferirBiblioteca();
     }
 
     @Override
@@ -280,10 +313,23 @@ public class PrincipalTvActivity extends AppCompatActivity {
                 conteudo.requestFocus(View.FOCUS_DOWN);
                 return true;
             }
+            if (foco != null && dentroDe(foco, barraTopo)) {
+                // ← → ↑ do topo ficam no topo (a busca padrão também olharia o conteúdo)
+                int direcao = tecla == KeyEvent.KEYCODE_DPAD_LEFT ? View.FOCUS_LEFT
+                        : tecla == KeyEvent.KEYCODE_DPAD_RIGHT ? View.FOCUS_RIGHT
+                        : tecla == KeyEvent.KEYCODE_DPAD_UP ? View.FOCUS_UP : 0;
+                if (direcao != 0) {
+                    View proximo = FocusFinder.getInstance().findNextFocus(barraTopo, foco, direcao);
+                    if (proximo != null) proximo.requestFocus(direcao);
+                    return true;
+                }
+            }
             if (foco != null && dentroDe(foco, conteudo)) {
                 if (tecla == KeyEvent.KEYCODE_DPAD_UP) {
                     View proximo = FocusFinder.getInstance().findNextFocus(conteudo, foco, View.FOCUS_UP);
                     if (proximo == null) {
+                        Fragment aba = getSupportFragmentManager().findFragmentById(R.id.st_conteudo);
+                        if (aba instanceof ListaFragment && ((ListaFragment) aba).subirParaFiltro(foco)) return true;
                         focarPilulaAtiva();
                         return true;
                     }
@@ -294,7 +340,13 @@ public class PrincipalTvActivity extends AppCompatActivity {
     }
 
     private void focarPilulaAtiva() {
-        pilulas[Math.max(abaAtiva, 0)].requestFocus();
+        focarPilula(Math.max(abaAtiva, 0));
+    }
+
+    /** Libera a barra do topo antes: com o foco no conteúdo ela fica fora da busca de foco. */
+    private void focarPilula(int indice) {
+        barraTopo.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
+        pilulas[indice].requestFocus();
     }
 
     private static boolean dentroDe(View view, View grupo) {

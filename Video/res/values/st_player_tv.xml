@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Player da TV: barra selecionável, Voltar duas vezes e Zoom (plano 004, etapa 6). Só pt-BR (D4). -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="pt-BR">
+
+    <!-- Barra com folga para o anel de foco; lados largos para caber Zoom junto de Áudio, Legendas e Capítulos -->
+    <dimen name="st_tv_rep_barra_altura">26dp</dimen>
+    <dimen name="st_tv_rep_lado_largura_zoom">310dp</dimen>
+
+    <string name="st_linha_do_tempo">Linha do tempo</string>
+    <string name="st_voltar_de_novo">Aperte Voltar de novo para sair do vídeo</string>
+
+    <string name="st_zoom">Zoom</string>
+    <string name="st_zoom_aviso">Zoom: %1$s</string>
+    <!--
+         Na ordem do número guardado (Preferencias.zoomPlayer), que é o formato de SurfaceController.VideoFormat:
+         ORIGINAL, STRETCH_XY (preenche cortando as bordas), FULL_SCREEN (estica), FORCE43, FORCE169, FORCE185, FORCE239.
+    -->
+    <string-array name="st_zoom_nomes">
+        <item>Original</item>
+        <item>Preencher</item>
+        <item>Esticar</item>
+        <item>4:3</item>
+        <item>16:9</item>
+        <item>1,85:1</item>
+        <item>2,39:1</item>
+    </string-array>
+</resources>

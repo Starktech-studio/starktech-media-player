@@ -58,6 +58,7 @@
             android:layout_height="@dimen/st_tv_capa_icone"
             android:alpha="0.35"
             android:importantForAccessibility="no"
+            android:id="@+id/st_imagem_reserva"
             android:src="@drawable/st_ic_imagem"
             app:tint="@color/st_texto" />
     </LinearLayout>
@@ -66,6 +67,72 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_weight="1" />
+
+    <!-- Selos 4K, HDR e nota: ficam com a capa de verdade, ao contrário do título e do ano -->
+    <LinearLayout
+        android:id="@+id/st_capa_selos"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/st_capa_selo_4k"
+            style="@style/StarkTech.Texto.Botao"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="3dp"
+            android:background="@drawable/st_selo_capa"
+            android:paddingStart="4dp"
+            android:paddingTop="2dp"
+            android:paddingEnd="4dp"
+            android:paddingBottom="2dp"
+            android:text="@string/st_selo_4k"
+            android:textSize="@dimen/st_tv_texto_selo_assistido" />
+
+        <TextView
+            android:id="@+id/st_capa_selo_hdr"
+            style="@style/StarkTech.Texto.Botao"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="3dp"
+            android:background="@drawable/st_selo_capa"
+            android:paddingStart="4dp"
+            android:paddingTop="2dp"
+            android:paddingEnd="4dp"
+            android:paddingBottom="2dp"
+            android:text="@string/st_selo_hdr"
+            android:textSize="@dimen/st_tv_texto_selo_assistido" />
+
+        <LinearLayout
+            android:id="@+id/st_capa_selo_nota"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/st_selo_capa"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="4dp"
+            android:paddingTop="2dp"
+            android:paddingEnd="4dp"
+            android:paddingBottom="2dp">
+
+            <ImageView
+                android:layout_width="@dimen/st_tv_selo_assistido_icone"
+                android:layout_height="@dimen/st_tv_selo_assistido_icone"
+                android:importantForAccessibility="no"
+                android:src="@drawable/st_ic_estrela_cheia"
+                app:tint="@color/st_nota_cheia" />
+
+            <TextView
+                android:id="@+id/st_capa_nota_valor"
+                style="@style/StarkTech.Texto.Botao"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="2dp"
+                android:textSize="@dimen/st_tv_texto_selo_assistido" />
+        </LinearLayout>
+    </LinearLayout>
 
     <TextView
         android:id="@+id/st_capa_titulo"

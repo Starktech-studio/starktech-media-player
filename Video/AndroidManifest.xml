@@ -63,7 +63,8 @@
     <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <!--<uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />-->
+    <!-- StarkTech: legenda em arquivo ao lado do vídeo; o app não vai para loja -->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
@@ -74,6 +75,9 @@
     <uses-permission android:name="android.permission.BROADCAST_STICKY" />
     <!-- uses-permission android:name="android.permission.ARCHOS_READ_RAWFS" / -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!-- StarkTech: atualização do app pelo site, por PackageInstaller (motor/Atualizador) -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <!-- Required for Android TV channels -->
     <uses-permission
@@ -211,9 +215,32 @@
             android:exported="false"
             android:theme="@style/Theme.StarkTech.Menu" />
         <activity
+            android:name="br.com.starktechstudio.mediaplayer.tablet.SinopseActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech.Menu" />
+
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.comum.RemoverPastaActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech.Menu" />
+        <activity
             android:name="br.com.starktechstudio.mediaplayer.comum.NavegadorImagensActivity"
             android:exported="false"
             android:theme="@style/Theme.StarkTech.Menu" />
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.comum.NavegadorLegendasActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech.Menu" />
+
+        <!-- Atualização do app: girar a tela não pode interromper o download -->
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.comum.AtualizacaoActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech.Menu" />
+        <receiver
+            android:name="br.com.starktechstudio.mediaplayer.motor.Atualizador$RetornoInstalacao"
+            android:exported="false" />
 
         <activity
             android:name="br.com.starktechstudio.mediaplayer.comum.BuscaTmdbActivity"
@@ -228,8 +255,11 @@
 
         <activity
             android:name="br.com.starktechstudio.mediaplayer.tablet.ReproducaoTabletActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation"
             android:exported="false"
+            android:resizeableActivity="true"
             android:screenOrientation="sensorLandscape"
+            android:supportsPictureInPicture="true"
             android:theme="@style/Theme.StarkTech.Tablet" />
 
         <activity
@@ -242,6 +272,23 @@
             android:exported="false"
             android:screenOrientation="sensorLandscape"
             android:theme="@style/Theme.StarkTech.Tablet" />
+
+        <!-- Coletânea e artista: a tela comum é a do tablet; a da TV acrescenta o topo com as pílulas -->
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.comum.ColetaneaArtistaActivity"
+            android:exported="false"
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/Theme.StarkTech.Tablet" />
+
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.tv.ColetaneaArtistaTvActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech.Tv" />
+
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.comum.EscolherColetaneaActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech.Menu" />
 
         <activity
             android:name=".browser.MainActivity"
@@ -1659,7 +1706,7 @@
 
         <activity
             android:name="com.archos.mediacenter.video.leanback.MainActivityLeanback"
-            android:exported="true"
+            android:exported="false"
             android:launchMode="singleTask"
             android:taskAffinity="${applicationId}"
             android:theme="@style/MyLeanbackTheme.Launcher">

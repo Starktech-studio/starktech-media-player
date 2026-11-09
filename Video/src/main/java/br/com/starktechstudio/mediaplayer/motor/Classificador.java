@@ -27,14 +27,17 @@ import java.util.regex.Pattern;
  * "Temp N", "Season N", "T01", "S01"); episódio pelo arquivo: só o número ("01.mkv") ou
  * "S01E01", "1x01" e "E01" no nome. "S01E01" e "1x01" trazem a temporada junto, então valem
  * também sem a pasta da temporada (e, direto na pasta Séries, o nome da série vem antes deles).</li>
- * <li>Shows: "Artista - Show (2019).mkv" (ano opcional; sem " - ", só o título).</li>
+ * <li>Shows: "Artista - Show (2019).mkv" (ano opcional; sem " - ", só o título). A primeira subpasta
+ * abaixo da pasta Shows é o grupo (D7: "Shows/Nacionais/…"); direto em Shows, sem grupo.</li>
+ * <li>Desenhos (F3): como Filmes, um arquivo só ("Nome do desenho (2019).mkv").</li>
+ * <li>Stand-up (F3): como Filmes, um arquivo só ("Nome do especial (2021).mkv").</li>
  * </ul>
  * Pasta Ignorar e arquivos que não são vídeo ficam de fora; pasta sem tipo e nomes fora do padrão
  * vão para os não identificados, com o motivo. Sem diferenciar maiúscula, minúscula e acento.
  */
 public final class Classificador {
 
-    public enum Tipo { FILME, EPISODIO, SHOW, NAO_IDENTIFICADO }
+    public enum Tipo { FILME, EPISODIO, DESENHO, SHOW, STANDUP, NAO_IDENTIFICADO }
 
     public enum Motivo {
         /** A pasta ainda não tem tipo ("escolha o tipo"). */
@@ -61,10 +64,12 @@ public final class Classificador {
         public final int temporada;
         public final int episodio;
         public final String artista;
+        /** Show: a subpasta de Shows (D7); nulo = sem grupo. */
+        public final String grupo;
         public final Motivo motivo;
 
         private Item(Tipo tipo, String caminho, String titulo, Integer ano, String serie, int temporada,
-                     int episodio, String artista, Motivo motivo) {
+                     int episodio, String artista, String grupo, Motivo motivo) {
             this.tipo = tipo;
             this.caminho = caminho;
             this.titulo = titulo;
@@ -73,23 +78,36 @@ public final class Classificador {
             this.temporada = temporada;
             this.episodio = episodio;
             this.artista = artista;
+            this.grupo = grupo;
             this.motivo = motivo;
         }
 
         static Item filme(String caminho, String titulo, Integer ano) {
-            return new Item(Tipo.FILME, caminho, titulo, ano, null, 0, 0, null, null);
+            return new Item(Tipo.FILME, caminho, titulo, ano, null, 0, 0, null, null, null);
         }
 
-        static Item show(String caminho, String artista, String titulo, Integer ano) {
-            return new Item(Tipo.SHOW, caminho, titulo, ano, null, 0, 0, artista, null);
+        /** Stand-up (F3): o mesmo do filme — um arquivo só, título e ano. */
+        static Item standup(Item comoFilme) {
+            if (comoFilme.tipo != Tipo.FILME) return comoFilme;
+            return new Item(Tipo.STANDUP, comoFilme.caminho, comoFilme.titulo, comoFilme.ano, null, 0, 0, null, null, null);
+        }
+
+        /** Desenho (F3): o mesmo do filme — um arquivo só, título e ano. */
+        static Item desenho(Item comoFilme) {
+            if (comoFilme.tipo != Tipo.FILME) return comoFilme;
+            return new Item(Tipo.DESENHO, comoFilme.caminho, comoFilme.titulo, comoFilme.ano, null, 0, 0, null, null, null);
+        }
+
+        static Item show(String caminho, String artista, String titulo, Integer ano, String grupo) {
+            return new Item(Tipo.SHOW, caminho, titulo, ano, null, 0, 0, artista, grupo, null);
         }
 
         static Item episodio(String caminho, String serie, Integer ano, int temporada, int episodio, String titulo) {
-            return new Item(Tipo.EPISODIO, caminho, titulo, ano, serie, temporada, episodio, null, null);
+            return new Item(Tipo.EPISODIO, caminho, titulo, ano, serie, temporada, episodio, null, null, null);
         }
 
         static Item naoIdentificado(String caminho, Motivo motivo) {
-            return new Item(Tipo.NAO_IDENTIFICADO, caminho, null, null, null, 0, 0, null, motivo);
+            return new Item(Tipo.NAO_IDENTIFICADO, caminho, null, null, null, 0, 0, null, null, motivo);
         }
     }
 
@@ -139,6 +157,8 @@ public final class Classificador {
         String[] partes = relativo.split("/");
         switch (pasta.tipo) {
             case FILMES: return filme(caminhoArquivo, partes);
+            case DESENHOS: return Item.desenho(filme(caminhoArquivo, partes));
+            case STANDUP: return Item.standup(filme(caminhoArquivo, partes));
             case SHOWS: return show(caminhoArquivo, partes);
             default: return episodio(caminhoArquivo, partes);
         }
@@ -163,13 +183,51 @@ public final class Classificador {
     private static Item show(String caminho, String[] partes) {
         TituloAno nome = tituloAno(Nomes.limpar(Nomes.semExtensao(partes[partes.length - 1])));
         if (nome.titulo.isEmpty()) return Item.naoIdentificado(caminho, Motivo.FORA_DO_PADRAO);
+        String grupo = partes.length >= 2 ? partes[0].trim() : null;
         int traco = nome.titulo.indexOf(" - ");
         if (traco > 0) {
             String artista = nome.titulo.substring(0, traco).trim();
             String titulo = nome.titulo.substring(traco + 3).trim();
-            if (!artista.isEmpty() && !titulo.isEmpty()) return Item.show(caminho, artista, titulo, nome.ano);
+            if (!artista.isEmpty() && !titulo.isEmpty()) return Item.show(caminho, artista, titulo, nome.ano, grupo);
         }
-        return Item.show(caminho, null, nome.titulo, nome.ano);
+        return Item.show(caminho, null, nome.titulo, nome.ano, grupo);
+    }
+
+    // ---- Nome em comum (D13) ----
+
+    public static String chaveNome(Item item) {
+        return chaveNome(item.tipo, item.titulo, item.ano, item.serie, item.temporada, item.episodio, item.artista);
+    }
+
+    /**
+     * Chave do nome em comum: vídeos com a mesma chave herdam a edição à mão uns dos outros. Vem da
+     * classificação, nunca do nome do arquivo (filme: título + ano; episódio: série + SxxEyy; show:
+     * artista + título; desenho e stand-up: como filme, cada um no seu tipo), sem diferenciar
+     * maiúscula, minúscula e acento. Nula: não identificado ou sem nome (não herda).
+     */
+    public static String chaveNome(Tipo tipo, String titulo, Integer ano, String serie, int temporada, int episodio, String artista) {
+        if (tipo == null) return null;
+        switch (tipo) {
+            case FILME:
+            case DESENHO:
+            case STANDUP: {
+                String nome = Nomes.normalizar(titulo);
+                if (nome.isEmpty()) return null;
+                return tipo.name().toLowerCase(Locale.ROOT) + ":" + nome + "|" + (ano == null ? "" : ano);
+            }
+            case EPISODIO: {
+                String nome = Nomes.normalizar(serie);
+                if (nome.isEmpty()) return null;
+                return String.format(Locale.ROOT, "episodio:%s|S%02dE%02d", nome, temporada, episodio);
+            }
+            case SHOW: {
+                String nome = Nomes.normalizar(titulo);
+                if (nome.isEmpty()) return null;
+                return "show:" + Nomes.normalizar(artista) + "|" + nome;
+            }
+            default:
+                return null;
+        }
     }
 
     // ---- Séries ----

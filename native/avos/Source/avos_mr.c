@@ -260,6 +260,8 @@ static int avos_mr_fillmetadata(avos_mr_t *mr)
 			ADD_INT(gap_key + AVOS_MR_METADATA_VIDEO_TRACK_FPS_SCALE, videop->scale);
 
 		ADD_INT(gap_key + AVOS_MR_METADATA_VIDEO_TRACK_S3D_MODE, videop->stereo_mode);
+		// StarkTech: HDR na biblioteca, sem abrir o player (o mesmo valor de avos_mp.c)
+		ADD_INT(gap_key + AVOS_MR_METADATA_VIDEO_TRACK_COLOR_TRC, videop->color_trc);
 	}
 	if (mr->type == TYPE_AUD)
 		av->as_max = 1;

@@ -25,6 +25,7 @@ public class RolagemTv extends ScrollView {
     private static final float RESPIRO_DP = 20f;
 
     private final int respiro;
+    private int alturaConteudo;
 
     public RolagemTv(Context contexto) {
         this(contexto, null);
@@ -54,6 +55,21 @@ public class RolagemTv extends ScrollView {
         super.requestChildFocus(filho, focado);
         if (isLaidOut() && !isLayoutRequested()) alinhar(focado, true);
         else post(() -> alinhar(focado, false));
+    }
+
+    /**
+     * O destaque muda de altura ao expandir e recolher: a seção em foco abaixo dele continua no
+     * alto. A primeira seção já vai ao topo pela rolagem suave do foco.
+     */
+    @Override
+    protected void onLayout(boolean mudou, int esquerda, int topo, int direita, int base) {
+        super.onLayout(mudou, esquerda, topo, direita, base);
+        if (getChildCount() == 0) return;
+        ViewGroup conteudo = (ViewGroup) getChildAt(0);
+        if (conteudo.getHeight() == alturaConteudo) return;
+        alturaConteudo = conteudo.getHeight();
+        View focado = findFocus();
+        if (focado != null && secaoDe(focado, conteudo) != primeiraVisivel(conteudo)) alinhar(focado, false);
     }
 
     /** ↑ / ↓ só trocam o foco (a rolagem vem do alinhamento); sem rolagem por página. */

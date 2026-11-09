@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<resources>
+    <!-- Aba Shows: show sem " - " no nome e show fora das subpastas -->
+    <string name="st_sem_artista">Sem artista</string>
+    <string name="st_sem_grupo">Sem grupo</string>
+    <!-- Sobre: fonte das fotos de artista -->
+    <string name="st_credito_artistas">Artistas: fotos do Deezer (deezer.com) e do Wikimedia Commons, cada uma com a sua licença; textos da Wikipédia (CC BY-SA).</string>
+</resources>

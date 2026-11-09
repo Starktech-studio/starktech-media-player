@@ -144,6 +144,34 @@ public final class Capitulos {
         return new Capitulos(Collections.unmodifiableList(lista));
     }
 
+    /** Para guardar no banco (F3): uma linha por capítulo, "início\tfim\tnome" em ms. */
+    public String paraTexto() {
+        StringBuilder texto = new StringBuilder();
+        for (Capitulo c : lista) {
+            if (texto.length() > 0) texto.append('\n');
+            texto.append(c.inicioMs).append('\t').append(c.fimMs).append('\t')
+                    .append(c.nome.replace('\n', ' ').replace('\t', ' '));
+        }
+        return texto.toString();
+    }
+
+    /** O contrário de {@link #paraTexto()}; linha que não dá para ler fica de fora. */
+    public static Capitulos deTexto(String texto) {
+        if (texto == null || texto.isEmpty()) return VAZIO;
+        List<Capitulo> lidos = new ArrayList<>();
+        for (String linha : texto.split("\n")) {
+            String[] partes = linha.split("\t", 3);
+            if (partes.length < 2) continue;
+            try {
+                lidos.add(new Capitulo(0, partes.length > 2 ? partes[2] : "",
+                        Long.parseLong(partes[0]), Long.parseLong(partes[1])));
+            } catch (NumberFormatException e) {
+                // linha estragada: ignora
+            }
+        }
+        return de(lidos);
+    }
+
     public boolean vazio() {
         return lista.isEmpty();
     }

@@ -6,7 +6,6 @@
     <!-- Pastas -->
     <string name="st_pastas_dica">Marque o tipo de cada pasta. Os vídeos vão direto para o lugar certo.</string>
     <string name="st_atualizar_biblioteca">Atualizar biblioteca</string>
-    <string name="st_biblioteca_atualizada">Biblioteca atualizada</string>
     <string name="st_adicionar_pasta">Adicionar pasta</string>
     <string name="st_hd_externo_usb">HD externo (USB)</string>
     <string name="st_armazenamento_interno">Armazenamento interno</string>
@@ -17,9 +16,30 @@
     <string name="st_tipo_da_pasta">Tipo da pasta</string>
     <string name="st_tipo_filmes">Filmes</string>
     <string name="st_tipo_series">Séries</string>
+    <string name="st_tipo_desenhos">Desenhos</string>
     <string name="st_tipo_shows">Shows</string>
+    <string name="st_tipo_standup">Stand-up</string>
     <string name="st_tipo_ignorar">Ignorar</string>
+    <string name="st_tipos_salvos">Tipos salvos. Atualizando a biblioteca…</string>
+    <string name="st_remover">Remover</string>
+    <string name="st_remover_pasta_descricao">Remover a pasta %1$s</string>
+    <string name="st_remover_pasta_titulo">Remover a pasta?</string>
+    <string name="st_remover_pasta_dica">%1$s sai da biblioteca, com os vídeos dela. Os arquivos continuam onde estão.</string>
+    <string name="st_pasta_removida">Pasta removida: %1$s</string>
     <string name="st_pasta_linha">%1$s · %2$s</string>
+    <!-- Resultado de Atualizar biblioteca -->
+    <plurals name="st_n_atualizados">
+        <item quantity="one">%d atualizado</item>
+        <item quantity="other">%d atualizados</item>
+    </plurals>
+    <plurals name="st_n_nao_identificados">
+        <item quantity="one">%d não identificado</item>
+        <item quantity="other">%d não identificados</item>
+    </plurals>
+    <plurals name="st_n_sem_resposta">
+        <item quantity="one">%d sem resposta do TMDB</item>
+        <item quantity="other">%d sem resposta do TMDB</item>
+    </plurals>
     <plurals name="st_n_videos">
         <item quantity="one">%d vídeo</item>
         <item quantity="other">%d vídeos</item>
@@ -40,14 +60,29 @@
 
     <!-- Como organizar -->
     <string name="st_como_organizar">Como organizar</string>
-    <string name="st_como_organizar_texto">O tipo da pasta manda o vídeo direto para Filmes, Séries ou Shows. Pastas com esses nomes já são reconhecidas.</string>
+    <string name="st_como_organizar_texto">O tipo da pasta manda o vídeo direto para Filmes, Séries, Desenhos, Shows ou Stand-up. Pastas com esses nomes já são reconhecidas.</string>
     <string name="st_exemplo_filme" translatable="false">Nome do filme (2012).mkv</string>
     <string name="st_exemplo_serie" translatable="false">Nome da série / Temporada 1 / 01.mkv</string>
+    <string name="st_exemplo_desenho" translatable="false">Nome do desenho (2019).mkv</string>
     <string name="st_exemplo_show" translatable="false">Artista - Show (2019).mkv</string>
+    <string name="st_exemplo_standup" translatable="false">Nome do especial (2021).mkv</string>
     <string name="st_como_organizar_fim">O que não se encaixar vai para "Não identificados" e pode ser corrigido em Editar.</string>
 
-    <!-- Adicionar pasta (D15): navegador de pastas próprio, simulado na F1 -->
+    <!-- Adicionar pasta (D15): navegador de pastas próprio, com as pastas do aparelho (F3) -->
     <string name="st_escolher_pasta">Escolher pasta</string>
     <string name="st_pasta_adicionada">Pasta adicionada: %1$s</string>
     <string name="st_subir">Voltar uma pasta</string>
+    <string name="st_adicionar_esta_pasta">Adicionar esta pasta</string>
+    <string name="st_sem_subpastas">Nenhuma pasta aqui dentro</string>
+    <string name="st_sem_armazenamento">Nenhum armazenamento encontrado</string>
+
+    <!-- Andamento da atualização no alto das páginas (F3) -->
+    <string name="st_atualizacao_percentual">%1$d%%</string>
+    <string name="st_atualizacao_andando">Atualizando a biblioteca: %1$d%%</string>
+    <string name="st_atualizacao_em_dia">Biblioteca em dia</string>
+
+    <!-- Biblioteca real (F3) -->
+    <string name="st_atualizando_biblioteca">Atualizando a biblioteca…</string>
+    <string name="st_videos_sem_permissao">Sem permissão para ler os vídeos do aparelho. Permita o acesso nas configurações do Android.</string>
+    <string name="st_sem_pastas_dica">Nenhuma pasta ainda. Toque em Adicionar pasta para escolher onde estão os vídeos.</string>
 </resources>

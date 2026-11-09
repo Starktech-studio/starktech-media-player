@@ -102,6 +102,7 @@ Nenhum componente GPL encontrado entre os nativos do manifesto. libyuv e libcurl
 - Confirmar a versão exata de cada binário pronto de `native/prebuilt/`.
 - Pacote de código-fonte LGPL no site (FFmpeg n9.0.2 + patches + scripts de build, AudioCompress, FriBidi e o motor `native/avos` com as mudanças da StarkTech).
 - Chaves do Nova (TMDB, Trakt, OpenSubtitles): fora do código desde a F2 (etapa 4). O APK usa a chave própria do TMDB, vinda de fora do repositório no build (`docs/operacional/build.md` §2); Trakt e OpenSubtitles ficam desligados. Antes de distribuir, conferir os termos de uso da API do TMDB para a chave do app.
+- Decidir TheAudioDB e Deezer (§8).
 
 ## 6. Recursos da interface (F1)
 
@@ -114,6 +115,18 @@ Nenhum componente GPL encontrado entre os nativos do manifesto. libyuv e libcurl
 
 ## 7. O que o Sobre mostra (F1 fase I, 31/10/2026)
 
-`comum/SobreActivity`: ícone, nome, versão (do pacote), descrição e site; Créditos "Baseado no Nova Video Player · Apache-2.0"; avisos de terceiros, um por biblioteca (nome e licença; os 7 primeiros e "Ver todos"): Nova, FFmpeg, dav1d, libass, FreeType (com o crédito exigido pela FTL), Inter (OFL-1.1, com o copyright), Lucide, Opus, libmysofa, OpenSSL, FriBidi, HarfBuzz, fontconfig, libunibreak, libxml2, libpng, zlib, AudioCompress, libnativehelper, libtorrent, Boost, jcifs-ng; logo do TMDB (o do Nova) e o aviso "Este produto usa a API do TMDB, mas não é endossado nem certificado pelo TMDB."; direitos.
+`comum/SobreActivity`: ícone, nome, versão (do pacote), descrição e site; Créditos "Baseado no Nova Video Player · Apache-2.0"; avisos de terceiros, um por biblioteca (nome e licença; os 7 primeiros e "Ver todos"): Nova, FFmpeg, dav1d, libass, FreeType (com o crédito exigido pela FTL), Inter (OFL-1.1, com o copyright), Lucide, Opus, libmysofa, OpenSSL, FriBidi, HarfBuzz, fontconfig, libunibreak, libxml2, libpng, zlib, AudioCompress, libnativehelper, libtorrent, Boost, jcifs-ng; logo do TMDB (o do Nova) e o aviso "Este produto usa a API do TMDB, mas não é endossado nem certificado pelo TMDB."; crédito "Fotos de artistas: TheAudioDB (theaudiodb.com) e Deezer (deezer.com)." (plano 004); direitos.
 
 Falta para a F4 (também no `docs/backlog.md`): textos completos de cada licença (Apache-2.0, LGPL-2.1, OFL-1.1, ISC, BSD, MIT, FTL, BSL-1.0, zlib, PNG), oferta do código-fonte LGPL (FFmpeg, AudioCompress, FriBidi, motor), conferir se o `tmdb_banner.webp` é um logo aprovado pelo TMDB, versão do Lucide e confirmação da licença do jcifs-ng.
+
+## 8. Serviços de terceiros (plano 004, 04/11/2026)
+
+Capa de artista na aba Shows (`motor/BuscaArtista`). Condições conhecidas na execução do plano; reconferir nos termos de cada serviço ao decidir.
+
+| Serviço | O que o app usa | Condições conhecidas | Situação |
+|---|---|---|---|
+| TheAudioDB | Foto, fundo e país do artista, com chave fora do repositório (`docs/operacional/build.md` §2) | Chave gratuita com 30 pedidos/min; "You cannot publish apps to an appstore unless you are a paid subscriber" | Falta decidir antes do APK público |
+| Wikipédia e Wikimedia Commons | Texto do artista e opções de foto no Editar, sem chave | Texto em CC BY-SA, com o crédito "Texto da Wikipédia (CC BY-SA)" na página; cada foto do Commons tem a licença dela, e a escolhida é baixada para o aparelho | Crédito do texto na tela; falta o crédito em Sobre |
+| Deezer | Reserva: só a foto do artista, sem chave; e as opções de foto e a busca por nome no Editar do artista | "strictly limited for a non-commercial purpose"; uso "strictly private use within a family scope" | Falta decidir antes do APK público |
+
+Bibliotecas: o plano 004 não acrescentou nenhuma em `Video/build.gradle`. Robolectric 4.17 (MIT) é só de teste (`testImplementation`) e não entra no APK.

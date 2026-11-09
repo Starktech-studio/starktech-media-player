@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Selos 4K, HDR e nota da capa: fundo escuro, para ler sobre qualquer imagem; canto do tema (TV 4 dp, tablet 8 dp). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/st_veu_72" />
+    <stroke
+        android:width="?attr/stBorda"
+        android:color="@color/st_branco_14" />
+    <corners android:radius="?attr/stCantoSeloPequeno" />
+</shape>

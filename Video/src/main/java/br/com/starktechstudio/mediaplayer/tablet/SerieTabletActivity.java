@@ -27,6 +27,7 @@ import br.com.starktechstudio.mediaplayer.comum.CapaAdapter;
 import br.com.starktechstudio.mediaplayer.comum.CartaoEpisodio;
 import br.com.starktechstudio.mediaplayer.comum.Grade;
 import br.com.starktechstudio.mediaplayer.comum.Icones;
+import br.com.starktechstudio.mediaplayer.comum.Imagens;
 import br.com.starktechstudio.mediaplayer.comum.Navegacao;
 import br.com.starktechstudio.mediaplayer.comum.PecasDetalhe;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Episodio;
@@ -97,7 +98,7 @@ public class SerieTabletActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Volta do player ou de Editar: o estado simulado (assistido, posição) pode ter mudado
+        // Volta do player ou de Editar: o estado (assistido, posição) pode ter mudado
         carregar();
     }
 
@@ -110,8 +111,9 @@ public class SerieTabletActivity extends AppCompatActivity {
         temporadas = repositorio.temporadas(id);
         proximo = PecasDetalhe.proximoEpisodio(temporadas);
 
-        capa.setBackground(CapaAdapter.blocoDeCor(this, serie.corCapa,
-                getResources().getDimension(R.dimen.st_tablet_detalhe_capa_canto), false));
+        float canto = getResources().getDimension(R.dimen.st_tablet_detalhe_capa_canto);
+        capa.setBackground(CapaAdapter.blocoDeCor(this, serie.corCapa, canto, false));
+        Imagens.noFundo(capa, serie.imagemCapa(), Imagens.CAPA, canto);
         nome.setText(serie.titulo);
         List<String> textos = new ArrayList<>(Arrays.asList(
                 getResources().getQuantityString(R.plurals.st_n_temporadas, serie.numeroTemporadas, serie.numeroTemporadas),

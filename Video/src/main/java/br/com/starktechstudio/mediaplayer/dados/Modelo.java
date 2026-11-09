@@ -6,23 +6,38 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /**
  * Modelo de dados das telas novas. Java puro, sem nada do banco do Nova.
- * Na F1 os dados vêm do {@link RepositorioSimulado}; na F3, de uma implementação
- * de {@link RepositorioBiblioteca} ligada aos loaders do Nova.
- * Cores (capa, fundo, miniatura) são ARGB: na F1 as imagens são blocos de cor.
+ * Na F3 os dados vêm do {@link RepositorioReal} (pastas, motor e TMDB).
+ * Cores (capa, fundo, miniatura) são ARGB: o bloco de cor fica só quando falta a imagem
+ * (capa e fundo do TMDB, imagem do aparelho ou quadro do vídeo).
  */
 public final class Modelo {
 
+    /** Prefixo da imagem escolhida no Editar (igual ao da {@code motor.Edicoes}). */
+    static final String ARQUIVO = "arquivo:";
+    /** Prefixos do id da capa de coletânea e de artista (iguais aos do {@code motor.Acervo}). */
+    private static final String COLETANEA = "coletanea:";
+    private static final String ARTISTA = "artista:";
+
+    /** Maior nota; a menor é 0 (D6). */
+    public static final int NOTA_MAXIMA = 5;
+
     private Modelo() {}
 
+    /** Nota inteira de 0 a 5 (D6); sem nota é nulo, à parte. */
+    public static boolean notaValida(int nota) {
+        return nota >= 0 && nota <= NOTA_MAXIMA;
+    }
+
     /** Tipo do conteúdo: vem do tipo da pasta (INTERFACE.md §4). */
-    public enum Tipo { FILME, SERIE, SHOW }
+    public enum Tipo { FILME, SERIE, DESENHO, SHOW, STANDUP }
 
     /** Tipo escolhido para uma pasta; NENHUM = "escolha o tipo". */
-    public enum TipoPasta { FILMES, SERIES, SHOWS, IGNORAR, NENHUM }
+    public enum TipoPasta { FILMES, SERIES, DESENHOS, SHOWS, STANDUP, IGNORAR, NENHUM }
 
     /** Origem de uma pasta. */
     public enum Origem { HD_EXTERNO, INTERNO }
@@ -33,7 +48,53 @@ public final class Modelo {
     /** Campos da tela Editar; cada um pode estar "editado à mão". */
     public enum Campo { TITULO, TITULO_ORIGINAL, TIPO, ANO, DURACAO, GENEROS, SINOPSE }
 
-    /** Filme, série ou show da biblioteca, já com o estado simulado aplicado. */
+    /** Seção da aba Shows com "por grupo" ligado (D7): a subpasta de Shows e os artistas dela. */
+    public static final class SecaoShows {
+        /** Nome da subpasta; sem grupo, o texto "Sem grupo". */
+        public final String nome;
+        /** Shows fora das subpastas (vem por último). */
+        public final boolean semGrupo;
+        /** Capas de artista ({@link Titulo#ehArtista()}), com {@link Titulo#numeroShows} desta seção. */
+        public final List<Titulo> artistas;
+
+        public SecaoShows(String nome, boolean semGrupo, List<Titulo> artistas) {
+            this.nome = nome;
+            this.semGrupo = semGrupo;
+            this.artistas = Collections.unmodifiableList(new ArrayList<>(artistas));
+        }
+    }
+
+    /** Filtro "Só não assistidos" das listas. */
+    public static List<Titulo> naoAssistidos(List<Titulo> titulos) {
+        List<Titulo> lista = new ArrayList<>();
+        for (Titulo t : titulos) if (!t.tudoAssistido()) lista.add(t);
+        return lista;
+    }
+
+    /** O mesmo filtro nas seções da aba Shows; seção sem nada a assistir sai. */
+    public static List<SecaoShows> secoesNaoAssistidas(List<SecaoShows> secoes) {
+        List<SecaoShows> lista = new ArrayList<>();
+        for (SecaoShows s : secoes) {
+            List<Titulo> artistas = naoAssistidos(s.artistas);
+            if (!artistas.isEmpty()) lista.add(new SecaoShows(s.nome, s.semGrupo, artistas));
+        }
+        return lista;
+    }
+
+    /** Filme, série ou show da biblioteca, já com o estado (favorito, assistido, posição) aplicado. */
+    /** Prévia do resultado escolhido em "Buscar no TMDB": como o título fica, e as opções de capa e fundo. */
+    public static final class PreviaTmdb {
+        public final Titulo titulo;
+        public final List<String> capas;
+        public final List<String> fundos;
+
+        public PreviaTmdb(Titulo titulo, List<String> capas, List<String> fundos) {
+            this.titulo = titulo;
+            this.capas = capas;
+            this.fundos = fundos;
+        }
+    }
+
     public static final class Titulo {
         public String id;
         public Tipo tipo;
@@ -53,18 +114,34 @@ public final class Modelo {
         public String sinopse;
         public int corCapa;
         public int corFundo;
-        /** Capa / fundo escolhidos no aparelho (referência da {@code motor.Edicoes}); nulo = a cor. */
+        /** Capa / fundo escolhidos no Editar (referência da {@code motor.Edicoes}); nulo = o do TMDB. */
         public String capaImagem;
         public String fundoImagem;
+        /** Capa e fundo baixados do TMDB (caminho do arquivo); nulo = sem imagem. */
+        public String capaTmdb;
+        public String fundoTmdb;
+        /** Quadro do vídeo (caminho), para o cartão 16:9 sem fundo do TMDB. */
+        public String quadro;
         /** Cor da miniatura 16:9 (Continuar assistindo, Favoritos). */
         public int corCartao;
+        /** Arquivo como aparece na tela ("HD / Filmes / Nome.mkv"); série: a pasta. */
         public String arquivo;
+        /** Caminho de verdade do arquivo (player); nulo na série. */
+        public String caminho;
         public boolean naoIdentificado;
+        /** Quando entrou na biblioteca (ms). */
+        public long adicionado;
+        /** Data do arquivo (ms): desempata quem entrou na mesma varredura. */
+        public long modificado;
+        /** Nome em comum (D13): vídeos com a mesma chave herdam a edição à mão; nulo = não herda. */
+        public String chaveNome;
 
-        // Estado (EstadoSimulado)
+        // Estado
         public boolean favorito;
         public boolean assistido;
         public int posicaoSegundos;
+        /** Nota de 0 a 5, só em filme assistido (D6); nula = sem nota, diferente de 0. */
+        public Integer nota;
         /** Resultado do TMDB escolhido em "Buscar no TMDB" (vazio = o original). */
         public String idResultadoTmdb;
         public Set<Campo> editadosAMao = EnumSet.noneOf(Campo.class);
@@ -72,6 +149,57 @@ public final class Modelo {
         // Série
         public int numeroTemporadas;
         public int numeroEpisodios;
+
+        // Coletânea (D5)
+        /** Filme: a coletânea em que está (do TMDB ou ajustada à mão); nulo = fora de coletânea. */
+        public String colecaoNome;
+        /** Filme: id da coletânea (mesmo sozinho nela, sem capa própria); nulo = fora de coletânea. */
+        public String idColetanea;
+        /** Capa e fundo da coleção vindos do TMDB (caminho do arquivo). */
+        public String colecaoCapa;
+        public String colecaoFundo;
+        /** Capa de coletânea: quantos filmes tem. */
+        public int numeroFilmes;
+
+        // Show
+        /** Show: o artista; nulo = "Sem artista". Capa de artista: o nome está em {@link #titulo}. */
+        public String artista;
+        /** Show: a subpasta de Shows (D7); nulo = sem grupo. */
+        public String grupo;
+        /** Capa de artista: quantos shows tem. */
+        public int numeroShows;
+        /** Capa de coletânea ou de artista: todos os filmes ou shows dela já assistidos. */
+        public boolean todosAssistidos;
+
+        /** Coletânea e artista: todos os títulos dela; o resto: ele mesmo (série: todos os episódios). */
+        public boolean tudoAssistido() {
+            return ehColetanea() || ehArtista() ? todosAssistidos : assistido;
+        }
+
+        /** Capa de coletânea na aba Filmes: abre a lista de filmes, não o Detalhe. */
+        public boolean ehColetanea() {
+            return id != null && id.startsWith(COLETANEA);
+        }
+
+        /** Capa de artista na aba Shows: abre os shows dele, não o Detalhe. */
+        public boolean ehArtista() {
+            return id != null && id.startsWith(ARTISTA);
+        }
+
+        /** Selo "4K" da capa. */
+        public boolean eh4k() {
+            return qualidade != null && qualidade.startsWith("4K");
+        }
+
+        /** Selo "HDR" da capa ({@link #qualidade}: "4K HDR", ou só "HDR10" / "HLG" sem o tamanho da imagem). */
+        public boolean ehHdr() {
+            return qualidade != null && (qualidade.contains("HDR") || qualidade.contains("HLG"));
+        }
+
+        /** Nota só em filme (D6) e só com assistido. */
+        public boolean podeDarNota() {
+            return tipo == Tipo.FILME && assistido && !ehColetanea();
+        }
 
         public Titulo copia() {
             Titulo t = new Titulo();
@@ -90,17 +218,75 @@ public final class Modelo {
             t.corFundo = corFundo;
             t.capaImagem = capaImagem;
             t.fundoImagem = fundoImagem;
+            t.capaTmdb = capaTmdb;
+            t.fundoTmdb = fundoTmdb;
+            t.quadro = quadro;
             t.corCartao = corCartao;
             t.arquivo = arquivo;
+            t.caminho = caminho;
             t.naoIdentificado = naoIdentificado;
+            t.adicionado = adicionado;
+            t.modificado = modificado;
+            t.chaveNome = chaveNome;
             t.favorito = favorito;
             t.assistido = assistido;
             t.posicaoSegundos = posicaoSegundos;
+            t.nota = nota;
             t.idResultadoTmdb = idResultadoTmdb;
             t.editadosAMao = editadosAMao.isEmpty() ? EnumSet.noneOf(Campo.class) : EnumSet.copyOf(editadosAMao);
             t.numeroTemporadas = numeroTemporadas;
             t.numeroEpisodios = numeroEpisodios;
+            t.colecaoNome = colecaoNome;
+            t.idColetanea = idColetanea;
+            t.colecaoCapa = colecaoCapa;
+            t.colecaoFundo = colecaoFundo;
+            t.numeroFilmes = numeroFilmes;
+            t.artista = artista;
+            t.grupo = grupo;
+            t.numeroShows = numeroShows;
+            t.todosAssistidos = todosAssistidos;
             return t;
+        }
+
+        /**
+         * Imagem da capa: a escolhida no Editar ({@code arquivo:}; {@code cor:} = sem imagem), senão
+         * a do TMDB. Caminho do arquivo; nulo = bloco de cor ({@link #corCapa}).
+         */
+        public String imagemCapa() {
+            return imagem(capaImagem, capaTmdb);
+        }
+
+        /** Imagem do fundo (como a da capa). */
+        public String imagemFundo() {
+            return imagem(fundoImagem, fundoTmdb);
+        }
+
+        /** Imagem do cartão 16:9: o fundo; sem ele, o quadro do vídeo; sem nenhum, a capa. Fundo em cor escolhido no Editar: sem imagem. */
+        public String imagemCartao() {
+            String fundo = imagemFundo();
+            if (fundo != null) return fundo;
+            if (fundoImagem != null) return null;
+            return quadro != null ? quadro : imagemCapa();
+        }
+
+        /** Referência da capa atual para o Editar ({@code arquivo:} ou {@code cor:}). */
+        public String referenciaCapa() {
+            return referencia(capaImagem, capaTmdb, corCapa);
+        }
+
+        public String referenciaFundo() {
+            return referencia(fundoImagem, fundoTmdb, corFundo);
+        }
+
+        private static String imagem(String editada, String doTmdb) {
+            if (editada != null) return editada.startsWith(ARQUIVO) ? editada.substring(ARQUIVO.length()) : null;
+            return doTmdb;
+        }
+
+        private static String referencia(String editada, String doTmdb, int cor) {
+            if (editada != null) return editada;
+            if (doTmdb != null) return ARQUIVO + doTmdb;
+            return String.format(Locale.ROOT, "cor:#%06X", cor & 0xFFFFFF);
         }
 
         /** Progresso de 0 a 100, arredondado para cima (04:12 de 12:14 = 35%, como no desenho). */
@@ -194,12 +380,20 @@ public final class Modelo {
         public int temporada;
         public int numero;
         public String nome;
+        /** Nome do arquivo ("01.mkv"). */
         public String arquivo;
+        /** Caminho de verdade (player). */
+        public String caminho;
+        /** Série do episódio: id e nome. */
+        public String idSerie;
+        public String nomeSerie;
         public int duracaoMin;
         public int duracaoSegundos;
         public int corMiniatura;
+        /** Imagem do episódio (TMDB) ou quadro do vídeo; nulo = bloco de cor. */
+        public String miniatura;
 
-        // Estado (EstadoSimulado)
+        // Estado
         public boolean assistido;
         public int posicaoSegundos;
 
@@ -210,9 +404,13 @@ public final class Modelo {
             e.numero = numero;
             e.nome = nome;
             e.arquivo = arquivo;
+            e.caminho = caminho;
+            e.idSerie = idSerie;
+            e.nomeSerie = nomeSerie;
             e.duracaoMin = duracaoMin;
             e.duracaoSegundos = duracaoSegundos;
             e.corMiniatura = corMiniatura;
+            e.miniatura = miniatura;
             e.assistido = assistido;
             e.posicaoSegundos = posicaoSegundos;
             return e;
@@ -223,7 +421,7 @@ public final class Modelo {
         }
     }
 
-    /** Pasta da biblioteca, com o tipo escolhido (EstadoSimulado). */
+    /** Pasta da biblioteca, com o tipo escolhido. {@link #id}: o caminho de verdade. */
     public static final class Pasta {
         public String id;
         public String nome;
@@ -236,7 +434,6 @@ public final class Modelo {
         public int series;
         public int episodios;
 
-        // Estado (EstadoSimulado)
         public TipoPasta tipo;
 
         public Pasta copia() {
@@ -262,18 +459,19 @@ public final class Modelo {
         public final Tipo tipo;
         public final String sinopse;
         public final int corCapa;
-        public final int corFundo;
+        /** Endereço da capa pequena do TMDB; nulo = bloco de cor. */
+        public final String capaEndereco;
         /** Resultado ligado ao título hoje ("Atual"). */
         public boolean atual;
 
-        public ResultadoTmdb(String id, String titulo, String ano, Tipo tipo, String sinopse, int corCapa, int corFundo) {
+        public ResultadoTmdb(String id, String titulo, String ano, Tipo tipo, String sinopse, int corCapa, String capaEndereco) {
             this.id = id;
             this.titulo = titulo;
             this.ano = ano;
             this.tipo = tipo;
             this.sinopse = sinopse;
             this.corCapa = corCapa;
-            this.corFundo = corFundo;
+            this.capaEndereco = capaEndereco;
         }
     }
 
@@ -317,6 +515,8 @@ public final class Modelo {
         public final List<String> chipsCurtos;
         /** Quantos chips do começo das duas listas são do vídeo (azuis no desenho: "4K UHD", "HDR10"). */
         public final int chipsVideo;
+        /** Mais faixas do que o resumo mostra (áudio além do primeiro, legendas além de 3): "Ver todos". */
+        public boolean faixasDemais;
 
         public DadosTecnicos(String video, String audio, String legendas, String arquivo, String capitulos,
                              String origem, List<String> chips, List<String> chipsCurtos, int chipsVideo) {

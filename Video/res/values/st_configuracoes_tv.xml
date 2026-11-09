@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Configurações em seções e forma da legenda (plano 004, etapa 10; D8, D12). Só pt-BR (D4). -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="pt-BR">
+
+    <!-- Seções -->
+    <string name="st_cfg_grupo_biblioteca">Biblioteca</string>
+    <string name="st_cfg_grupo_biblioteca_dica">Pastas, atualização e imagens</string>
+    <string name="st_cfg_grupo_legendas">Legendas</string>
+    <string name="st_cfg_grupo_legendas_dica">Idioma, tamanho e forma. Legenda ASS mantém o estilo do arquivo e só segue o tamanho</string>
+    <string name="st_cfg_grupo_player">Player</string>
+    <string name="st_cfg_grupo_player_dica">Áudio, zoom, controles e decodificação</string>
+    <string name="st_cfg_grupo_series">Séries</string>
+    <string name="st_cfg_grupo_series_dica">Passagem entre os episódios</string>
+    <string name="st_cfg_grupo_inicio">Início</string>
+    <string name="st_cfg_grupo_inicio_dica">Novidades da tela inicial</string>
+    <string name="st_cfg_grupo_shows">Shows</string>
+    <string name="st_cfg_grupo_shows_dica">Organização da aba Shows</string>
+    <string name="st_cfg_grupo_app">App</string>
+    <string name="st_cfg_grupo_app_dica">Uso, créditos e versão</string>
+
+    <!-- Biblioteca -->
+    <string name="st_cfg_atualizar_ao_abrir">Atualizar ao abrir</string>
+    <string name="st_cfg_atualizar_ao_abrir_dica">Procura vídeos novos e dados no TMDB ao abrir o app e ao voltar a ele</string>
+
+    <!-- Legendas (D8) -->
+    <string name="st_cfg_fonte_legenda">Fonte</string>
+    <string name="st_cfg_fonte_legenda_dica">Letra da legenda</string>
+    <string name="st_cfg_negrito_legenda">Negrito</string>
+    <string name="st_cfg_negrito_legenda_dica">Letra mais forte</string>
+    <string name="st_cfg_cor_legenda">Cor</string>
+    <string name="st_cfg_cor_legenda_dica">Cor da letra</string>
+    <string name="st_cfg_contorno_legenda">Contorno</string>
+    <string name="st_cfg_contorno_legenda_dica">Linha escura em volta da letra</string>
+    <string name="st_cfg_sombra_legenda">Sombra</string>
+    <string name="st_cfg_sombra_legenda_dica">Sombra atrás da letra</string>
+    <string name="st_cfg_fundo_legenda">Fundo</string>
+    <string name="st_cfg_fundo_legenda_dica">Faixa escura atrás do texto</string>
+    <string name="st_cfg_posicao_legenda">Posição</string>
+    <string name="st_cfg_posicao_legenda_dica">Altura da legenda na imagem</string>
+
+    <!-- Player -->
+    <string name="st_cfg_zoom">Zoom padrão</string>
+    <string name="st_cfg_zoom_dica">Como a imagem preenche a tela ao abrir um vídeo</string>
+    <string name="st_cfg_pulo_tv">Pulo das setas</string>
+    <string name="st_cfg_pulo_tv_dica">Quanto ← e → andam com os controles ocultos</string>
+    <string name="st_cfg_pulo_tablet">Pulo de dois toques</string>
+    <string name="st_cfg_pulo_tablet_dica">Quanto dois toques nas laterais do vídeo andam</string>
+    <string name="st_cfg_tempo_controles">Tempo dos controles na tela</string>
+    <string name="st_cfg_tempo_controles_dica">Depois disso, os controles somem sozinhos</string>
+    <string name="st_cfg_taxa_tv">Ajustar taxa da TV ao vídeo</string>
+    <string name="st_cfg_taxa_tv_dica">Troca a taxa de atualização da TV para a do vídeo</string>
+    <string name="st_cfg_decodificacao">Decodificação</string>
+    <string name="st_cfg_decodificacao_dica">Software só se o vídeo falhar ou travar na automática</string>
+    <string name="st_cfg_audio_direto">Áudio direto para o receiver</string>
+    <string name="st_cfg_audio_direto_dica">Envia Dolby e DTS sem decodificar, para o receiver ou a barra de som</string>
+    <string name="st_cfg_dolby_vision">Dolby Vision</string>
+    <string name="st_cfg_dolby_vision_dica">Desligado: toca a imagem comum, se a TV mostrar errado</string>
+
+    <!-- Séries -->
+    <string name="st_cfg_proximo_episodio">Próximo episódio automático</string>
+    <string name="st_cfg_proximo_episodio_dica">Ao terminar um episódio, abre o seguinte</string>
+
+    <!-- Início -->
+    <string name="st_cfg_previa_video">Prévia em vídeo</string>
+    <string name="st_cfg_previa_video_dica">Toca um trecho sem som no item em foco de Novidades</string>
+    <string name="st_cfg_troca_novidades">Troca automática de Novidades</string>
+    <string name="st_cfg_troca_novidades_dica">Passa ao item seguinte com o foco fora de Novidades</string>
+
+    <!-- Shows -->
+    <string name="st_cfg_shows_por_grupo">Por grupo</string>
+    <string name="st_cfg_shows_por_grupo_dica">Separa a aba Shows pelas subpastas de Shows</string>
+
+    <!-- App -->
+    <string name="st_cfg_versao">Versão</string>
+    <string name="st_cfg_versao_dica">A que está neste aparelho</string>
+    <string name="st_cfg_versao_instalada">Versão instalada</string>
+    <string name="st_cfg_versao_disponivel">Versão disponível</string>
+    <string name="st_cfg_versao_disponivel_dica">A última publicada no GitHub</string>
+    <string name="st_versao_sem_valor">—</string>
+    <string name="st_cfg_atualizar_app">Atualizar automaticamente</string>
+    <string name="st_cfg_atualizar_app_dica">Procura versão nova e avisa; instalar sempre pede a sua confirmação</string>
+
+    <!-- Valores -->
+    <string name="st_valor_muito_pequena">Muito pequena</string>
+    <string name="st_valor_muito_grande">Muito grande</string>
+    <string name="st_valor_padrao">Padrão</string>
+    <string name="st_valor_com_serifa">Com serifa</string>
+    <string name="st_valor_monoespacada">Monoespaçada</string>
+    <string name="st_valor_branca">Branca</string>
+    <string name="st_valor_amarela">Amarela</string>
+    <string name="st_valor_ciano">Ciano</string>
+    <string name="st_valor_verde">Verde</string>
+    <string name="st_valor_nenhum">Nenhum</string>
+    <string name="st_valor_fino">Fino</string>
+    <string name="st_valor_medio">Médio</string>
+    <string name="st_valor_grosso">Grosso</string>
+    <string name="st_valor_nenhuma">Nenhuma</string>
+    <string name="st_valor_leve">Leve</string>
+    <string name="st_valor_forte">Forte</string>
+    <string name="st_valor_sem_fundo">Sem fundo</string>
+    <string name="st_valor_por_linha">Por linha</string>
+    <string name="st_valor_em_bloco">Em bloco</string>
+    <string name="st_valor_embaixo">Embaixo</string>
+    <string name="st_valor_pouco_acima">Um pouco acima</string>
+    <string name="st_valor_mais_acima">Mais acima</string>
+    <string name="st_valor_3_s">3 s</string>
+    <string name="st_valor_5_s">5 s</string>
+    <string name="st_valor_10_s">10 s</string>
+    <string name="st_valor_30_s">30 s</string>
+    <string name="st_valor_ligada">Ligada</string>
+    <string name="st_valor_automatica">Automática</string>
+    <string name="st_valor_automatico">Automático</string>
+    <string name="st_valor_software">Software</string>
+
+    <!-- Aviso do pulo no player -->
+    <string name="st_pulo_menos">−%1$d s</string>
+    <string name="st_pulo_mais">+%1$d s</string>
+</resources>

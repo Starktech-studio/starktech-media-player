@@ -1,5 +1,6 @@
 // Copyright 2017 Archos SA
 // Copyright 2020 Courville Software
+// Modificado por StarkTech Studio em 2026
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -1084,6 +1085,15 @@ public class Player implements IPlayerControl,
     public void checkSubtitles() {
         if (isInPlaybackState())
             mMediaPlayer.checkSubtitles(); // note that player checks also cache directory with avos
+    }
+
+    /**
+     * StarkTech: metadados do arquivo aberto (os capítulos que o motor leu), para o player do app;
+     * nulo antes de abrir ou com o player parado.
+     */
+    public MediaMetadata getMediaMetadata() {
+        if (!isInPlaybackState()) return null;
+        return mMediaPlayer.getMediaMetadata(IMediaPlayer.METADATA_ALL, IMediaPlayer.BYPASS_METADATA_FILTER);
     }
 
     public boolean setSubtitleTrack(int stream) {

@@ -25,6 +25,7 @@
             android:layout_height="@dimen/st_tablet_cartao_icone"
             android:layout_gravity="center"
             android:importantForAccessibility="no"
+            android:id="@+id/st_imagem_reserva"
             android:src="@drawable/st_ic_imagem"
             app:tint="@color/st_branco_30" />
 

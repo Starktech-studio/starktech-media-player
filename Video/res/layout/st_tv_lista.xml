@@ -3,7 +3,7 @@
 <!--
      Abas Filmes, Séries e Shows da TV (ListaFragment, D9): grade de capas 2:3 no padrão do
      tv-menu-capa.dc.html (título 28 px a 60 px do topo, capas 196x294 px com 28 px de espaço),
-     sem filtros. Medidas: px do HTML / 2. Colunas calculadas pela largura (7 em 960 dp).
+     e o filtro "Só não assistidos", colocado no código. Medidas: px do HTML / 2. Colunas calculadas pela largura (7 em 960 dp).
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"

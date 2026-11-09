@@ -8,8 +8,11 @@
     <string name="st_biblioteca">Biblioteca</string>
 
     <!-- Tipo e origem dos dados -->
+    <string name="st_ver_todas_faixas">Ver todos</string>
+    <string name="st_ver_mais">Ver mais</string>
     <string name="st_tipo_filme">Filme</string>
     <string name="st_tipo_serie">Série</string>
+    <string name="st_tipo_desenho">Desenho</string>
     <string name="st_tipo_show">Show</string>
     <string name="st_dados_tmdb">Dados do TMDB</string>
     <string name="st_dados_tmdb_corrigidos">Dados do TMDB · corrigidos à mão</string>

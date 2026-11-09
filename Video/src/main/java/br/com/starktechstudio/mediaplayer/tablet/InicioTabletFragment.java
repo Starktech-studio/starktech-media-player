@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -23,6 +24,7 @@ import com.archos.mediacenter.video.R;
 import java.util.ArrayList;
 import java.util.List;
 
+import br.com.starktechstudio.mediaplayer.comum.AvisoVazio;
 import br.com.starktechstudio.mediaplayer.comum.BordasSistema;
 import br.com.starktechstudio.mediaplayer.comum.CapaAdapter;
 import br.com.starktechstudio.mediaplayer.comum.CartaoAdapter;
@@ -50,6 +52,8 @@ public class InicioTabletFragment extends Fragment {
     private PagerSnapHelper encaixe;
     private LinearLayout pontos;
     private int paginaAtual;
+    private TextView vazio;
+    private final Runnable aoMudarBiblioteca = this::recarregar;
 
     @Nullable
     @Override
@@ -66,6 +70,10 @@ public class InicioTabletFragment extends Fragment {
         pontos = raiz.findViewById(R.id.st_adicionados_pontos);
         // A rolagem passa por trás da barra de navegação do sistema
         BordasSistema.aplicar(raiz, false, false, false, true);
+        // Biblioteca vazia: o aviso no alto da página
+        vazio = AvisoVazio.criar(requireContext());
+        ((ViewGroup) ((ViewGroup) raiz).getChildAt(0)).addView(vazio, 0, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         // Continuar assistindo: 22 dp entre os cartões
         RecyclerView fileira = raiz.findViewById(R.id.st_fileira_continuar);
@@ -102,7 +110,22 @@ public class InicioTabletFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // Volta de outra tela: o estado simulado (assistido, posição) pode ter mudado
+        // Volta de outra tela (assistido, posição) ou a varredura / o TMDB mudaram a biblioteca
+        recarregar();
+        repositorio.ouvir(aoMudarBiblioteca);
+    }
+
+    @Override
+    public void onPause() {
+        repositorio.deixarDeOuvir(aoMudarBiblioteca);
+        super.onPause();
+    }
+
+    private void recarregar() {
+        if (getView() == null) return;
+        boolean nada = repositorio.vazia();
+        vazio.setVisibility(nada ? View.VISIBLE : View.GONE);
+        if (nada) vazio.setText(AvisoVazio.texto(requireContext(), repositorio, R.string.st_vazio_sem_videos));
         List<Titulo> lista = repositorio.continuarAssistindo();
         continuar.atualizar(lista);
         secaoContinuar.setVisibility(lista.isEmpty() ? View.GONE : View.VISIBLE);

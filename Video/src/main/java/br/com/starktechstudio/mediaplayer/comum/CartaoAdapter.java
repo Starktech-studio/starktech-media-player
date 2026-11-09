@@ -24,7 +24,7 @@ import br.com.starktechstudio.mediaplayer.dados.Modelo.Titulo;
 import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 
 /**
- * Cartões 16:9 (Main.dc.html, tablet-biblioteca.dc.html): bloco de cor no lugar da imagem (F1).
+ * Cartões 16:9 (Main.dc.html, tablet-biblioteca.dc.html): fundo do TMDB, quadro do vídeo ou a capa ({@link Titulo#imagemCartao}).
  * Continuar assistindo: barra de progresso e "Cap. 4 de 8 · Faltam 6 min" (tablet: "Cap. 4 de 8";
  * sem capítulos: "Faltam 2 min"); o clique retoma a reprodução. Favoritos: coração no canto e
  * "ano · duração"; o clique abre o título. TV: borda de foco na imagem, sem aumento.
@@ -125,6 +125,7 @@ public class CartaoAdapter extends RecyclerView.Adapter<CartaoAdapter.Cartao> {
             Context contexto = itemView.getContext();
             float canto = contexto.getResources().getDimension(tv ? R.dimen.st_tv_cartao_canto : R.dimen.st_tablet_cartao_canto);
             imagem.setBackground(CapaAdapter.blocoDeCor(contexto, t.corCartao, canto, tv));
+            Imagens.noFundo(imagem, t.imagemCartao(), Imagens.CARTAO, canto);
             titulo.setText(t.titulo);
             if (modo == Modo.CONTINUAR) {
                 progresso.setVisibility(View.VISIBLE);

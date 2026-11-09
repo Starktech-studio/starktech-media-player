@@ -23,7 +23,8 @@ import java.util.List;
 /**
  * Barra do player (tv-player.dc.html, tablet-player.dc.html): trilho branco 15 %, avanço azul,
  * marca branca 75 % no começo de cada capítulo e o ponto branco com anel azul 45 % na posição.
- * TV: só mostra (a posição anda pelas teclas). Tablet: tocar ou arrastar na barra muda a posição.
+ * TV: recebe o foco pelo layout e a posição anda pelas teclas (← / → em ReproducaoTvActivity).
+ * Tablet: tocar ou arrastar na barra muda a posição.
  */
 public class BarraCapitulosView extends View {
 

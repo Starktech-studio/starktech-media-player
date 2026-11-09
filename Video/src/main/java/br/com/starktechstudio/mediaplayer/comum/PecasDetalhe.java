@@ -7,6 +7,7 @@ import android.content.res.Resources;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.text.SpannableStringBuilder;
+import android.text.TextUtils;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.TypefaceSpan;
@@ -43,12 +44,31 @@ public final class PecasDetalhe {
 
     private PecasDetalhe() {}
 
-    /** "Filme", "Série" ou "Show" (rótulo em caixa alta acima do título). */
+    /** "Filme", "Série", "Desenho", "Show" ou "Stand-up" (rótulo em caixa alta acima do título). */
     @StringRes
     public static int rotuloTipo(Tipo tipo) {
         if (tipo == Tipo.SERIE) return R.string.st_tipo_serie;
+        if (tipo == Tipo.DESENHO) return R.string.st_tipo_desenho;
         if (tipo == Tipo.SHOW) return R.string.st_tipo_show;
+        if (tipo == Tipo.STANDUP) return R.string.st_tipo_standup;
         return R.string.st_tipo_filme;
+    }
+
+    /** "Ver todos" (azul): no Detalhe, abre o painel com todas as faixas de áudio e legenda. */
+    private static TextView verTodos(Context contexto, float tamanho, boolean tv, Runnable acao) {
+        TextView link = new TextView(contexto);
+        link.setText(R.string.st_ver_todas_faixas);
+        link.setTypeface(ResourcesCompat.getFont(contexto, R.font.st_inter_extrabold));
+        link.setIncludeFontPadding(false);
+        link.setTextSize(TypedValue.COMPLEX_UNIT_PX, tamanho);
+        link.setTextColor(ContextCompat.getColor(contexto, R.color.st_azul));
+        int folga = Math.round(tamanho / 3);
+        link.setPadding(folga, folga, folga, folga);
+        link.setFocusable(true);
+        link.setClickable(true);
+        if (tv) link.setForeground(ContextCompat.getDrawable(contexto, R.drawable.st_foco_tv));
+        link.setOnClickListener(v -> acao.run());
+        return link;
     }
 
     /** 04:12, ou 1:04:12 a partir de uma hora. */
@@ -184,6 +204,14 @@ public final class PecasDetalhe {
 
     /** Dados técnicos em grade de 3 colunas: Vídeo, Áudio, Legendas, Arquivo, Capítulos, Origem. */
     public static void dadosTecnicos(LinearLayout alvo, DadosTecnicos dados, boolean tv) {
+        dadosTecnicos(alvo, dados, tv, null);
+    }
+
+    /**
+     * Com {@code verTodas}: arquivo com mais faixas do que o resumo mostra ganha "Ver todos" embaixo
+     * das legendas (abre o painel Áudio e legendas). Cada valor fica em até 2 linhas.
+     */
+    public static void dadosTecnicos(LinearLayout alvo, DadosTecnicos dados, boolean tv, Runnable verTodas) {
         Context contexto = alvo.getContext();
         Resources res = contexto.getResources();
         int[] rotulos = {R.string.st_dt_video, R.string.st_dt_audio, R.string.st_dt_legendas,
@@ -216,10 +244,15 @@ public final class PecasDetalhe {
             valor.setIncludeFontPadding(false);
             valor.setTextSize(TypedValue.COMPLEX_UNIT_PX, tamanhoValor);
             valor.setTextColor(ContextCompat.getColor(contexto, R.color.st_texto_secundario));
+            valor.setMaxLines(2);
+            valor.setEllipsize(TextUtils.TruncateAt.END);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             lp.topMargin = espacoRotulo;
             celula.addView(valor, lp);
+            if (rotulos[i] == R.string.st_dt_legendas && dados.faixasDemais && verTodas != null) {
+                celula.addView(verTodos(contexto, tamanhoValor, tv, verTodas), lp);
+            }
             celulas.add(celula);
         }
         Grade.preencher(alvo, celulas, 3,

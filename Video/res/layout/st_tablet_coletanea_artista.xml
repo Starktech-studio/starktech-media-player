@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!--
+     Coletânea e artista no tablet (ColetaneaArtistaActivity), no padrão do Detalhe: Biblioteca
+     (voltar), capa e, ao lado, nome, chips, texto e Editar; embaixo, com título próprio, as capas dos
+     filmes ou dos shows, criadas no código, com as colunas pela largura. Medidas: px do HTML = dp.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/st_fundo">
+
+    <!-- Fundo animado StarkTech (3 manchas de luz), atrás de todo o conteúdo -->
+    <br.com.starktechstudio.mediaplayer.comum.FundoAnimado
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/st_coletanea_corpo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="@dimen/st_tablet_margem_h"
+            android:paddingTop="@dimen/st_tablet_detalhe_margem_v"
+            android:paddingEnd="@dimen/st_tablet_margem_h"
+            android:paddingBottom="@dimen/st_tablet_detalhe_margem_v">
+
+            <!-- Biblioteca (voltar) -->
+            <Button
+                android:id="@+id/st_coletanea_voltar"
+                style="@style/StarkTech.Botao.Tablet.Secundario"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/st_tablet_detalhe_topo_botao_altura"
+                android:minHeight="0dp"
+                android:paddingStart="@dimen/st_tablet_detalhe_topo_botao_padding"
+                android:paddingEnd="@dimen/st_tablet_detalhe_topo_botao_padding"
+                android:text="@string/st_biblioteca" />
+
+            <!-- Capa (220x330) e informações -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/st_tablet_detalhe_espaco"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <FrameLayout
+                    android:id="@+id/st_coletanea_capa"
+                    android:layout_width="@dimen/st_tablet_detalhe_capa_largura"
+                    android:layout_height="@dimen/st_tablet_detalhe_capa_altura"
+                    android:importantForAccessibility="no"
+                    android:padding="@dimen/st_tablet_detalhe_capa_padding">
+
+                    <ImageView
+                        android:id="@+id/st_imagem_reserva"
+                        android:layout_width="@dimen/st_tablet_detalhe_capa_icone"
+                        android:layout_height="@dimen/st_tablet_detalhe_capa_icone"
+                        android:layout_gravity="top|end"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/st_ic_imagem"
+                        app:tint="@color/st_branco_35" />
+                </FrameLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="@dimen/st_tablet_detalhe_capa_espaco"
+                    android:layout_weight="1"
+                    android:gravity="center_vertical"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/st_coletanea_rotulo"
+                        style="@style/StarkTech.Texto.Rotulo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="@dimen/st_tablet_texto_detalhe_rotulo" />
+
+                    <TextView
+                        android:id="@+id/st_coletanea_titulo"
+                        style="@style/StarkTech.Texto.Titulo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/st_tablet_detalhe_espaco_info"
+                        android:ellipsize="end"
+                        android:maxLines="2"
+                        android:textSize="@dimen/st_tablet_texto_detalhe_titulo" />
+
+                    <!-- Chip: quantos filmes ou shows; criado no código -->
+                    <LinearLayout
+                        android:id="@+id/st_coletanea_chips"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/st_tablet_detalhe_espaco_info"
+                        android:orientation="horizontal" />
+
+                    <!-- Texto: até 4 linhas; o resto em "Ver mais", numa janela -->
+                    <TextView
+                        android:id="@+id/st_coletanea_sinopse"
+                        style="@style/StarkTech.Texto"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/st_tablet_detalhe_espaco_info"
+                        android:ellipsize="end"
+                        android:justificationMode="inter_word"
+                        android:lineSpacingMultiplier="1.28"
+                        android:maxLines="4"
+                        android:maxWidth="@dimen/st_tablet_detalhe_sinopse_largura"
+                        android:textColor="@color/st_texto_secundario"
+                        android:textSize="@dimen/st_tablet_texto_detalhe_sinopse"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/st_coletanea_fonte"
+                        style="@style/StarkTech.Texto"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/st_fonte_wikipedia"
+                        android:textColor="@color/st_texto_apagado"
+                        android:textSize="@dimen/st_tablet_texto_menu_dica"
+                        android:visibility="gone" />
+
+                    <!-- Editar e Ver mais -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/st_tablet_coletanea_acoes_margem"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/st_coletanea_editar"
+                            style="@style/StarkTech.Botao.Tablet.Secundario"
+                            android:layout_width="wrap_content"
+                            android:layout_height="@dimen/st_tablet_detalhe_topo_botao_altura"
+                            android:minHeight="0dp"
+                            android:paddingStart="@dimen/st_tablet_detalhe_topo_botao_padding"
+                            android:paddingEnd="@dimen/st_tablet_detalhe_topo_botao_padding"
+                            android:text="@string/st_editar" />
+
+                        <Button
+                            android:id="@+id/st_coletanea_ver_mais"
+                            style="@style/StarkTech.Botao.Tablet.Secundario"
+                            android:layout_width="wrap_content"
+                            android:layout_height="@dimen/st_tablet_detalhe_topo_botao_altura"
+                            android:layout_marginStart="@dimen/st_tablet_detalhe_botao_espaco"
+                            android:minHeight="0dp"
+                            android:paddingStart="@dimen/st_tablet_detalhe_topo_botao_padding"
+                            android:paddingEnd="@dimen/st_tablet_detalhe_topo_botao_padding"
+                            android:text="@string/st_ver_mais"
+                            android:visibility="gone" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Título da seção: destaca os shows do artista -->
+            <TextView
+                android:id="@+id/st_coletanea_secao"
+                style="@style/StarkTech.Texto.Titulo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/st_tablet_espaco_secao"
+                android:letterSpacing="0"
+                android:textSize="@dimen/st_tablet_texto_titulo_secao" />
+
+            <!-- Capas; criadas no código -->
+            <LinearLayout
+                android:id="@+id/st_coletanea_capas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/st_tablet_coletanea_secao_margem"
+                android:orientation="vertical" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</FrameLayout>

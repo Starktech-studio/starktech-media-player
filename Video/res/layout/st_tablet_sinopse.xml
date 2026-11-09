@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Sinopse inteira ("Ver mais" do Detalhe do tablet, SinopseActivity): janela flutuante; o texto rola. Largura aplicada no código. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/st_sinopse_caixa"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/st_fundo_menu"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:id="@+id/st_sinopse_titulo"
+        style="@style/StarkTech.Texto.Titulo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:letterSpacing="0"
+        android:maxLines="2"
+        android:textSize="@dimen/st_tablet_texto_menu_titulo" />
+
+    <ScrollView
+        android:id="@+id/st_sinopse_rolagem"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="12dp"
+        android:layout_weight="1"
+        android:overScrollMode="never"
+        android:scrollbars="none">
+
+        <TextView
+            android:id="@+id/st_sinopse_texto"
+            style="@style/StarkTech.Texto"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:justificationMode="inter_word"
+            android:lineSpacingMultiplier="1.28"
+            android:textColor="@color/st_texto_secundario"
+            android:textSize="@dimen/st_tablet_texto_detalhe_sinopse" />
+    </ScrollView>
+
+    <Button
+        android:id="@+id/st_sinopse_fechar"
+        style="@style/StarkTech.Botao.Tablet.Secundario"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/st_tablet_detalhe_topo_botao_altura"
+        android:layout_gravity="end"
+        android:layout_marginTop="16dp"
+        android:minHeight="0dp"
+        android:paddingStart="@dimen/st_tablet_detalhe_topo_botao_padding"
+        android:paddingEnd="@dimen/st_tablet_detalhe_topo_botao_padding"
+        android:text="@string/st_fechar" />
+</LinearLayout>

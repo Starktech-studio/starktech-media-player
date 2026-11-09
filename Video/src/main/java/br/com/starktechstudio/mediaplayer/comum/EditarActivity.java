@@ -2,18 +2,22 @@
 
 package br.com.starktechstudio.mediaplayer.comum;
 
-import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
+import android.text.Layout;
 import android.text.TextWatcher;
+import android.text.method.ArrowKeyMovementMethod;
+import android.text.method.KeyListener;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -21,6 +25,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.ColorRes;
@@ -31,6 +36,8 @@ import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.core.widget.ImageViewCompat;
 
 import com.archos.mediacenter.video.R;
@@ -39,7 +46,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -49,23 +55,56 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Campo;
+import br.com.starktechstudio.mediaplayer.dados.Modelo.PreviaTmdb;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Tipo;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Titulo;
 import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
+import br.com.starktechstudio.mediaplayer.motor.Acervo;
 import br.com.starktechstudio.mediaplayer.motor.Edicoes;
 import br.com.starktechstudio.mediaplayer.motor.ImagemDoAparelho;
 
 /**
  * Editar (tv-editar.dc.html, tablet-editar.dc.html), igual nos dois aparelhos com o layout de
  * cada um: capa e fundo escolhidos entre as opções do TMDB, a escolhida em destaque e as outras
- * embaixo, ou uma imagem do aparelho (F2, D3: "Do aparelho" pelo seletor do sistema no tablet,
- * "Do HD" pelo {@link NavegadorImagensActivity} na TV; JPG, PNG ou WebP até 15 MB, copiada pela
- * {@link ImagemDoAparelho}); campos Título, Título original, Tipo, Ano, Duração, Gêneros e Sinopse;
+ * embaixo, ou uma imagem do aparelho ("Do aparelho" no tablet, "Do HD" na TV: o
+ * {@link NavegadorImagensActivity} já na pasta de imagens das Configurações; JPG, PNG ou WebP até
+ * 15 MB, copiada pela {@link ImagemDoAparelho}); campos Título, Título original, Tipo, Ano, Duração, Gêneros e Sinopse;
  * Buscar no TMDB, Restaurar original e Salvar. Salvar marca os campos mudados como "editados à mão"
- * (o Detalhe passa a mostrar "corrigidos à mão"). Na volta da busca no TMDB, os campos já mexidos
- * nesta tela ficam como estão.
+ * (o Detalhe passa a mostrar "corrigidos à mão"). O resultado escolhido em Buscar no TMDB preenche
+ * a tela na hora (prévia, sem gravar: Salvar grava, fechar descarta); os campos mexidos nesta tela ou
+ * já editados à mão ficam como estão. Na TV, o foco só realça a caixa de texto: OK entra, seleciona
+ * o texto e abre o teclado. Filme: Coletânea (D5), para mover a outra, tirar dela ou voltar ao TMDB.
+ * Capa de coletânea e de artista: só o nome, a capa e o fundo, sem Buscar no TMDB. Capa de artista:
+ * as fotos do Deezer e da Wikipédia entram nas opções da capa, e "Buscar artista" troca o artista: com
+ * um que já está na biblioteca, os shows dos dois ficam juntos ("Queen + Adam Lambert" em "Queen").
  */
 public class EditarActivity extends AppCompatActivity {
+
+    /** TV, caixa só em foco: nenhuma tecla digita e o tipo nulo deixa o teclado do sistema de fora. */
+    private static final KeyListener SEM_TECLAS = new KeyListener() {
+        @Override
+        public int getInputType() {
+            return InputType.TYPE_NULL;
+        }
+
+        @Override
+        public boolean onKeyDown(View view, Editable text, int keyCode, KeyEvent event) {
+            return false;
+        }
+
+        @Override
+        public boolean onKeyUp(View view, Editable text, int keyCode, KeyEvent event) {
+            return false;
+        }
+
+        @Override
+        public boolean onKeyOther(View view, Editable text, KeyEvent event) {
+            return false;
+        }
+
+        @Override
+        public void clearMetaKeyState(View view, Editable content, int states) {}
+    };
 
     private RepositorioBiblioteca repositorio;
     private String id;
@@ -75,24 +114,52 @@ public class EditarActivity extends AppCompatActivity {
     private final Set<Campo> mexidos = EnumSet.noneOf(Campo.class);
     private final List<TextView> segmentos = new ArrayList<>();
     private Tipo tipo;
-    private int capa;
-    private int fundo;
-    private int capaSalva;
-    private int fundoSalvo;
-    /** Imagem do aparelho escolhida no lugar da cor (referência da Edicoes); nula = a cor. */
-    private String capaImagem;
-    private String fundoImagem;
-    private String capaImagemSalva;
-    private String fundoImagemSalva;
+    /**
+     * Capa e fundo escolhidos: referência da Edicoes — {@code arquivo:} (TMDB já baixada ou imagem
+     * do aparelho), {@code url:} (outra opção do TMDB, baixada ao salvar) ou {@code cor:}.
+     */
+    private String capa;
+    private String fundo;
+    private String capaSalva;
+    private String fundoSalvo;
     /** Capa / fundo trocados nesta tela: a volta de outra tela (seletor, TMDB) não desfaz. */
     private boolean capaMexida;
     private boolean fundoMexido;
     private boolean salvou;
+    private boolean salvando;
+    /**
+     * Mudanças que só valem no Salvar: o resultado escolhido em "Buscar no TMDB" (id da busca e a
+     * prévia, quando chega da rede) e o Restaurar original (a tela mostra a prévia, sem a edição à mão).
+     */
+    private String resultadoTmdb;
+    private String resultadoTmdbTexto;
+    @Nullable
+    private PreviaTmdb previa;
+    private boolean restaurar;
+    /** Capa de coletânea ou de artista, não um título. */
+    private boolean capaAgrupada;
+    private boolean ehArtista;
+    /** Artista escolhido em "Buscar artista": o nome dele, o que aparece no aviso e a foto; só vale no Salvar. */
+    @Nullable
+    private String artistaEscolhido;
+    private String artistaEscolhidoTexto;
+    @Nullable
+    private String fotoDoArtistaEscolhido;
+    /** Coletânea do filme: a caixa e a linha dela; nulas na capa de coletânea e de artista. */
+    @Nullable
+    private EditText caixaColetanea;
+    @Nullable
+    private View linhaColetanea;
+    /** A coletânea mudou nesta tela; só vale no Salvar. */
+    private boolean coletaneaMexida;
+    /** O que o Salvar grava é "voltar ao TMDB", não o nome da caixa. */
+    private boolean coletaneaDoTmdb;
+    private ActivityResultLauncher<Intent> escolherColetanea;
+    private TextView avisoPendente;
+    private ActivityResultLauncher<Intent> buscaTmdb;
     /** Imagens copiadas nesta tela: as que não forem salvas são apagadas ao sair. */
     private final List<String> importadas = new ArrayList<>();
-    private final Map<String, Bitmap> previas = new HashMap<>();
     private final ExecutorService copia = Executors.newSingleThreadExecutor();
-    private ActivityResultLauncher<String[]> seletorDoSistema;
     private ActivityResultLauncher<Intent> navegadorDoApp;
     /** O pedido de imagem em andamento é da capa (senão, do fundo). */
     private boolean pedidoDaCapa;
@@ -101,17 +168,44 @@ public class EditarActivity extends AppCompatActivity {
     private final List<View> opcoesFundo = new ArrayList<>();
     private int porFileiraCapa = 1;
     private int porFileiraFundo = 1;
+    /** Capa de artista: as fotos do Deezer, depois que chegam ({@link #buscarFotosDoArtista}). */
+    private List<String> fotosDoArtista = new ArrayList<>();
     private boolean carregando;
+    /** TV: a caixa de texto aberta para digitar (sem nenhuma, o foco só realça e as setas andam). */
+    @Nullable
+    private EditText editando;
+    /** O teclado da caixa aberta já apareceu: quando sumir, a edição acabou. */
+    private boolean tecladoVisto;
+    /** TV, caixa aberta sem teclado na tela: Voltar fecha a caixa, não a tela (fechar descarta). */
+    private final OnBackPressedCallback voltarDaCaixa = new OnBackPressedCallback(false) {
+        @Override
+        public void handleOnBackPressed() {
+            if (editando != null) sairDaCaixa(editando);
+        }
+    };
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         setTheme(Aparelho.tema(this));
         super.onCreate(savedInstanceState);
         tv = Aparelho.ehTv(this);
-        // D3: tablet pelo seletor do sistema; TV (e tablet sem seletor) pelo navegador do app
-        seletorDoSistema = registerForActivityResult(new ActivityResultContracts.OpenDocument(), endereco -> {
-            if (endereco != null) importar(() -> ImagemDoAparelho.doConteudo(this, endereco));
+        // Buscar no TMDB devolve o resultado escolhido: a tela preenche na hora; o banco só muda no Salvar
+        buscaTmdb = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), volta -> {
+            Intent dados = volta.getData();
+            if (volta.getResultCode() != RESULT_OK || dados == null) return;
+            if (ehArtista) {
+                artistaEscolhido = dados.getStringExtra(BuscaTmdbActivity.EXTRA_RESULTADO);
+                artistaEscolhidoTexto = dados.getStringExtra(BuscaTmdbActivity.EXTRA_RESULTADO_TITULO);
+                fotoDoArtistaEscolhido = dados.getStringExtra(BuscaTmdbActivity.EXTRA_RESULTADO_FOTO);
+                restaurar = false;
+                mostrarPendente();
+                return;
+            }
+            buscarPrevia(dados.getStringExtra(BuscaTmdbActivity.EXTRA_RESULTADO),
+                    dados.getStringExtra(BuscaTmdbActivity.EXTRA_RESULTADO_TITULO));
         });
+        // Tablet e TV pelo navegador do app, aberto na pasta de imagens (o seletor do sistema
+        // travava com as imagens do HD no tablet)
         navegadorDoApp = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), volta -> {
             Intent dados = volta.getData();
             String caminho = dados == null ? null : dados.getStringExtra(NavegadorImagensActivity.EXTRA_CAMINHO);
@@ -119,41 +213,161 @@ public class EditarActivity extends AppCompatActivity {
                 importar(() -> ImagemDoAparelho.doArquivo(this, new File(caminho)));
             }
         });
+        // A coletânea escolhida na janela vai para a caixa; o banco só muda no Salvar
+        escolherColetanea = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), volta -> {
+            Intent dados = volta.getData();
+            String nome = dados == null ? null : dados.getStringExtra(EscolherColetaneaActivity.EXTRA_NOME);
+            if (volta.getResultCode() == RESULT_OK && nome != null) mudarColetanea(nome, false);
+        });
         repositorio = RepositorioBiblioteca.atual(this);
         id = getIntent().getStringExtra(Navegacao.EXTRA_ID);
-        if (repositorio.titulo(id) == null) {
+        Titulo inicial = repositorio.titulo(id);
+        if (inicial == null) {
             finish();
             return;
         }
+        capaAgrupada = inicial.ehColetanea() || inicial.ehArtista();
+        ehArtista = inicial.ehArtista();
         setContentView(tv ? R.layout.st_tv_editar : R.layout.st_tablet_editar);
         if (!tv) BordasSistema.aplicar(findViewById(R.id.st_editar_corpo), true, true, true, true);
 
         findViewById(R.id.st_editar_voltar).setOnClickListener(v -> finish());
-        findViewById(R.id.st_editar_buscar_tmdb).setOnClickListener(v -> Navegacao.abrirBuscaTmdb(this, id));
+        View buscarTmdb = findViewById(R.id.st_editar_buscar_tmdb);
+        buscarTmdb.setOnClickListener(v ->
+                buscaTmdb.launch(new Intent(this, BuscaTmdbActivity.class).putExtra(Navegacao.EXTRA_ID, id)));
+        // Coletânea não tem resultado do TMDB para escolher; o artista busca outro artista, menos "Sem artista"
+        boolean buscaArtista = ehArtista && !Acervo.chaveArtista(null).equals(id);
+        if (capaAgrupada && !buscaArtista) buscarTmdb.setVisibility(View.GONE);
+        if (buscaArtista) ((TextView) buscarTmdb).setText(R.string.st_buscar_artista);
+        // Restaurar original: prévia na tela; o banco só muda no Salvar
         findViewById(R.id.st_editar_restaurar).setOnClickListener(v -> {
-            repositorio.restaurarOriginal(id);
+            restaurar = true;
+            artistaEscolhido = null;
+            fotoDoArtistaEscolhido = null;
+            resultadoTmdb = null;
+            previa = null;
             mexidos.clear();
             capaMexida = false;
             fundoMexido = false;
+            coletaneaMexida = false;
+            coletaneaDoTmdb = false;
             carregar();
+            mostrarPendente();
         });
         findViewById(R.id.st_editar_salvar).setOnClickListener(v -> salvar());
         View cancelar = findViewById(R.id.st_editar_cancelar);
         if (cancelar != null) cancelar.setOnClickListener(v -> finish());
 
         montarCampos();
+        if (tv) {
+            getOnBackPressedDispatcher().addCallback(this, voltarDaCaixa);
+            vigiarTeclado();
+        }
+        // Aviso do que vai mudar no Salvar, embaixo do título da tela
+        TextView nomeDoTitulo = findViewById(R.id.st_editar_nome);
+        avisoPendente = Textos.novo(this, "", R.font.st_inter_bold, tv ? 17 : 19, R.color.st_aviso_claro);
+        avisoPendente.setVisibility(View.GONE);
+        ((ViewGroup) nomeDoTitulo.getParent()).addView(avisoPendente);
+        if (inicial.ehArtista()) buscarFotosDoArtista();
+    }
+
+    private void mostrarPendente() {
+        String texto = restaurar ? getString(R.string.st_restaurar_pendente) : "";
+        if (resultadoTmdb != null) {
+            String tmdb = resultadoTmdbTexto;
+            texto = texto.isEmpty() ? tmdb : texto + "\n" + tmdb;
+        }
+        if (artistaEscolhido != null) texto = getString(R.string.st_artista_pendente, artistaEscolhidoTexto);
+        avisoPendente.setText(texto);
+        avisoPendente.setVisibility(texto.isEmpty() ? View.GONE : View.VISIBLE);
+    }
+
+    /** Os dados completos do resultado vêm da rede, fora da tela; sem rede, avisa e fica como estava. */
+    private void buscarPrevia(String resultado, String nome) {
+        resultadoTmdb = resultado;
+        previa = null;
+        resultadoTmdbTexto = getString(R.string.st_tmdb_buscando_dados, nome);
+        mostrarPendente();
+        copia.execute(() -> {
+            PreviaTmdb chegou;
+            try {
+                chegou = repositorio.previaResultadoTmdb(id, resultado);
+            } catch (RuntimeException e) {
+                chegou = null;
+            }
+            final PreviaTmdb pronta = chegou;
+            runOnUiThread(() -> aoChegarPrevia(resultado, pronta));
+        });
+    }
+
+    private void aoChegarPrevia(String resultado, @Nullable PreviaTmdb chegou) {
+        if (isFinishing() || !resultado.equals(resultadoTmdb)) return;
+        if (chegou == null) {
+            resultadoTmdb = null;
+            mostrarPendente();
+            Toast.makeText(this, R.string.st_tmdb_sem_rede, Toast.LENGTH_LONG).show();
+            return;
+        }
+        previa = chegou;
+        restaurar = false;
+        capaMexida = false;
+        fundoMexido = false;
+        // Sem ano: só o nome (nada de parênteses vazios)
+        String ano = chegou.titulo.ano;
+        resultadoTmdbTexto = getString(R.string.st_tmdb_pendente,
+                ano == null || ano.isEmpty() ? chegou.titulo.titulo : chegou.titulo.titulo + " (" + ano + ")");
+        carregar();
+        mostrarPendente();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        // Primeira vez e volta da busca no TMDB (título, sinopse, capa e fundo podem ter mudado)
+        // Primeira vez e volta de outra tela (a prévia do TMDB, se houver, continua valendo)
         carregar();
     }
 
+    private List<String> opcoes(boolean ehCapa) {
+        if (previa != null) return ehCapa ? previa.capas : previa.fundos;
+        if (!ehCapa) return repositorio.opcoesFundo(id);
+        List<String> capas = new ArrayList<>(repositorio.opcoesCapa(id));
+        // A atual fica primeiro, e as cores, depois das fotos
+        capas.addAll(Math.min(1, capas.size()), fotosDoArtista);
+        return capas;
+    }
+
+    /**
+     * Capa de artista: as fotos do Deezer entram nas opções quando chegam, sem segurar a tela. O banco
+     * só muda no Salvar, que baixa a escolhida (como as opções do TMDB).
+     */
+    private void buscarFotosDoArtista() {
+        new Thread(() -> {
+            List<String> chegou;
+            try {
+                chegou = repositorio.fotosDoArtista(id);
+            } catch (RuntimeException e) {
+                chegou = null;
+            }
+            final List<String> fotos = chegou;
+            runOnUiThread(() -> aoChegarFotos(fotos));
+        }, "StarkTechFotosArtista").start();
+    }
+
+    private void aoChegarFotos(@Nullable List<String> fotos) {
+        if (isFinishing() || isDestroyed()) return;
+        if (fotos == null || fotos.isEmpty()) {
+            Toast.makeText(this, fotos == null ? R.string.st_fotos_sem_rede : R.string.st_fotos_nenhuma, Toast.LENGTH_LONG).show();
+            return;
+        }
+        fotosDoArtista = fotos;
+        // TV: com o foco numa opção da capa, ele continua na mesma posição
+        montarOpcoes(findViewById(R.id.st_editar_capas), opcoes(true), true, opcoesCapa.indexOf(getCurrentFocus()));
+    }
+
     private void carregar() {
-        Titulo t = repositorio.titulo(id);
-        if (t == null) {
+        Titulo salvo = repositorio.titulo(id);
+        Titulo t = previa != null ? previa.titulo : restaurar ? repositorio.tituloOriginal(id) : salvo;
+        if (t == null || salvo == null) {
             finish();
             return;
         }
@@ -162,39 +376,68 @@ public class EditarActivity extends AppCompatActivity {
         for (Map.Entry<Campo, EditText> item : campos.entrySet()) {
             if (!mexidos.contains(item.getKey())) item.getValue().setText(t.valor(item.getKey()));
         }
+        if (caixaColetanea != null && !coletaneaMexida) caixaColetanea.setText(t.colecaoNome == null ? "" : t.colecaoNome);
         carregando = false;
         if (!mexidos.contains(Campo.TIPO)) marcarTipo(t.tipo == null ? Tipo.FILME : t.tipo);
-        capaSalva = t.corCapa;
-        capaImagemSalva = t.capaImagem;
-        fundoSalvo = t.corFundo;
-        fundoImagemSalva = t.fundoImagem;
-        if (!capaMexida) {
-            capa = capaSalva;
-            capaImagem = capaImagemSalva;
-        }
-        if (!fundoMexido) {
-            fundo = fundoSalvo;
-            fundoImagem = fundoImagemSalva;
-        }
-        montarOpcoes(findViewById(R.id.st_editar_capas), repositorio.opcoesCapa(id), true, -1);
-        montarOpcoes(findViewById(R.id.st_editar_fundos), repositorio.opcoesFundo(id), false, -1);
+        // "Atual" é o que está salvo; a prévia aparece como "nova"
+        capaSalva = salvo.referenciaCapa();
+        fundoSalvo = salvo.referenciaFundo();
+        if (!capaMexida) capa = t.referenciaCapa();
+        if (!fundoMexido) fundo = t.referenciaFundo();
+        montarOpcoes(findViewById(R.id.st_editar_capas), opcoes(true), true, -1);
+        montarOpcoes(findViewById(R.id.st_editar_fundos), opcoes(false), false, -1);
     }
 
+    /**
+     * Salvar: tudo o que mudou nesta tela vai para a biblioteca de uma vez — Restaurar original, o
+     * resultado do TMDB, os campos e a capa / o fundo. Com Restaurar ou TMDB pendente, só os campos
+     * mexidos aqui ficam "editados à mão" (os outros vêm do TMDB).
+     */
     private void salvar() {
+        if (salvando) return;
+        boolean pendente = restaurar || resultadoTmdb != null;
         Map<Campo, String> valores = new EnumMap<>(Campo.class);
-        for (Map.Entry<Campo, EditText> item : campos.entrySet()) valores.put(item.getKey(), item.getValue().getText().toString());
-        valores.put(Campo.TIPO, tipo.name());
-        repositorio.salvarEdicao(id, valores);
-        if (capaMexida) {
-            if (capaImagem != null) repositorio.escolherCapaImagem(id, capaImagem);
-            else repositorio.escolherCapa(id, capa);
+        for (Map.Entry<Campo, EditText> item : campos.entrySet()) {
+            if (!pendente || mexidos.contains(item.getKey())) valores.put(item.getKey(), item.getValue().getText().toString());
         }
-        if (fundoMexido) {
-            if (fundoImagem != null) repositorio.escolherFundoImagem(id, fundoImagem);
-            else repositorio.escolherFundo(id, fundo);
+        if (!pendente || mexidos.contains(Campo.TIPO)) valores.put(Campo.TIPO, tipo.name());
+        // Coletânea só vale em filme: "" tira dela; null volta ao que o TMDB diz
+        final boolean gravarColetanea = caixaColetanea != null && coletaneaMexida && tipo == Tipo.FILME;
+        final String coletanea = gravarColetanea && !coletaneaDoTmdb ? caixaColetanea.getText().toString() : null;
+        final String artista = artistaEscolhido;
+        final String fotoDoArtista = fotoDoArtistaEscolhido;
+        if (!pendente && !capaMexida && !fundoMexido && artista == null) {
+            repositorio.salvarEdicao(id, valores);
+            if (gravarColetanea) repositorio.definirColetanea(id, coletanea);
+            salvou = true;
+            finish();
+            return;
         }
-        salvou = true;
-        finish();
+        // TMDB e opção do TMDB ainda não baixada (url:) usam a rede: fora da tela, antes de fechar
+        salvando = true;
+        Toast.makeText(this, R.string.st_salvando, Toast.LENGTH_SHORT).show();
+        final boolean restaurarAgora = restaurar;
+        final String tmdb = resultadoTmdb;
+        final String novaCapa = capaMexida ? capa : null;
+        final String novoFundo = fundoMexido ? fundo : null;
+        new Thread(() -> {
+            if (restaurarAgora) repositorio.restaurarOriginal(id);
+            boolean trocou = tmdb == null || repositorio.selecionarResultadoTmdb(id, tmdb);
+            repositorio.salvarEdicao(id, valores);
+            if (gravarColetanea) repositorio.definirColetanea(id, coletanea);
+            boolean baixou = true;
+            if (novaCapa != null) baixou = repositorio.escolherCapa(id, novaCapa);
+            if (novoFundo != null) baixou &= repositorio.escolherFundo(id, novoFundo);
+            // Por último: depois disso, este artista pode nem existir mais (juntou-se ao outro)
+            if (artista != null) repositorio.definirArtista(id, artista, fotoDoArtista);
+            final boolean imagens = baixou;
+            runOnUiThread(() -> {
+                if (!trocou) Toast.makeText(this, R.string.st_tmdb_sem_rede, Toast.LENGTH_LONG).show();
+                else if (!imagens) Toast.makeText(this, R.string.st_imagem_nao_baixou, Toast.LENGTH_LONG).show();
+                salvou = true;
+                finish();
+            });
+        }, "StarkTechSalvar").start();
     }
 
     @Override
@@ -202,7 +445,7 @@ public class EditarActivity extends AppCompatActivity {
         copia.shutdownNow();
         // Imagens copiadas e não salvas (ou trocadas por outra antes de salvar) saem da pasta do app
         for (String referencia : importadas) {
-            boolean ficou = salvou && (referencia.equals(capaImagem) || referencia.equals(fundoImagem));
+            boolean ficou = salvou && (referencia.equals(capa) || referencia.equals(fundo));
             String caminho = Edicoes.arquivoDe(referencia);
             if (!ficou && caminho != null) {
                 //noinspection ResultOfMethodCallIgnored
@@ -217,24 +460,14 @@ public class EditarActivity extends AppCompatActivity {
     private void escolherDoAparelho(boolean ehCapa) {
         pedidoDaCapa = ehCapa;
         Intent navegador = new Intent(this, NavegadorImagensActivity.class);
-        if (tv) {
-            navegadorDoApp.launch(navegador);
-            return;
-        }
-        try {
-            seletorDoSistema.launch(new String[]{"image/jpeg", "image/png", "image/webp"});
-        } catch (ActivityNotFoundException e) {
-            navegadorDoApp.launch(navegador);
-        }
+        String pasta = Preferencias.pastaImagens(this);
+        if (pasta != null) navegador.putExtra(NavegadorImagensActivity.EXTRA_PASTA, pasta);
+        navegadorDoApp.launch(navegador);
     }
 
     /** Copia a imagem fora da tela (até 15 MB) e mostra no destaque; problema vira aviso. */
     private void importar(Callable<ImagemDoAparelho.Resultado> tarefa) {
         final boolean ehCapa = pedidoDaCapa;
-        final int largura = px(ehCapa ? R.dimen.st_tv_editar_previa_capa_largura : R.dimen.st_tv_editar_previa_fundo_largura,
-                ehCapa ? R.dimen.st_tablet_editar_previa_capa_largura : R.dimen.st_tablet_editar_previa_fundo_largura);
-        final int altura = px(ehCapa ? R.dimen.st_tv_editar_previa_capa_altura : R.dimen.st_tv_editar_previa_fundo_altura,
-                ehCapa ? R.dimen.st_tablet_editar_previa_capa_altura : R.dimen.st_tablet_editar_previa_fundo_altura);
         copia.execute(() -> {
             ImagemDoAparelho.Resultado resultado;
             try {
@@ -242,13 +475,12 @@ public class EditarActivity extends AppCompatActivity {
             } catch (Exception e) {
                 resultado = null;
             }
-            Bitmap previa = resultado != null && resultado.ok() ? ImagemDoAparelho.previa(resultado.referencia, largura, altura) : null;
             final ImagemDoAparelho.Resultado fim = resultado;
-            runOnUiThread(() -> aoImportar(fim, previa, ehCapa));
+            runOnUiThread(() -> aoImportar(fim, ehCapa));
         });
     }
 
-    private void aoImportar(@Nullable ImagemDoAparelho.Resultado resultado, @Nullable Bitmap previa, boolean ehCapa) {
+    private void aoImportar(@Nullable ImagemDoAparelho.Resultado resultado, boolean ehCapa) {
         boolean copiou = resultado != null && resultado.ok();
         if (copiou && isDestroyed()) {
             // a tela fechou durante a cópia: a imagem não vai ser usada
@@ -258,22 +490,21 @@ public class EditarActivity extends AppCompatActivity {
         }
         if (copiou) importadas.add(resultado.referencia);
         if (isFinishing()) return;
-        if (resultado == null || !resultado.ok() || previa == null) {
+        if (resultado == null || !resultado.ok()) {
             ImagemDoAparelho.Erro erro = resultado == null || resultado.ok() ? ImagemDoAparelho.Erro.ILEGIVEL : resultado.erro;
             Toast.makeText(this, erro == ImagemDoAparelho.Erro.FORMATO ? R.string.st_imagem_formato
                     : erro == ImagemDoAparelho.Erro.GRANDE_DEMAIS ? R.string.st_imagem_grande
                     : R.string.st_imagem_ilegivel, Toast.LENGTH_LONG).show();
             return;
         }
-        previas.put(resultado.referencia, previa);
         if (ehCapa) {
-            capaImagem = resultado.referencia;
+            capa = resultado.referencia;
             capaMexida = true;
-            montarOpcoes(findViewById(R.id.st_editar_capas), repositorio.opcoesCapa(id), true, -1);
+            montarOpcoes(findViewById(R.id.st_editar_capas), opcoes(true), true, -1);
         } else {
-            fundoImagem = resultado.referencia;
+            fundo = resultado.referencia;
             fundoMexido = true;
-            montarOpcoes(findViewById(R.id.st_editar_fundos), repositorio.opcoesFundo(id), false, -1);
+            montarOpcoes(findViewById(R.id.st_editar_fundos), opcoes(false), false, -1);
         }
     }
 
@@ -285,14 +516,18 @@ public class EditarActivity extends AppCompatActivity {
         int espacoH = res.getDimensionPixelSize(tv ? R.dimen.st_tv_campo_espaco_h : R.dimen.st_tablet_campo_espaco_h);
         int espacoV = res.getDimensionPixelSize(tv ? R.dimen.st_tv_campo_espaco_v : R.dimen.st_tablet_campo_espaco_v);
 
+        if (capaAgrupada) {
+            linha(alvo, 0, espacoH, campo(Campo.TITULO, R.string.st_campo_nome, false));
+            return;
+        }
         linha(alvo, 0, espacoH, campo(Campo.TITULO, R.string.st_campo_titulo, false), campo(Campo.TITULO_ORIGINAL, R.string.st_campo_titulo_original, false));
-        LinearLayout anoDuracao = new LinearLayout(this);
-        anoDuracao.setOrientation(LinearLayout.HORIZONTAL);
-        anoDuracao.setBaselineAligned(false);
-        adicionarComPeso(anoDuracao, campo(Campo.ANO, R.string.st_campo_ano, false), 0);
-        adicionarComPeso(anoDuracao, campo(Campo.DURACAO, R.string.st_campo_duracao, false), espacoH);
-        linha(alvo, espacoV, espacoH, tipoSegmentado(), anoDuracao);
+        // Tipo na linha inteira: com 5 opções, "Stand-up" quebrava em duas linhas na metade da largura
+        linha(alvo, espacoV, espacoH, tipoSegmentado());
+        linha(alvo, espacoV, espacoH, campo(Campo.ANO, R.string.st_campo_ano, false), campo(Campo.DURACAO, R.string.st_campo_duracao, false));
         linha(alvo, espacoV, espacoH, campo(Campo.GENEROS, R.string.st_campo_generos, false));
+        View coletanea = campoColetanea();
+        linha(alvo, espacoV, espacoH, coletanea);
+        linhaColetanea = (View) coletanea.getParent();
         linha(alvo, espacoV, espacoH, campo(Campo.SINOPSE, R.string.st_campo_sinopse, true));
     }
 
@@ -314,18 +549,25 @@ public class EditarActivity extends AppCompatActivity {
 
     /** Rótulo em caixa alta + campo (#0f172a, borda #1e293b, azul em foco). */
     private View campo(Campo qual, @StringRes int rotulo, boolean sinopse) {
-        Resources res = getResources();
         LinearLayout celula = new LinearLayout(this);
         celula.setOrientation(LinearLayout.VERTICAL);
         celula.addView(rotulo(rotulo));
 
+        EditText texto = caixaDeTexto(qual == Campo.ANO, sinopse);
+        texto.addTextChangedListener(aoDigitar(() -> mexidos.add(qual)));
+        campos.put(qual, texto);
+        celula.addView(texto, lpCaixa(sinopse));
+        return celula;
+    }
+
+    private EditText caixaDeTexto(boolean numero, boolean sinopse) {
+        Resources res = getResources();
         EditText texto = new EditText(this);
         texto.setBackgroundResource(R.drawable.st_campo_texto);
         texto.setTypeface(ResourcesCompat.getFont(this, sinopse ? R.font.st_inter_medium : R.font.st_inter_semibold));
         texto.setTextColor(ContextCompat.getColor(this, R.color.st_texto));
         texto.setTextSize(TypedValue.COMPLEX_UNIT_PX, res.getDimension(tv ? R.dimen.st_tv_texto_campo : R.dimen.st_tablet_texto_campo));
         int padding = res.getDimensionPixelSize(tv ? R.dimen.st_tv_campo_padding : R.dimen.st_tablet_campo_padding);
-        int altura = res.getDimensionPixelSize(tv ? R.dimen.st_tv_campo_altura : R.dimen.st_tablet_campo_altura);
         if (sinopse) {
             texto.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
             texto.setMinLines(4);
@@ -334,14 +576,22 @@ public class EditarActivity extends AppCompatActivity {
             texto.setLineSpacing(0f, 1.24f);
             texto.setPadding(padding, padding * 3 / 4, padding, padding * 3 / 4);
         } else {
-            texto.setInputType(qual == Campo.ANO ? InputType.TYPE_CLASS_NUMBER
+            texto.setInputType(numero ? InputType.TYPE_CLASS_NUMBER
                     : InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
             texto.setSingleLine(true);
             texto.setGravity(Gravity.CENTER_VERTICAL);
             texto.setPadding(padding, 0, padding, 0);
         }
-        if (tv) texto.setForeground(ContextCompat.getDrawable(this, R.drawable.st_foco_tv));
-        texto.addTextChangedListener(new TextWatcher() {
+        if (tv) {
+            texto.setForeground(ContextCompat.getDrawable(this, R.drawable.st_foco_tv));
+            ligarCaixaTv(texto);
+        }
+        return texto;
+    }
+
+    /** {@code acao} roda quando quem usa a tela muda o texto, não quando a tela preenche a caixa. */
+    private TextWatcher aoDigitar(Runnable acao) {
+        return new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
@@ -350,18 +600,176 @@ public class EditarActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                if (!carregando) mexidos.add(qual);
+                if (!carregando) acao.run();
             }
-        });
-        campos.put(qual, texto);
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                sinopse ? ViewGroup.LayoutParams.WRAP_CONTENT : altura);
+        };
+    }
+
+    private LinearLayout.LayoutParams lpCaixa(boolean sinopse) {
+        Resources res = getResources();
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, sinopse
+                ? ViewGroup.LayoutParams.WRAP_CONTENT
+                : res.getDimensionPixelSize(tv ? R.dimen.st_tv_campo_altura : R.dimen.st_tablet_campo_altura));
         lp.topMargin = res.getDimensionPixelSize(tv ? R.dimen.st_tv_detalhe_dados_rotulo_espaco : R.dimen.st_tablet_dados_rotulo_espaco);
-        celula.addView(texto, lp);
+        return lp;
+    }
+
+    // ---- Coletânea do filme (D5) ----
+
+    /**
+     * A caixa (nome novo ou o escolhido; vazia = fora de coletânea) e, embaixo, Escolher (as coletâneas
+     * da biblioteca, se houver), Tirar e Voltar ao TMDB. Como o resto da tela, só vale no Salvar.
+     */
+    private View campoColetanea() {
+        LinearLayout celula = new LinearLayout(this);
+        celula.setOrientation(LinearLayout.VERTICAL);
+        celula.addView(rotulo(R.string.st_campo_coletanea));
+
+        caixaColetanea = caixaDeTexto(false, false);
+        caixaColetanea.setHint(R.string.st_coletanea_fora);
+        caixaColetanea.addTextChangedListener(aoDigitar(() -> {
+            coletaneaMexida = true;
+            coletaneaDoTmdb = false;
+        }));
+        celula.addView(caixaColetanea, lpCaixa(false));
+
+        Resources res = getResources();
+        int folga = res.getDimensionPixelSize(tv ? R.dimen.st_tv_detalhe_dados_rotulo_espaco : R.dimen.st_tablet_dados_rotulo_espaco);
+        LinearLayout botoes = new LinearLayout(this);
+        botoes.setOrientation(LinearLayout.HORIZONTAL);
+        if (!repositorio.nomesDeColetanea().isEmpty()) {
+            botaoColetanea(botoes, R.string.st_coletanea_escolher, folga, () -> escolherColetanea.launch(
+                    new Intent(this, EscolherColetaneaActivity.class).putExtra(EscolherColetaneaActivity.EXTRA_ATUAL,
+                            caixaColetanea.getText().toString().trim())));
+        }
+        botaoColetanea(botoes, R.string.st_coletanea_tirar, folga, () -> mudarColetanea("", false));
+        botaoColetanea(botoes, R.string.st_coletanea_tmdb, folga, () -> {
+            Titulo original = repositorio.tituloOriginal(id);
+            mudarColetanea(original == null || original.colecaoNome == null ? "" : original.colecaoNome, true);
+        });
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.topMargin = folga;
+        celula.addView(botoes, lp);
         return celula;
     }
 
-    /** Tipo: Filme / Série / Show, a escolhida em branco. */
+    private void botaoColetanea(LinearLayout botoes, @StringRes int nome, int folga, Runnable acao) {
+        Resources res = getResources();
+        TextView botao = new TextView(this);
+        botao.setText(nome);
+        botao.setSingleLine(true);
+        botao.setTypeface(ResourcesCompat.getFont(this, R.font.st_inter_extrabold));
+        botao.setTextSize(TypedValue.COMPLEX_UNIT_PX, res.getDimension(tv ? R.dimen.st_tv_texto_botao : R.dimen.st_tablet_texto_botao));
+        botao.setTextColor(ContextCompat.getColor(this, R.color.st_texto));
+        botao.setBackgroundResource(R.drawable.st_botao_secundario);
+        botao.setGravity(Gravity.CENTER);
+        botao.setFocusable(true);
+        botao.setClickable(true);
+        if (tv) botao.setForeground(ContextCompat.getDrawable(this, R.drawable.st_foco_tv));
+        botao.setOnClickListener(v -> acao.run());
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0,
+                res.getDimensionPixelSize(tv ? R.dimen.st_tv_segmento_altura : R.dimen.st_tablet_segmento_altura), 1f);
+        if (botoes.getChildCount() > 0) lp.setMarginStart(folga);
+        botoes.addView(botao, lp);
+    }
+
+    /** {@code doTmdb}: o Salvar volta ao TMDB em vez de gravar o nome, que aqui é só a prévia. */
+    private void mudarColetanea(String nome, boolean doTmdb) {
+        if (caixaColetanea == null) return;
+        carregando = true;
+        caixaColetanea.setText(nome);
+        carregando = false;
+        coletaneaMexida = true;
+        coletaneaDoTmdb = doTmdb;
+    }
+
+    // ---- Caixa de texto na TV ----
+
+    /**
+     * O foco só realça: sem teclado, sem cursor e com as setas andando entre as caixas. OK entra,
+     * seleciona o texto e abre o teclado. Sai ao fechar o teclado (Voltar, Concluir), ao perder o
+     * foco ou com ↑ / ↓ (na Sinopse, depois da primeira / última linha).
+     */
+    private void ligarCaixaTv(EditText caixa) {
+        final int entrada = caixa.getInputType();
+        // Sem tela cheia: a caixa e o texto selecionado ficam à vista, acima do teclado
+        caixa.setImeOptions(EditorInfo.IME_ACTION_DONE | EditorInfo.IME_FLAG_NO_FULLSCREEN);
+        modoFoco(caixa);
+        caixa.setOnClickListener(v -> {
+            if (editando == caixa) abrirTeclado(caixa);
+            else entrarNaCaixa(caixa, entrada);
+        });
+        caixa.setOnFocusChangeListener((v, temFoco) -> {
+            if (!temFoco) sairDaCaixa(caixa);
+        });
+        caixa.setOnEditorActionListener((v, acao, evento) -> {
+            if (acao != EditorInfo.IME_ACTION_DONE) return false;
+            sairDaCaixa(caixa);
+            return true;
+        });
+        // Não consome: já fora da caixa, a mesma tecla anda o foco
+        caixa.setOnKeyListener((v, tecla, evento) -> {
+            boolean vertical = tecla == KeyEvent.KEYCODE_DPAD_UP || tecla == KeyEvent.KEYCODE_DPAD_DOWN;
+            if (editando == caixa && vertical && evento.getAction() == KeyEvent.ACTION_DOWN
+                    && !temLinha(caixa, tecla == KeyEvent.KEYCODE_DPAD_UP)) {
+                sairDaCaixa(caixa);
+            }
+            return false;
+        });
+    }
+
+    /** Sem o movimento do cursor, as setas andam o foco. O SEM_TECLAS mantém a caixa focável. */
+    private static void modoFoco(EditText caixa) {
+        caixa.setKeyListener(SEM_TECLAS);
+        caixa.setMovementMethod(null);
+        caixa.setCursorVisible(false);
+        caixa.setLongClickable(false);
+    }
+
+    private void entrarNaCaixa(EditText caixa, int entrada) {
+        editando = caixa;
+        tecladoVisto = false;
+        voltarDaCaixa.setEnabled(true);
+        caixa.setMovementMethod(ArrowKeyMovementMethod.getInstance());
+        caixa.setCursorVisible(true);
+        caixa.selectAll();
+        caixa.setInputType(entrada);
+        abrirTeclado(caixa);
+    }
+
+    private void abrirTeclado(EditText caixa) {
+        getSystemService(InputMethodManager.class).showSoftInput(caixa, 0);
+    }
+
+    private void sairDaCaixa(EditText caixa) {
+        if (editando != caixa) return;
+        editando = null;
+        voltarDaCaixa.setEnabled(false);
+        getSystemService(InputMethodManager.class).hideSoftInputFromWindow(caixa.getWindowToken(), 0);
+        modoFoco(caixa);
+        caixa.scrollTo(0, 0);
+    }
+
+    private static boolean temLinha(EditText caixa, boolean paraCima) {
+        Layout layout = caixa.getLayout();
+        if (layout == null) return false;
+        int linha = layout.getLineForOffset(caixa.getSelectionEnd());
+        return paraCima ? linha > 0 : linha < layout.getLineCount() - 1;
+    }
+
+    /** O Voltar com o teclado aberto fica com o teclado e não chega à tela: o fim vem do layout. */
+    private void vigiarTeclado() {
+        View raiz = findViewById(android.R.id.content);
+        raiz.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
+            if (editando == null) return;
+            WindowInsetsCompat janela = ViewCompat.getRootWindowInsets(raiz);
+            boolean aberto = janela != null && janela.isVisible(WindowInsetsCompat.Type.ime());
+            if (aberto) tecladoVisto = true;
+            else if (tecladoVisto) sairDaCaixa(editando);
+        });
+    }
+
+    /** Tipo: Filme / Série / Desenho / Show / Stand-up, numa linha só, a escolhida em branco. */
     private View tipoSegmentado() {
         Resources res = getResources();
         LinearLayout celula = new LinearLayout(this);
@@ -374,11 +782,12 @@ public class EditarActivity extends AppCompatActivity {
         int folga = res.getDimensionPixelSize(tv ? R.dimen.st_tv_detalhe_dados_rotulo_espaco : R.dimen.st_tablet_dados_rotulo_espaco);
         grupo.setPadding(folga, folga, folga, folga);
         int altura = res.getDimensionPixelSize(tv ? R.dimen.st_tv_segmento_altura : R.dimen.st_tablet_segmento_altura);
-        Tipo[] tipos = {Tipo.FILME, Tipo.SERIE, Tipo.SHOW};
+        Tipo[] tipos = {Tipo.FILME, Tipo.SERIE, Tipo.DESENHO, Tipo.SHOW, Tipo.STANDUP};
         for (int i = 0; i < tipos.length; i++) {
             final Tipo opcao = tipos[i];
             TextView segmento = new TextView(this);
             segmento.setText(PecasDetalhe.rotuloTipo(opcao));
+            segmento.setSingleLine(true);
             segmento.setTypeface(ResourcesCompat.getFont(this, R.font.st_inter_extrabold));
             segmento.setTextSize(TypedValue.COMPLEX_UNIT_PX, res.getDimension(tv ? R.dimen.st_tv_texto_botao : R.dimen.st_tablet_texto_botao));
             segmento.setTextColor(ContextCompat.getColorStateList(this, R.color.st_cor_segmento));
@@ -406,6 +815,8 @@ public class EditarActivity extends AppCompatActivity {
     private void marcarTipo(Tipo novo) {
         tipo = novo;
         for (TextView segmento : segmentos) segmento.setSelected(segmento.getTag() == novo);
+        // Coletânea só existe em filme
+        if (linhaColetanea != null) linhaColetanea.setVisibility(novo == Tipo.FILME ? View.VISIBLE : View.GONE);
     }
 
     private TextView rotulo(@StringRes int texto) {
@@ -425,18 +836,16 @@ public class EditarActivity extends AppCompatActivity {
 
     /**
      * Capa ou fundo: a escolhida em destaque (maior, anel azul e ✓), com "atual" / "nova" e as
-     * regras de formato ao lado; embaixo, as outras opções do TMDB (blocos de cor na F1) e "Do
+     * regras de formato ao lado; embaixo, as outras opções do TMDB (sem TMDB, cores) e "Do
      * aparelho" (tablet) / "Do HD" (TV, D14), em fileiras que cabem na coluna. Tocar numa opção
      * a traz para o destaque; {@code focar} (TV) devolve o foco à mesma posição da fileira.
      */
-    private void montarOpcoes(LinearLayout alvo, List<Integer> cores, boolean ehCapa, int focar) {
+    private void montarOpcoes(LinearLayout alvo, List<String> referencias, boolean ehCapa, int focar) {
         alvo.removeAllViews();
         Resources res = getResources();
         int espaco = px(R.dimen.st_tv_editar_opcao_espaco, R.dimen.st_tablet_editar_opcao_espaco);
-        int escolhida = ehCapa ? capa : fundo;
-        String imagem = ehCapa ? capaImagem : fundoImagem;
-        boolean mudou = !Objects.equals(imagem, ehCapa ? capaImagemSalva : fundoImagemSalva)
-                || (imagem == null && escolhida != (ehCapa ? capaSalva : fundoSalvo));
+        String escolhida = ehCapa ? capa : fundo;
+        boolean mudou = !Objects.equals(escolhida, ehCapa ? capaSalva : fundoSalvo);
         int larguraPrevia = ehCapa ? px(R.dimen.st_tv_editar_previa_capa_largura, R.dimen.st_tablet_editar_previa_capa_largura)
                 : px(R.dimen.st_tv_editar_previa_fundo_largura, R.dimen.st_tablet_editar_previa_fundo_largura);
         int alturaPrevia = ehCapa ? px(R.dimen.st_tv_editar_previa_capa_altura, R.dimen.st_tablet_editar_previa_capa_altura)
@@ -445,8 +854,7 @@ public class EditarActivity extends AppCompatActivity {
         LinearLayout destaque = new LinearLayout(this);
         destaque.setOrientation(LinearLayout.HORIZONTAL);
         destaque.setGravity(Gravity.CENTER_VERTICAL);
-        Bitmap foto = imagem == null ? null : previaDe(imagem, larguraPrevia, alturaPrevia);
-        FrameLayout previa = foto != null ? blocoImagem(foto) : bloco(escolhida, ehCapa, true);
+        FrameLayout previa = bloco(escolhida, ehCapa, true);
         destaque.addView(previa, new LinearLayout.LayoutParams(larguraPrevia, alturaPrevia));
         LinearLayout textos = new LinearLayout(this);
         textos.setOrientation(LinearLayout.VERTICAL);
@@ -473,25 +881,22 @@ public class EditarActivity extends AppCompatActivity {
 
         List<View> itens = new ArrayList<>();
         int numero = 0;
-        for (int cor : cores) {
-            // Com imagem do aparelho no destaque, todas as cores ficam como opção
-            if (foto == null && cor == escolhida) continue;
+        for (String referencia : referencias) {
+            if (referencia.equals(escolhida)) continue;
             final int posicao = itens.size();
-            FrameLayout opcao = bloco(cor, ehCapa, false);
+            FrameLayout opcao = bloco(referencia, ehCapa, false);
             opcao.setFocusable(true);
             opcao.setClickable(true);
             opcao.setContentDescription(getString(R.string.st_opcao_imagem, ++numero));
             opcao.setOnClickListener(v -> {
                 if (ehCapa) {
-                    capa = cor;
-                    capaImagem = null;
+                    capa = referencia;
                     capaMexida = true;
                 } else {
-                    fundo = cor;
-                    fundoImagem = null;
+                    fundo = referencia;
                     fundoMexido = true;
                 }
-                montarOpcoes(alvo, cores, ehCapa, posicao);
+                montarOpcoes(alvo, referencias, ehCapa, posicao);
             });
             itens.add(opcao);
         }
@@ -511,12 +916,15 @@ public class EditarActivity extends AppCompatActivity {
         if (tv && focar >= 0) itens.get(Math.min(focar, itens.size() - 1)).requestFocus();
     }
 
-    /** Bloco de cor da opção (F1), com o ícone de imagem; a escolhida com anel azul e ✓. */
-    private FrameLayout bloco(int cor, boolean ehCapa, boolean escolhida) {
+    /**
+     * Opção de capa ou fundo: a imagem (TMDB, aparelho) sobre o bloco de cor, ou só a cor, com o
+     * ícone de imagem enquanto não carrega; a escolhida com anel azul e ✓.
+     */
+    private FrameLayout bloco(String referencia, boolean ehCapa, boolean escolhida) {
         int selo = px(R.dimen.st_tv_editar_selo, R.dimen.st_tablet_editar_selo);
         float canto = getResources().getDimension(tv ? R.dimen.st_tv_botao_canto : R.dimen.st_tablet_botao_canto);
         FrameLayout opcao = new FrameLayout(this);
-        opcao.setBackground(CapaAdapter.blocoDeCor(this, cor, canto, tv));
+        opcao.setBackground(CapaAdapter.blocoDeCor(this, corDe(referencia), canto, tv));
         opcao.setForeground(ContextCompat.getDrawable(this, R.drawable.st_opcao_imagem));
         opcao.setSelected(escolhida);
 
@@ -527,6 +935,7 @@ public class EditarActivity extends AppCompatActivity {
                 ehCapa ? Gravity.TOP | Gravity.END : Gravity.CENTER);
         lpImagem.setMargins(selo / 3, selo / 3, selo / 3, selo / 3);
         opcao.addView(imagem, lpImagem);
+        Imagens.daReferencia(opcao, referencia, ehCapa ? Imagens.CAPA : Imagens.CARTAO, canto, imagem);
 
         if (escolhida) {
             ImageView marca = new ImageView(this);
@@ -541,42 +950,16 @@ public class EditarActivity extends AppCompatActivity {
         return opcao;
     }
 
-    /** Destaque com a imagem do aparelho, recortada nos cantos, com anel azul e ✓. */
-    private FrameLayout blocoImagem(Bitmap foto) {
-        int selo = px(R.dimen.st_tv_editar_selo, R.dimen.st_tablet_editar_selo);
-        float canto = getResources().getDimension(tv ? R.dimen.st_tv_botao_canto : R.dimen.st_tablet_botao_canto);
-        FrameLayout opcao = new FrameLayout(this);
-        opcao.setBackground(CapaAdapter.blocoDeCor(this, ContextCompat.getColor(this, R.color.st_cartao), canto, tv));
-        opcao.setClipToOutline(true);
-        opcao.setForeground(ContextCompat.getDrawable(this, R.drawable.st_opcao_imagem));
-        opcao.setSelected(true);
-
-        ImageView imagem = new ImageView(this);
-        imagem.setImageBitmap(foto);
-        imagem.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        opcao.addView(imagem, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-
-        ImageView marca = new ImageView(this);
-        marca.setImageResource(R.drawable.st_ic_check);
-        marca.setBackgroundResource(R.drawable.st_selo_escolhida);
-        ImageViewCompat.setImageTintList(marca, ContextCompat.getColorStateList(this, R.color.st_texto));
-        marca.setPadding(selo / 5, selo / 5, selo / 5, selo / 5);
-        FrameLayout.LayoutParams lpMarca = new FrameLayout.LayoutParams(selo, selo, Gravity.TOP | Gravity.START);
-        lpMarca.setMargins(selo / 3, selo / 3, 0, 0);
-        opcao.addView(marca, lpMarca);
-        opcao.setContentDescription(getString(R.string.st_imagem_do_aparelho));
-        return opcao;
-    }
-
-    /** Prévia da imagem do aparelho (guardada para não abrir o arquivo a cada troca de opção). */
-    @Nullable
-    private Bitmap previaDe(String referencia, int largura, int altura) {
-        Bitmap foto = previas.get(referencia);
-        if (foto == null) {
-            foto = ImagemDoAparelho.previa(referencia, largura, altura);
-            if (foto != null) previas.put(referencia, foto);
+    /** Cor da referência {@code cor:}; imagem: o cinza dos cartões (por baixo, enquanto carrega). */
+    private int corDe(String referencia) {
+        if (referencia != null && referencia.startsWith(Edicoes.PREFIXO_COR)) {
+            try {
+                return (int) (0xFF000000L | Long.parseLong(referencia.substring(Edicoes.PREFIXO_COR.length() + 1), 16));
+            } catch (RuntimeException e) {
+                // cor estragada: o cinza
+            }
         }
-        return foto;
+        return ContextCompat.getColor(this, R.color.st_cartao);
     }
 
     /** "Do aparelho" (tablet) / "Do HD" (TV) no fim das opções, ícone e nome centrados juntos (D3). */

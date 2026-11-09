@@ -13,6 +13,10 @@ import android.widget.TextView;
  */
 public final class Medidas {
 
+    /** Título de página (Filmes, Séries, Desenhos, Shows, Stand-up, Pastas, Configurações, Sobre), px do desenho. */
+    public static final int TITULO_PAGINA_TV = 56;
+    public static final int TITULO_PAGINA_TABLET = 50;
+
     private Medidas() {}
 
     private static float fator(Context contexto) {

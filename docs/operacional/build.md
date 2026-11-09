@@ -48,13 +48,15 @@ cd /mnt/d/Dev/starktech-media-player/Video
 
 - Lint completo (comando da seção 2 sem o `-x`): uma vez no fim da F1 (fase I) e de novo na F4 (`docs/backlog.md`).
 - Chave da API do TMDB (desde a F2): fora do repositório, na linha `starktech.tmdb.chave=` do `~/.gradle/gradle.properties` do WSL (permissão 600; o valor fica no documento do TMDB da pasta de gestão). O `MediaLib/build.gradle` (`chaveTmdb()`) a põe no APK na hora do build e nos testes que chamam o TMDB. Sem a linha, o build passa, a chave fica vazia e esses testes são pulados. Trakt e OpenSubtitles: desligados, sem chave (D5 da F2). Nunca gravar a chave no repositório, no `docs/` ou num commit.
+- Chave da TheAudioDB (capa de artista, plano 004): fora do repositório, na linha `starktech.theaudiodb.chave=` do mesmo `~/.gradle/gradle.properties`. O `Video/build.gradle` a põe no APK na hora do build (`st_chave_theaudiodb`). Sem a linha, o build passa e a capa de artista usa só o Deezer, que responde sem chave. Nunca gravar a chave no repositório, no `docs/` ou num commit.
 
 ## 3. Saída e instalação
 
 - APK: `Video/build/outputs/apk/noamazon/debug/` (nome na linha `generated:` que o build imprime): `br.com.starktechstudio.mediaplayer-1-0.1.0-debug.apk`.
-- Pacote `br.com.starktechstudio.mediaplayer`, versão 0.1.0 (versionCode 1), desde a F1 fase A; só pt-BR no APK (`androidResources.localeFilters` em `Video/build.gradle`).
+- Pacote `br.com.starktechstudio.mediaplayer`, versão 0.1.0 (versionCode 1), desde a F1 fase A (subir a versão: §6); só pt-BR no APK (`androidResources.localeFilters` em `Video/build.gradle`).
 - Cópia de teste em `apks/` na raiz (fora do Git), com o nome `StarkTech Media Player 0.1.0 (teste).apk`; cada build de teste substitui a anterior.
 - Instalar pelo Windows: `adb install -r <apk>`. Pacote, authorities, `taskAffinity` e `sharedUserId` diferentes dos do Nova: instala ao lado do Nova (`org.courville.nova`), sem desinstalar.
+- Legenda em arquivo precisa do acesso a todos os arquivos. Aparelho com a tela desse acesso: o app pede ao abrir. TV sem ela (a TCL de teste): liberar por adb depois de instalar (vale até desinstalar): `adb shell appops set --uid br.com.starktechstudio.mediaplayer MANAGE_EXTERNAL_STORAGE allow`.
 - Desde a F2 (etapa 4) o APK não tem mais as chaves do Nova: o `MediaLib/res/values/donottranslate.xml` saiu e os valores de exemplo nos comentários e testes do MediaLib foram trocados. O APK de teste continua só nesta máquina até a F4 (assinatura e teste em aparelho limpo).
 
 ## 4. NDK
@@ -83,3 +85,53 @@ sdkmanager "ndk;29.0.14206865" && sdkmanager --uninstall "ndk;30.0.16248370"
 Avisos do build, sem erro:
 - NDK r30 aceitou o `APP_PLATFORM android-21` do avos, só com aviso: o risco do NDK (seção 4) não ocorreu.
 - `stripNoamazonDebugDebugSymbols`: o AGP não removeu os símbolos de depuração das `.so` (não há `ndkVersion` nos `build.gradle`) e empacotou como vieram. Ver na F4, no APK de release.
+
+## 6. Versão nova e `version.json`
+
+Subir a versão a cada APK novo, em `Video/build.gradle` ou no comando, sempre com `-Puniversal` (sem ele, a data entra no nome e no `versionCode`):
+
+```bash
+./gradlew -Puniversal -Pstarktech.versionCode=N -Pstarktech.versionName=X.Y.Z assembleNoamazonDebug -x lintNoamazonDebug
+```
+
+O app compara o `versionCode` com o do `version.json` da última versão publicada (`motor/Atualizador.java`). O endereço fica só na constante `ENDERECO_VERSION_JSON`: `https://github.com/Starktech-studio/starktech-media-player-versoes/releases/latest/download/version.json`. Esse repositório é público e só tem as versões, sem código, porque o app não alcança o repositório privado. Enquanto ele não existir, o app só avisa que não deu para verificar. Valores de exemplo:
+
+```json
+{
+  "versao": "0.2.0",
+  "versionCode": 2,
+  "novidades": ["Novidade 1", "Novidade 2"],
+  "apk": "https://github.com/Starktech-studio/starktech-media-player-versoes/releases/download/v0.2.0/StarkTech-Media-Player-0.2.0.apk"
+}
+```
+
+| Regra | Como é |
+|---|---|
+| Campos | `versao`, `versionCode` (maior que 0) e `apk` obrigatórios; `novidades` opcional. Arquivo inválido: o app avisa que não deu para verificar |
+| Novidades | A janela mostra até 8 linhas; o resto é cortado |
+| APK | Só por https; mesmo pacote, mesma chave de assinatura e `versionCode` igual ao do json e maior que o instalado. Pacote ou `versionCode` diferente: o app recusa depois de baixar. Outra chave: o Android recusa |
+| Chave | A definitiva já existe (§7). Quem tiver APK de teste antigo reinstala uma vez e perde o banco local |
+
+## 7. Assinatura e versão publicada
+
+Chave definitiva criada em 09/11/2026 (RSA 4096, válida por 100 anos). Toda versão publicada tem de sair com ela: com outra, o Android recusa instalar por cima, e quem instalou teria de desinstalar e perder os dados.
+
+| O que | Onde |
+|---|---|
+| Chave e senha no WSL | `~/.starktech/starktech-media-player.jks` e `~/.starktech/media-player-assinatura.properties`, lidos pelo `Video/build.gradle`; fora do repositório |
+| Cópia de segurança | Pasta de gestão, `DOCUMENTOS/ASSINATURA APK - STARKTECH MEDIA PLAYER` (`.jks` e `.md`, com como usar em outra máquina) |
+| Impressão digital (SHA-256) | `D0:9C:83:E8:7C:1A:30:3C:82:5A:F5:99:16:3E:45:96:53:16:A8:3B:FC:BF:F9:2D:DB:10:44:B2:67:BC:58:A6` |
+
+Com o arquivo no WSL, os builds de teste também saem com essa chave. A versão publicada não encolhe o código (`minifyEnabled = false`): o que vai para quem instala é o que foi testado.
+
+```bash
+./gradlew -Puniversal assembleNoamazonRelease
+```
+
+APK em `Video/build/outputs/apk/noamazon/release/`; cópia em `apks/` com o nome `StarkTech Media Player X.Y.Z.apk`. 1.0.0 = `versionCode` 2 (o 1 foi o dos APKs de teste).
+
+Publicar uma versão:
+
+1. Subir `versionCode` e `versionName` (§6) e gerar o APK.
+2. No repositório `Starktech-studio/starktech-media-player-versoes` (público), criar uma release `vX.Y.Z` e anexar o APK, com nome sem espaços (`StarkTech-Media-Player-X.Y.Z.apk`), e o `version.json` apontando para ele. O da 1.0.0 está pronto em `apks/version.json`.
+3. O anexo tem de se chamar `version.json`, e a release, ser a mais recente: é o que o endereço do app procura.

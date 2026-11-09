@@ -4,7 +4,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:locale="pt-BR">
 
     <!-- Topo -->
-    <string name="st_video_simulado">Vídeo simulado</string>
     <string name="st_capitulo_de">Capítulo %1$d de %2$d · %3$s</string>
     <string name="st_temporada_episodio">Temporada %1$d · Episódio %2$d</string>
     <string name="st_voltar">Voltar</string>
@@ -24,13 +23,20 @@
     <string name="st_cap_anterior">Cap. anterior</string>
     <string name="st_capitulo_anterior">Capítulo anterior</string>
     <string name="st_menos_10">−10 s</string>
-    <string name="st_voltar_10">Voltar 10 segundos</string>
     <string name="st_pausar">Pausar</string>
     <string name="st_mais_10">+10 s</string>
-    <string name="st_avancar_10">Avançar 10 segundos</string>
     <string name="st_prox_capitulo">Próx. capítulo</string>
     <string name="st_proximo_capitulo">Próximo capítulo</string>
     <string name="st_audio">Áudio</string>
     <string name="st_legendas">Legendas</string>
+    <string name="st_carregar_legenda">Carregar legenda</string>
+    <string name="st_escolher_legenda">Escolher legenda</string>
+    <string name="st_escolher_legenda_dica">SRT, ASS, SSA ou VTT</string>
+    <string name="st_nenhuma_legenda">Nenhuma pasta ou legenda aqui.</string>
+    <string name="st_legenda_nao_carregada">Não foi possível carregar esta legenda.</string>
+    <string name="st_pedir_acesso_arquivos">Permita o acesso a todos os arquivos para o app ler legendas em arquivo.</string>
+    <string name="st_legenda_sem_acesso">Sem o acesso a todos os arquivos, o app não vê as legendas.</string>
+    <string name="st_legenda_sem_tela_de_acesso">Este aparelho não tem a tela do acesso a todos os arquivos. Sem ele, o app não vê as legendas.</string>
+    <string name="st_expandir">Expandir</string>
     <string name="st_volume">Volume %1$d%%</string>
 </resources>

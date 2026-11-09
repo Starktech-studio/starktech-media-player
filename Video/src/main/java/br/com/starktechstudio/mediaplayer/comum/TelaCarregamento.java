@@ -90,7 +90,7 @@ public final class TelaCarregamento {
         }
         long inicio = SystemClock.uptimeMillis();
         relogio.postDelayed(this::esconder, MAXIMO_MS);
-        // F1/F2: os dados simulados (e o banco do app) ficam prontos aqui; na F3, a biblioteca real
+        // A biblioteca (retrato do banco do app) fica pronta aqui; a varredura das pastas segue fora da tela
         new Thread(() -> {
             RepositorioBiblioteca.atual(app);
             long falta = Math.max(0, MINIMO_MS - (SystemClock.uptimeMillis() - inicio));

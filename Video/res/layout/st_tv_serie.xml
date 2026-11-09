@@ -44,6 +44,7 @@
                     android:layout_marginEnd="@dimen/st_tv_detalhe_fundo_icone_margem"
                     android:importantForAccessibility="no"
                     android:alpha="0.28"
+                    android:id="@+id/st_imagem_reserva_fundo"
                     android:src="@drawable/st_ic_imagem"
                     app:tint="@color/st_branco_10" />
             </FrameLayout>
@@ -105,12 +106,28 @@
                             android:text="@string/st_aba_series" />
 
                         <TextView
+                            android:id="@+id/st_pilula_desenhos"
+                            style="@style/StarkTech.Pilula.Tv"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/st_tv_pilula_espaco"
+                            android:text="@string/st_aba_desenhos" />
+
+                        <TextView
                             android:id="@+id/st_pilula_shows"
                             style="@style/StarkTech.Pilula.Tv"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="@dimen/st_tv_pilula_espaco"
                             android:text="@string/st_aba_shows" />
+
+                        <TextView
+                            android:id="@+id/st_pilula_standup"
+                            style="@style/StarkTech.Pilula.Tv"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/st_tv_pilula_espaco"
+                            android:text="@string/st_aba_standup" />
 
                         <TextView
                             android:id="@+id/st_pilula_pastas"
@@ -184,6 +201,7 @@
                             android:layout_height="@dimen/st_tv_serie_capa_icone"
                             android:layout_gravity="top|end"
                             android:importantForAccessibility="no"
+                            android:id="@+id/st_imagem_reserva"
                             android:src="@drawable/st_ic_imagem"
                             app:tint="@color/st_branco_35" />
                     </FrameLayout>

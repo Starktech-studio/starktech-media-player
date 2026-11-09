@@ -28,7 +28,7 @@ import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
  * "Marcar como não assistido", "Remover dos favoritos"). Trocar capa e Trocar fundo do desenho
  * saíram (Gustavo, 31/10/2026): ficam só em Editar.
  * É uma janela flutuante sobre a tela de origem: ao fechar, a tela de origem volta ao onResume
- * e relê o estado simulado (selo Assistido, fileira de Favoritos) sem precisar de aviso.
+ * e relê o estado (selo Assistido, fileira de Favoritos) sem precisar de aviso.
  */
 public class MenuCapaActivity extends AppCompatActivity {
 

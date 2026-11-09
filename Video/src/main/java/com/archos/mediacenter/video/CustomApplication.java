@@ -81,6 +81,7 @@ import com.archos.mediaprovider.video.VideoStoreImportReceiver;
 import com.archos.mediascraper.MediaScraper;
 import com.archos.mediascraper.ScraperImage;
 import com.jakewharton.threetenabp.AndroidThreeTen;
+import com.squareup.picasso.OkHttp3Downloader;
 import com.squareup.picasso.Picasso;
 
 import httpimage.FileSystemPersistence;
@@ -93,6 +94,10 @@ import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import br.com.starktechstudio.mediaplayer.motor.BuscaArtista;
+import okhttp3.Cache;
+import okhttp3.OkHttpClient;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -876,6 +881,12 @@ public class CustomApplication extends Application implements DefaultLifecycleOb
                         new Picasso.Builder(mContext)
                                 .addRequestHandler(new ThumbnailRequestHandler(mContext))
                                 .addRequestHandler(new SmbRequestHandler(mContext))
+                                // StarkTech: a Wikimedia recusa (403) o identificador padrão do OkHttp, e as fotos do artista vêm de lá
+                                .downloader(new OkHttp3Downloader(new OkHttpClient.Builder()
+                                        .cache(new Cache(new File(mContext.getCacheDir(), "picasso-cache"), 50L * 1024 * 1024))
+                                        .addInterceptor(chain -> chain.proceed(chain.request().newBuilder()
+                                                .header("User-Agent", BuscaArtista.IDENTIFICACAO).build()))
+                                        .build()))
                                 .executor(picassoExecutor)
                                 .build()
                 );

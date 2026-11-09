@@ -52,6 +52,7 @@
                         android:layout_marginEnd="@dimen/st_tv_detalhe_fundo_icone_margem"
                         android:importantForAccessibility="no"
                         android:alpha="0.28"
+                        android:id="@+id/st_imagem_reserva_fundo"
                         android:src="@drawable/st_ic_imagem"
                         app:tint="@color/st_branco_10" />
                 </FrameLayout>
@@ -111,12 +112,28 @@
                                 android:text="@string/st_aba_series" />
 
                             <TextView
+                                android:id="@+id/st_pilula_desenhos"
+                                style="@style/StarkTech.Pilula.Tv"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/st_tv_pilula_espaco"
+                                android:text="@string/st_aba_desenhos" />
+
+                            <TextView
                                 android:id="@+id/st_pilula_shows"
                                 style="@style/StarkTech.Pilula.Tv"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="@dimen/st_tv_pilula_espaco"
                                 android:text="@string/st_aba_shows" />
+
+                            <TextView
+                                android:id="@+id/st_pilula_standup"
+                                style="@style/StarkTech.Pilula.Tv"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/st_tv_pilula_espaco"
+                                android:text="@string/st_aba_standup" />
 
                             <TextView
                                 android:id="@+id/st_pilula_pastas"
@@ -132,22 +149,6 @@
                             android:layout_height="0dp"
                             android:layout_weight="1" />
 
-                        <!-- Editar só com o ícone (pedido do Gustavo, 31/10/2026) e Configurações -->
-                        <ImageButton
-                            android:id="@+id/st_detalhe_editar"
-                            android:layout_width="29dp"
-                            android:layout_height="@dimen/st_tv_botao_icone_altura"
-                            android:background="@drawable/st_botao_secundario"
-                            android:contentDescription="@string/st_editar"
-                            android:focusable="true"
-                            android:foreground="@drawable/st_foco_tv"
-                            android:paddingStart="@dimen/st_tv_botao_icone_padding"
-                            android:paddingTop="7.5dp"
-                            android:paddingEnd="@dimen/st_tv_botao_icone_padding"
-                            android:paddingBottom="7.5dp"
-                            android:scaleType="fitCenter"
-                            android:src="@drawable/st_ic_editar"
-                            app:tint="@color/st_texto" />
 
                         <ImageButton
                             android:id="@+id/st_botao_configuracoes"
@@ -190,6 +191,7 @@
                                 android:layout_height="@dimen/st_tv_detalhe_capa_icone"
                                 android:layout_gravity="top|end"
                                 android:importantForAccessibility="no"
+                                android:id="@+id/st_imagem_reserva"
                                 android:src="@drawable/st_ic_imagem"
                                 app:tint="@color/st_branco_35" />
                         </FrameLayout>
@@ -302,6 +304,14 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="@dimen/st_tv_detalhe_marcar_altura"
                                     android:layout_marginStart="@dimen/st_tv_detalhe_marcar_margem" />
+
+                                <!-- Nota do filme assistido (D6), na mesma fileira: os botões não descem; montada no código -->
+                                <br.com.starktechstudio.mediaplayer.comum.EstrelasNota
+                                    android:id="@+id/st_detalhe_nota"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="@dimen/st_tv_detalhe_marcar_altura"
+                                    android:layout_marginStart="@dimen/st_tv_detalhe_botao_espaco"
+                                    android:visibility="gone" />
                             </LinearLayout>
 
                             <!-- Continuar (ou Assistir), Do início, Capítulos, Áudio e legendas, Favoritar -->
@@ -340,6 +350,24 @@
                                     android:layout_height="@dimen/st_tv_botao_altura"
                                     android:layout_marginStart="@dimen/st_tv_detalhe_botao_espaco"
                                     android:text="@string/st_audio_legendas" />
+
+                                <!-- Editar só com o ícone, à esquerda do Favoritar (pedido do Gustavo, 01/11/2026) -->
+                                <ImageButton
+                                    android:id="@+id/st_detalhe_editar"
+                                    android:contentDescription="@string/st_editar"
+                                    android:layout_width="33dp"
+                                    android:layout_height="@dimen/st_tv_botao_altura"
+                                    android:layout_marginStart="@dimen/st_tv_detalhe_botao_espaco"
+                                    android:background="@drawable/st_botao_secundario"
+                                    android:focusable="true"
+                                    android:foreground="@drawable/st_foco_tv"
+                                    android:paddingStart="10dp"
+                                    android:paddingTop="9.5dp"
+                                    android:paddingEnd="10dp"
+                                    android:paddingBottom="9.5dp"
+                                    android:scaleType="fitCenter"
+                                    android:src="@drawable/st_ic_editar"
+                                    app:tint="@color/st_texto" />
 
                                 <!-- Favoritar só com o ícone (padding 20 px) -->
                                 <ImageButton

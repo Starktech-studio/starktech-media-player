@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Nota do filme assistido no Detalhe (EstrelasNota, D6 e D12 do plano 004). -->
+<resources>
+    <color name="st_nota_cheia">@color/st_amarelo_marca</color>
+
+    <string name="st_nota_sem">Sem nota</string>
+    <string name="st_nota_de">%1$d de %2$d</string>
+    <string name="st_nota_tirar">Tirar nota</string>
+    <string name="st_nota_zero" translatable="false">0</string>
+    <string name="st_nota_dar">Dar nota %1$d de %2$d</string>
+    <string name="st_nota_descricao_tv">Nota: %1$s. Esquerda e direita mudam a nota.</string>
+
+    <!-- TV: cabe na altura de "Marcar como assistido" (st_tv_detalhe_marcar_altura) -->
+    <dimen name="st_nota_tv_estrela">12dp</dimen>
+    <dimen name="st_nota_tv_espaco">2dp</dimen>
+    <dimen name="st_nota_tv_rotulo_margem">5dp</dimen>
+
+    <!-- Tablet: na altura da barra de cima (st_tablet_detalhe_topo_botao_altura), uma célula de toque por valor -->
+    <dimen name="st_nota_tablet_celula">36dp</dimen>
+    <dimen name="st_nota_tablet_rotulo_largura">84dp</dimen>
+    <dimen name="st_nota_tablet_texto">14sp</dimen>
+</resources>

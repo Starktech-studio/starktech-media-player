@@ -9,7 +9,7 @@
 - Documentação em `docs/`, no padrão da skill `starktech-base`: ler `docs/index.md` primeiro e abrir só o que a tarefa pede; criou, moveu ou apagou arquivo, atualizar o `index.md`. Nunca gravar senha, token, chave ou dado de acesso.
 
 ## Contexto
-Player e biblioteca de mídia para Android TV e tablet (o mesmo APK roda no celular), gratuito, só pt-BR, distribuído por APK no site · fork do Nova Video Player v6.6.2 (Apache 2.0) num repositório privado único · código em `D:\Dev\starktech-media-player` · GitHub `Starktech-studio/starktech-media-player` (privado) · estado: F1 e F2 concluídas em 31/10/2026; F3 a seguir. Gestão: `OneDrive\Trabalho\Starktech\PROJETOS\APLICAÇÕES\STARKTECH MEDIA PLAYER\` · planejamento: `OneDrive\Trabalho\Starktech\PLANEJAMENTO\STARKTECH MEDIA PLAYER\` · planos: `OneDrive\Trabalho\Starktech\PROJETOS\PLANOS\STARKTECH MEDIA PLAYER\` · dados oficiais: `DADOS - STARKTECH MEDIA PLAYER.md` na raiz (cópia do da gestão; mudou um, atualizar o outro).
+Player e biblioteca de mídia para Android TV e tablet (o mesmo APK roda no celular), gratuito, só pt-BR, distribuído por APK no site · fork do Nova Video Player v6.6.2 (Apache 2.0) num repositório privado único · código em `D:\Dev\starktech-media-player` · GitHub `Starktech-studio/starktech-media-player` (privado) · estado: F1 e F2 concluídas em 31/10/2026; F3 (biblioteca real: pastas, TMDB, player do Nova) feita em 31/10/2026, em teste no tablet do Gustavo; ajustes da TV (plano 004) no código em 04/11/2026; versão 1.0.0 gerada em 09/11/2026 (selos, filtro, faixas guardadas, página do artista, juntar pastas, atualização pelo GitHub), de uso próprio, a testar na TV. Gestão: `OneDrive\Trabalho\Starktech\PROJETOS\APLICAÇÕES\STARKTECH MEDIA PLAYER\` · planejamento: `OneDrive\Trabalho\Starktech\PLANEJAMENTO\STARKTECH MEDIA PLAYER\` · planos: `OneDrive\Trabalho\Starktech\PROJETOS\PLANOS\STARKTECH MEDIA PLAYER\` · dados oficiais: `DADOS - STARKTECH MEDIA PLAYER.md`, na pasta `DOCUMENTOS` da gestão · antes de abrir ao público: `docs/operacional/liberar-ao-publico.md`.
 
 ---
 
@@ -37,7 +37,7 @@ Repositório, ramo e commit de origem de cada pasta: `docs/operacional/origem-no
 - Git desta pasta só pelo WSL (`git` dentro do Ubuntu, em `/mnt/d/Dev/starktech-media-player`). Nunca usar o Git do Windows nesta pasta (nem Git Bash, nem o Git do Android Studio ou do VS Code no Windows): com `core.autocrlf=true` e `core.symlinks=false` ele troca o fim de linha dos scripts e quebra os links simbólicos. Configuração local do repositório: `core.autocrlf=false` e `core.symlinks=true`; `.gitattributes` com `* -text`.
 - Bit de execução: em `/mnt/d` o Git não enxerga `chmod` (`core.fileMode=false`). Script novo que precisa rodar: `git update-index --chmod=+x <arquivo>`.
 - Nunca ignorar `*.so` ou `*.a` no `.gitignore`: os binários de `native/prebuilt/` vão no Git.
-- Chaves (TMDB, assinatura do APK): fora do Git, do `docs/` e de commit. A do TMDB fica na linha `starktech.tmdb.chave=` do `~/.gradle/gradle.properties` do WSL e entra no APK pelo build (`MediaLib/build.gradle`, `docs/operacional/build.md` §2). As chaves do Nova saíram do código na F2; Trakt e OpenSubtitles estão desligados, sem chave.
+- Chaves (TMDB, TheAudioDB, assinatura do APK): fora do Git, do `docs/` e de commit. A do TMDB fica na linha `starktech.tmdb.chave=` do `~/.gradle/gradle.properties` do WSL e entra no APK pelo build (`MediaLib/build.gradle`, `docs/operacional/build.md` §2); a da TheAudioDB, na linha `starktech.theaudiodb.chave=` do mesmo arquivo (`Video/build.gradle`). A assinatura do APK fica em `~/.starktech/` no WSL, com cópia na pasta `DOCUMENTOS` da gestão (`docs/operacional/build.md` §7): sem ela, o app publicado não atualiza mais. As chaves do Nova saíram do código na F2; Trakt e OpenSubtitles estão desligados, sem chave.
 - Licenças de terceiros e obrigações: `docs/arquitetura/licencas.md`. Mudou nativo, biblioteca ou forma de ligação: atualizar.
 
 ## 3. Build
@@ -46,6 +46,7 @@ Repositório, ramo e commit de origem de cada pasta: `docs/operacional/origem-no
 - Stack: JDK 17 · AGP 9.3.3 · Gradle 9.5.0 (wrapper em `Video/`) · compileSdk 37 · minSdk 23 · targetSdk 36 · NDK e SDK em `~/Android/Sdk` (WSL).
 - Comando, saída e teste: `docs/operacional/build.md`. APK em `Video/build/outputs/apk/noamazon/debug/`; cópias de teste em `apks/` (fora do Git).
 - Desde o fim da F2, todo build pedido é de teste e sem lint (`./gradlew -Puniversal assembleNoamazonDebug -x lintNoamazonDebug`), com o APK copiado para `apks/` como `StarkTech Media Player 0.1.0 (teste).apk`, substituindo o anterior. Lint completo só se o Gustavo pedir e na F4.
+- Versão publicada: `./gradlew -Puniversal assembleNoamazonRelease`, com o `versionCode` maior que o anterior, e o APK em `apks/` como `StarkTech Media Player X.Y.Z.apk` (`docs/operacional/build.md` §7).
 - Build só com autorização.
 
 ## 4. Fases
@@ -57,4 +58,4 @@ Repositório, ramo e commit de origem de cada pasta: `docs/operacional/origem-no
 | F2 — Motor | Lógica principal, isolada da interface |
 | F3 — Integração | Interface ligada ao motor: fluxo completo, erros, salvar |
 | F4 — Empacotamento | Pacote, ícones, avisos de licença, teste em aparelho limpo |
-| F5 — Publicação | APK no site e card na página `/apps` (DADOS §8) |
+| F5 — Publicação | APK no repositório de versões e card na página `/apps` (DADOS §8) |

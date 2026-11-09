@@ -3,7 +3,7 @@
 <!--
      Abas Filmes, Séries e Shows do tablet (ListaFragment, D9): título da tela (30 px, como
      "Pastas" no tablet-pastas.dc.html) e grade de capas 196x294 dp com 22 dp de espaço,
-     sem filtros. Margens do tablet-biblioteca.dc.html (40 x 28 dp). Colunas pela largura.
+     e o filtro "Só não assistidos", colocado no código. Margens do tablet-biblioteca.dc.html (40 x 28 dp). Colunas pela largura.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"

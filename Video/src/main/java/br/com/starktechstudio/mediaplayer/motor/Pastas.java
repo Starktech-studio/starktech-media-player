@@ -16,13 +16,13 @@ import java.util.Map;
 
 /**
  * Pastas da biblioteca e o tipo de cada uma (F2, etapa 3), no {@link BancoStarkTech}: Filmes,
- * Séries, Shows ou Ignorar. Ao adicionar, o tipo vem do nome da pasta (D4) — sem diferenciar
+ * Séries, Desenhos, Shows, Stand-up (F3) ou Ignorar. Ao adicionar, o tipo vem do nome da pasta (D4) — sem diferenciar
  * maiúscula, minúscula e acento — ou fica em branco ("escolha o tipo"); o usuário pode trocar.
  * Um arquivo pertence à pasta cadastrada mais próxima acima dele.
  */
 public final class Pastas {
 
-    public enum Tipo { FILMES, SERIES, SHOWS, IGNORAR }
+    public enum Tipo { FILMES, SERIES, DESENHOS, SHOWS, STANDUP, IGNORAR }
 
     public enum Origem { HD_EXTERNO, INTERNO }
 
@@ -52,7 +52,10 @@ public final class Pastas {
     static {
         for (String nome : new String[]{"filmes", "filme", "movies", "films"}) NOMES.put(nome, Tipo.FILMES);
         for (String nome : new String[]{"series", "serie", "tv shows"}) NOMES.put(nome, Tipo.SERIES);
+        for (String nome : new String[]{"desenhos", "desenho", "desenhos animados", "animacao", "animacoes",
+                "cartoons", "cartoon", "animation", "animations"}) NOMES.put(nome, Tipo.DESENHOS);
         for (String nome : new String[]{"shows", "show", "concerts", "concertos"}) NOMES.put(nome, Tipo.SHOWS);
+        for (String nome : new String[]{"stand-up", "standup", "stand up", "stand-ups", "standups"}) NOMES.put(nome, Tipo.STANDUP);
     }
 
     private static Pastas instancia;

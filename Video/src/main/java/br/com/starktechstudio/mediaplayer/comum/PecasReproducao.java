@@ -26,14 +26,14 @@ public final class PecasReproducao {
     }
 
     /** Começo de cada capítulo em fração da duração (marcas da barra). */
-    public static List<Float> marcas(ReproducaoSimulada r) {
+    public static List<Float> marcas(Reproducao r) {
         List<Float> lista = new ArrayList<>();
         for (Capitulo c : r.capitulos) lista.add(c.inicioSegundos / (float) r.duracao);
         return lista;
     }
 
     /** "Capítulo 3 de 8 · O laboratório"; episódio sem capítulos: "Temporada 1 · Episódio 3"; senão vazio. */
-    public static String linhaCapitulo(Context contexto, ReproducaoSimulada r) {
+    public static String linhaCapitulo(Context contexto, Reproducao r) {
         Capitulo atual = r.capituloAtual();
         if (atual != null) {
             return contexto.getString(R.string.st_capitulo_de, atual.numero, r.capitulos.size(), atual.nome);
@@ -47,7 +47,7 @@ public final class PecasReproducao {
     }
 
     /** "Próximo: 04 · A memória em 00:38", com o capítulo em branco; vazio no último ou sem capítulos. */
-    public static CharSequence textoProximo(Context contexto, ReproducaoSimulada r) {
+    public static CharSequence textoProximo(Context contexto, Reproducao r) {
         Capitulo proximo = r.proximoCapitulo();
         if (proximo == null) return "";
         SpannableStringBuilder texto = new SpannableStringBuilder(contexto.getString(R.string.st_proximo));

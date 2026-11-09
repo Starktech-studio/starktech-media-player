@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Ids das telas novas usados no código (F3). -->
+<resources>
+    <!-- Pedido de imagem em andamento numa view (comum/Imagens) -->
+    <item name="st_tag_imagem" type="id" />
+    <!-- Pastas (TV): botão Adicionar pasta e tipo marcado da primeira pasta, ligados pelo foco -->
+    <item name="st_pastas_adicionar" type="id" />
+    <item name="st_pastas_primeira" type="id" />
+</resources>

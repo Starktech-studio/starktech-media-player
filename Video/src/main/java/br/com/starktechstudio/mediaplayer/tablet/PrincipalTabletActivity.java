@@ -17,20 +17,22 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.widget.ImageViewCompat;
 
-import com.archos.mediacenter.video.BuildConfig;
 import com.archos.mediacenter.video.R;
 
 import br.com.starktechstudio.mediaplayer.comum.BordasSistema;
 import br.com.starktechstudio.mediaplayer.comum.Navegacao;
 import br.com.starktechstudio.mediaplayer.comum.Navegacao.Aba;
+import br.com.starktechstudio.mediaplayer.comum.AvisoDeVersao;
+import br.com.starktechstudio.mediaplayer.comum.PermissaoVideos;
 import br.com.starktechstudio.mediaplayer.comum.TelaCarregamento;
 import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 
 /**
  * Tela principal do tablet (tablet-biblioteca.dc.html): barra lateral com logo e os itens
- * Início, Filmes, Séries, Shows, Pastas e Ajustes (ativo com fundo azul 18 %); na aba
+ * Início, Filmes, Séries, Desenhos, Shows, Stand-up, Pastas e Ajustes (ativo com fundo azul 18 %; a barra
+ * rola se não couber); na aba
  * Início, a marca e o selo do HD (verde "HD externo" / vermelho "Sem HD ✕"). Sem busca
- * e sem filtros. No APK debug, toque longo no selo alterna o HD (para teste).
+ * e sem filtros. O selo segue o HD de verdade (ligado ou desligado com o app aberto).
  */
 public class PrincipalTabletActivity extends AppCompatActivity {
 
@@ -76,14 +78,6 @@ public class PrincipalTabletActivity extends AppCompatActivity {
             itens[i] = item;
         }
 
-        if (BuildConfig.DEBUG) {
-            seloHd.setOnLongClickListener(v -> {
-                repositorio.definirHdConectado(!repositorio.hdConectado());
-                atualizarSeloHd();
-                return true;
-            });
-        }
-
         Aba pedida = Navegacao.abaDoIntent(getIntent());
         int inicial = savedInstanceState != null ? savedInstanceState.getInt(ESTADO_ABA, 0)
                 : pedida == null ? 0 : pedida.ordinal();
@@ -92,7 +86,17 @@ public class PrincipalTabletActivity extends AppCompatActivity {
         if (restaurado) marcarItem(inicial);
         else selecionarAba(inicial);
         // Ao abrir o app: tela de carregamento por cima até a biblioteca ficar pronta
-        if (savedInstanceState == null) TelaCarregamento.mostrar(this);
+        if (savedInstanceState == null) {
+            TelaCarregamento.mostrar(this);
+            PermissaoVideos.pedirAoAbrirOApp(this);
+            AvisoDeVersao.procurarAoAbrir(this);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int pedido, @NonNull String[] permissoes, @NonNull int[] respostas) {
+        super.onRequestPermissionsResult(pedido, permissoes, respostas);
+        PermissaoVideos.aoResponder(this, pedido, respostas);
     }
 
     /** Pastas da biblioteca (em Ajustes) e outras telas que pedem uma aba. */
@@ -108,7 +112,19 @@ public class PrincipalTabletActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         atualizarSeloHd();
+        // O HD pode ter saído ou voltado com o app fora da tela
+        repositorio.conferirBiblioteca();
+        // HD ligado ou desligado com o app aberto
+        repositorio.ouvir(aoMudarBiblioteca);
     }
+
+    @Override
+    protected void onPause() {
+        repositorio.deixarDeOuvir(aoMudarBiblioteca);
+        super.onPause();
+    }
+
+    private final Runnable aoMudarBiblioteca = this::atualizarSeloHd;
 
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {

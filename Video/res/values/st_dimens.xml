@@ -207,6 +207,11 @@
     <dimen name="st_tablet_detalhe_capa_espaco">36dp</dimen>
     <dimen name="st_tablet_detalhe_espaco_info">14dp</dimen>
     <dimen name="st_tablet_detalhe_sinopse_largura">760dp</dimen>
+    <dimen name="st_tablet_coletanea_acoes_margem">14dp</dimen>
+    <dimen name="st_tv_coletanea_acoes_margem">9dp</dimen>
+    <dimen name="st_tv_coletanea_acao_espaco">7dp</dimen>
+    <dimen name="st_tv_coletanea_secao_margem">9dp</dimen>
+    <dimen name="st_tablet_coletanea_secao_margem">14dp</dimen>
     <dimen name="st_tablet_detalhe_chip_padding_h">12dp</dimen>
     <dimen name="st_tablet_detalhe_chip_padding_v">5dp</dimen>
     <dimen name="st_tablet_detalhe_chip_espaco">8dp</dimen>
@@ -352,7 +357,6 @@
     <dimen name="st_tv_texto_rep_rotulo">7.5sp</dimen>
     <dimen name="st_tv_texto_rep_lado_botao">9sp</dimen>
     <dimen name="st_tv_texto_rep_aviso">16sp</dimen>
-    <dimen name="st_tv_texto_rep_video">14sp</dimen>
 
     <!-- Tablet: player (tablet-player.dc.html, F1 fase F) -->
     <dimen name="st_tablet_rep_topo_padding_h">28dp</dimen>
@@ -380,7 +384,6 @@
     <dimen name="st_tablet_texto_rep_proximo">14sp</dimen>
     <dimen name="st_tablet_texto_rep_rotulo">11sp</dimen>
     <dimen name="st_tablet_texto_rep_aviso">28sp</dimen>
-    <dimen name="st_tablet_texto_rep_video">22sp</dimen>
     <!-- TV: Editar e Buscar no TMDB (tv-editar, tv-busca-tmdb, F1 fase G) -->
     <dimen name="st_tv_editar_coluna">270dp</dimen>
     <dimen name="st_tv_editar_espaco">32dp</dimen>

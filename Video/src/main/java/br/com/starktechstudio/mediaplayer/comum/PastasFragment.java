@@ -3,6 +3,7 @@
 package br.com.starktechstudio.mediaplayer.comum;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -28,8 +29,13 @@ import androidx.fragment.app.Fragment;
 
 import com.archos.mediacenter.video.R;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Origem;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Pasta;
@@ -40,18 +46,28 @@ import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
  * Aba Pastas (tv-pastas.dc.html; tablet-pastas.dc.html, a mesma tela compacta): Atualizar
  * biblioteca e Adicionar pasta; pastas por origem (HD externo "conectado" / "desconectado" e
  * armazenamento interno), cada uma com "reconhecida pelo nome" ou "escolha o tipo", o caminho e a
- * contagem, e o tipo Filmes, Séries, Shows ou Ignorar (grava no estado simulado; F2: de verdade);
+ * contagem, e o tipo Filmes, Séries, Desenhos, Shows, Stand-up ou Ignorar (marcado em verde / laranja e gravado no Salvar,
+ * que varre de novo), e Remover;
  * "Não identificados" com Revisar; painel "Como organizar". Montada no código, medidas do desenho
  * da TV ({@link Medidas}).
  */
 public class PastasFragment extends Fragment {
 
-    private static final TipoPasta[] TIPOS = {TipoPasta.FILMES, TipoPasta.SERIES, TipoPasta.SHOWS, TipoPasta.IGNORAR};
-    private static final int[] NOMES_TIPOS = {R.string.st_tipo_filmes, R.string.st_tipo_series, R.string.st_tipo_shows, R.string.st_tipo_ignorar};
+    private static final TipoPasta[] TIPOS = {TipoPasta.FILMES, TipoPasta.SERIES, TipoPasta.DESENHOS, TipoPasta.SHOWS,
+            TipoPasta.STANDUP, TipoPasta.IGNORAR};
+    private static final int[] NOMES_TIPOS = {R.string.st_tipo_filmes, R.string.st_tipo_series, R.string.st_tipo_desenhos,
+            R.string.st_tipo_shows, R.string.st_tipo_standup, R.string.st_tipo_ignorar};
 
     private RepositorioBiblioteca repositorio;
     private boolean tv;
     private LinearLayout lista;
+    /** Tipos marcados e ainda não salvos (id da pasta → tipo); só valem depois de Salvar. */
+    private final Map<String, TipoPasta> pendentes = new LinkedHashMap<>();
+    private Button salvar;
+    private Button adicionar;
+    private IndicadorAtualizacao indicador;
+    /** A próxima linha montada é a primeira da lista (TV: ↑ dela vai para Adicionar pasta). */
+    private boolean primeiraLinha;
 
     @Nullable
     @Override
@@ -84,7 +100,13 @@ public class PastasFragment extends Fragment {
         // TV: rolagem padrão (segue o foco); tablet: passa por trás da barra de navegação
         ViewGroup rolagem;
         if (tv) {
-            ScrollView sv = new ScrollView(contexto);
+            // ↓ da pílula para em Adicionar pasta, o primeiro botão da página; a lista desce dali
+            ScrollView sv = new ScrollView(contexto) {
+                @Override
+                protected boolean onRequestFocusInDescendants(int direcao, Rect anterior) {
+                    return adicionar.requestFocus() || super.onRequestFocusInDescendants(direcao, anterior);
+                }
+            };
             sv.setFocusable(false);
             rolagem = sv;
         } else {
@@ -102,18 +124,30 @@ public class PastasFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // Volta de Adicionar pasta ou de Não identificados
+        // Volta de Adicionar pasta ou de Não identificados; a varredura atualiza as contagens
         montarLista();
+        repositorio.ouvir(aoMudarBiblioteca);
+        indicador.ligar();
     }
 
-    /** "Pastas", a dica e os botões Atualizar biblioteca (tablet: só o ícone) e Adicionar pasta. */
+    @Override
+    public void onPause() {
+        repositorio.deixarDeOuvir(aoMudarBiblioteca);
+        indicador.desligar();
+        super.onPause();
+    }
+
+    private final Runnable aoMudarBiblioteca = this::montarLista;
+
+    /** "Pastas", a dica e os botões Atualizar biblioteca (só o ícone), Salvar (com tipo marcado) e Adicionar pasta. */
     private View cabecalho(Context contexto) {
         LinearLayout linha = new LinearLayout(contexto);
         linha.setOrientation(LinearLayout.HORIZONTAL);
         linha.setGravity(Gravity.BOTTOM);
         LinearLayout titulos = new LinearLayout(contexto);
         titulos.setOrientation(LinearLayout.VERTICAL);
-        TextView titulo = Textos.novo(contexto, getString(R.string.st_aba_pastas), R.font.st_inter_black, tv ? 48 : 43, R.color.st_texto);
+        TextView titulo = Textos.novo(contexto, getString(R.string.st_aba_pastas), R.font.st_inter_black,
+                tv ? Medidas.TITULO_PAGINA_TV : Medidas.TITULO_PAGINA_TABLET, R.color.st_texto);
         titulo.setLetterSpacing(-0.02f);
         titulos.addView(titulo);
         TextView dica = Textos.novo(contexto, getString(R.string.st_pastas_dica), R.font.st_inter_semibold, 20, R.color.st_texto_apagado);
@@ -122,19 +156,58 @@ public class PastasFragment extends Fragment {
         titulos.addView(dica, lpDica);
         linha.addView(titulos, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
-        Button atualizar = botao(contexto, tv ? R.string.st_atualizar_biblioteca : 0, R.drawable.st_ic_atualizar, false);
+        // Andamento da atualização (ou ✓ verde), do lado oposto ao título
+        indicador = new IndicadorAtualizacao(contexto, repositorio);
+        LinearLayout.LayoutParams lpIndicador = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, alturaBotao(contexto));
+        lpIndicador.setMarginEnd(Medidas.px(contexto, 18));
+        linha.addView(indicador.view, lpIndicador);
+        Button atualizar = botao(contexto, 0, R.drawable.st_ic_atualizar, false);
         atualizar.setContentDescription(getString(R.string.st_atualizar_biblioteca));
+        // TV: ← de Atualizar fica nele (não cai na lista); ↓ dos botões vai para o tipo da primeira pasta
+        atualizar.setId(View.generateViewId());
+        atualizar.setNextFocusLeftId(atualizar.getId());
+        atualizar.setNextFocusDownId(R.id.st_pastas_primeira);
         atualizar.setOnClickListener(v -> {
-            repositorio.atualizarBiblioteca();
-            Toast.makeText(contexto, R.string.st_biblioteca_atualizada, Toast.LENGTH_SHORT).show();
+            if (!PermissaoVideos.pedirSeFaltar(requireActivity())) return;
+            repositorio.atualizarAgora();
+            Toast.makeText(contexto, R.string.st_atualizando_biblioteca, Toast.LENGTH_SHORT).show();
         });
         linha.addView(atualizar);
-        Button adicionar = botao(contexto, R.string.st_adicionar_pasta, R.drawable.st_ic_pastas, true);
+        // Salvar aparece com um tipo marcado e ainda não salvo
+        salvar = botao(contexto, R.string.st_salvar, R.drawable.st_ic_check, true);
+        salvar.setOnClickListener(v -> salvarTipos());
+        salvar.setNextFocusDownId(R.id.st_pastas_primeira);
+        salvar.setVisibility(View.GONE);
+        LinearLayout.LayoutParams lpSalvar = (LinearLayout.LayoutParams) salvar.getLayoutParams();
+        lpSalvar.setMarginStart(Medidas.px(contexto, 14));
+        linha.addView(salvar, lpSalvar);
+        adicionar = botao(contexto, R.string.st_adicionar_pasta, R.drawable.st_ic_pastas, true);
+        adicionar.setId(R.id.st_pastas_adicionar);
+        adicionar.setNextFocusDownId(R.id.st_pastas_primeira);
         adicionar.setOnClickListener(v -> Navegacao.abrirAdicionarPasta(requireActivity()));
         LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) adicionar.getLayoutParams();
         lp.setMarginStart(Medidas.px(contexto, 14));
         linha.addView(adicionar, lp);
         return linha;
+    }
+
+    /** Salvar: grava os tipos marcados e varre a biblioteca de novo (é aí que os vídeos mudam de aba). */
+    private void salvarTipos() {
+        if (pendentes.isEmpty()) return;
+        for (Map.Entry<String, TipoPasta> item : pendentes.entrySet()) {
+            repositorio.definirTipoPasta(item.getKey(), item.getValue());
+        }
+        pendentes.clear();
+        // O Salvar some: o foco vai antes para Adicionar pasta (senão cairia na barra do topo e trocaria de aba)
+        if (salvar.hasFocus()) adicionar.requestFocus();
+        montarLista();
+        Toast.makeText(requireContext(), R.string.st_tipos_salvos, Toast.LENGTH_SHORT).show();
+    }
+
+    private void mostrarSalvar() {
+        boolean mostrar = !pendentes.isEmpty();
+        if (!mostrar && salvar.hasFocus()) adicionar.requestFocus();
+        salvar.setVisibility(mostrar ? View.VISIBLE : View.GONE);
     }
 
     private int alturaBotao(Context contexto) {
@@ -161,12 +234,23 @@ public class PastasFragment extends Fragment {
         if (contexto == null || lista == null) return;
         View foco = lista.findFocus();
         Object marca = foco == null ? null : foco.getTag();
+        // Refazer a lista com o foco nela jogaria o foco na barra do topo (e a TV trocaria de aba):
+        // o foco passa por Adicionar pasta e volta ao mesmo lugar no fim
+        if (foco != null && adicionar != null) adicionar.requestFocus();
         lista.removeAllViews();
-
+        // Pasta que saiu (Remover) não tem mais tipo pendente
         List<Pasta> pastas = repositorio.pastas();
+        Set<String> existentes = new HashSet<>();
+        for (Pasta p : pastas) existentes.add(p.id);
+        pendentes.keySet().retainAll(existentes);
+        mostrarSalvar();
+
+        if (!repositorio.podeLerVideos()) dica(contexto, getString(R.string.st_videos_sem_permissao));
+        else if (pastas.isEmpty()) dica(contexto, getString(R.string.st_sem_pastas_dica));
         boolean hd = repositorio.hdConectado();
+        primeiraLinha = true;
         grupo(contexto, Origem.HD_EXTERNO, pastas, hd, false);
-        grupo(contexto, Origem.INTERNO, pastas, true, true);
+        grupo(contexto, Origem.INTERNO, pastas, true, lista.getChildCount() > 0);
         naoIdentificados(contexto);
 
         if (marca != null) {
@@ -200,7 +284,8 @@ public class PastasFragment extends Fragment {
 
         for (Pasta p : doGrupo) {
             View linha = linha(contexto, p);
-            linha.setAlpha(disponivel ? 1f : 0.5f);
+            // HD desligado (ou outro HD no lugar): a pasta fica apagada
+            linha.setAlpha(disponivel && new File(p.id).isDirectory() ? 1f : 0.5f);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             lp.topMargin = Medidas.px(contexto, 12);
             lista.addView(linha, lp);
@@ -272,7 +357,10 @@ public class PastasFragment extends Fragment {
         return getResources().getQuantityString(R.plurals.st_n_videos, p.videos, p.videos);
     }
 
-    /** Grupo Filmes / Séries / Shows / Ignorar (48 px, Inter 800); o escolhido em branco. */
+    /**
+     * Grupo Filmes / Séries / Desenhos / Shows / Stand-up / Ignorar (48 px, Inter 800): o escolhido em verde
+     * (Ignorar em laranja), marcado na hora e gravado só no Salvar. No fim, Remover.
+     */
     private View tipos(Context contexto, Pasta p) {
         LinearLayout grupo = new LinearLayout(contexto);
         grupo.setOrientation(LinearLayout.HORIZONTAL);
@@ -280,27 +368,77 @@ public class PastasFragment extends Fragment {
         grupo.setContentDescription(getString(R.string.st_tipo_da_pasta));
         int folga = Medidas.px(contexto, 4);
         grupo.setPadding(folga, folga, folga, folga);
+        // TV: primeira pasta ligada aos botões do alto (↑ em qualquer opção vai para Adicionar pasta)
+        final boolean primeira = primeiraLinha;
+        primeiraLinha = false;
         for (int i = 0; i < TIPOS.length; i++) {
             final TipoPasta tipo = TIPOS[i];
             TextView opcao = Textos.novo(contexto, getString(NOMES_TIPOS[i]), R.font.st_inter_extrabold, 17, R.color.st_texto_secundario);
             opcao.setTextColor(ContextCompat.getColorStateList(contexto, R.color.st_cor_segmento));
-            opcao.setBackgroundResource(R.drawable.st_segmento);
+            opcao.setBackgroundResource(tipo == TipoPasta.IGNORAR ? R.drawable.st_segmento_laranja : R.drawable.st_segmento_verde);
             opcao.setGravity(Gravity.CENTER);
             opcao.setPadding(Medidas.px(contexto, 15), 0, Medidas.px(contexto, 15), 0);
-            opcao.setSelected(p.tipo == tipo);
+            opcao.setSelected(tipoMarcado(p) == tipo);
             opcao.setFocusable(true);
             opcao.setClickable(true);
             opcao.setTag(p.id + ":" + tipo.name());
+            if (primeira) {
+                opcao.setNextFocusUpId(R.id.st_pastas_adicionar);
+                if (tipoMarcado(p) == tipo || (i == 0 && tipoMarcado(p) == TipoPasta.NENHUM)) opcao.setId(R.id.st_pastas_primeira);
+            }
             if (tv) opcao.setForeground(ContextCompat.getDrawable(contexto, R.drawable.st_foco_tv));
+            // Marca na hora (sem refazer a lista); vale só depois de Salvar
             opcao.setOnClickListener(v -> {
-                repositorio.definirTipoPasta(p.id, tipo);
-                montarLista();
+                if (tipo == p.tipo) pendentes.remove(p.id);
+                else pendentes.put(p.id, tipo);
+                for (int j = 0; j < grupo.getChildCount(); j++) {
+                    View irmao = grupo.getChildAt(j);
+                    Object marca = irmao.getTag();
+                    if (marca instanceof String && !((String) marca).endsWith(":remover")) {
+                        irmao.setSelected(marca.equals(p.id + ":" + tipo.name()));
+                    }
+                }
+                mostrarSalvar();
             });
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, Medidas.px(contexto, 48));
             if (i > 0) lp.setMarginStart(folga);
             grupo.addView(opcao, lp);
         }
+        // Remover (em vermelho): tira a pasta da biblioteca, depois de confirmar
+        TextView remover = Textos.novo(contexto, getString(R.string.st_remover), R.font.st_inter_extrabold, 17, R.color.st_selo_sem_hd_texto);
+        remover.setBackgroundResource(R.drawable.st_segmento);
+        remover.setGravity(Gravity.CENTER);
+        remover.setPadding(Medidas.px(contexto, 15), 0, Medidas.px(contexto, 15), 0);
+        remover.setFocusable(true);
+        remover.setClickable(true);
+        remover.setTag(p.id + ":remover");
+        // TV: → de Remover fica nele (não sobe para os botões do alto)
+        remover.setId(View.generateViewId());
+        remover.setNextFocusRightId(remover.getId());
+        if (primeira) remover.setNextFocusUpId(R.id.st_pastas_adicionar);
+        remover.setContentDescription(getString(R.string.st_remover_pasta_descricao, p.nome));
+        if (tv) remover.setForeground(ContextCompat.getDrawable(contexto, R.drawable.st_foco_tv));
+        remover.setOnClickListener(v -> Navegacao.abrirRemoverPasta(requireActivity(), p.id, p.caminho));
+        LinearLayout.LayoutParams lpRemover = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, Medidas.px(contexto, 48));
+        lpRemover.setMarginStart(folga);
+        grupo.addView(remover, lpRemover);
         return grupo;
+    }
+
+    /** Tipo marcado da pasta: o pendente (ainda não salvo) ou o gravado. */
+    private TipoPasta tipoMarcado(Pasta p) {
+        TipoPasta pendente = pendentes.get(p.id);
+        return pendente != null ? pendente : p.tipo;
+    }
+
+    /** Aviso no alto da lista (sem permissão, sem pastas). */
+    private void dica(Context contexto, String texto) {
+        TextView aviso = Textos.novo(contexto, texto, R.font.st_inter_semibold, 19, R.color.st_texto_secundario);
+        aviso.setLineSpacing(0f, 1.2f);
+        aviso.setBackgroundResource(R.drawable.st_fundo_cartao);
+        int padding = Medidas.px(contexto, 22);
+        aviso.setPadding(padding, Medidas.px(contexto, 16), padding, Medidas.px(contexto, 16));
+        lista.addView(aviso, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
     }
 
     /** "Não identificados · N vídeos sem tipo ou fora do padrão" com Revisar. */
@@ -361,7 +499,9 @@ public class PastasFragment extends Fragment {
         int[][] exemplos = {
                 {R.string.st_tipo_filmes, R.string.st_exemplo_filme},
                 {R.string.st_tipo_series, R.string.st_exemplo_serie},
-                {R.string.st_tipo_shows, R.string.st_exemplo_show}
+                {R.string.st_tipo_desenhos, R.string.st_exemplo_desenho},
+                {R.string.st_tipo_shows, R.string.st_exemplo_show},
+                {R.string.st_tipo_standup, R.string.st_exemplo_standup}
         };
         for (int[] exemplo : exemplos) {
             adicionar(painel, Textos.rotulo(contexto, getString(exemplo[0]), 14), espaco);

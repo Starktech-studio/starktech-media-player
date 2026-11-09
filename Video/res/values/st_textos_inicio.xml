@@ -20,6 +20,10 @@
 
     <!-- Capas e cartões -->
     <string name="st_assistido">Assistido</string>
+    <string name="st_selo_4k">4K</string>
+    <string name="st_selo_hdr">HDR</string>
+    <string name="st_so_nao_assistidos">Só não assistidos</string>
+    <string name="st_lista_tudo_assistido">Tudo assistido por aqui. Desligue "Só não assistidos" para ver de novo.</string>
     <string name="st_favorito">Favorito</string>
     <string name="st_cap_faltam">Cap. %1$d de %2$d · Faltam %3$d min</string>
     <string name="st_cap_de">Cap. %1$d de %2$d</string>
@@ -31,4 +35,16 @@
     <string name="st_rodape_registrada" translatable="false">®</string>
     <string name="st_rodape_versao">StarkTech Media Player · versão %1$s</string>
     <string name="st_rodape_site" translatable="false">starktechstudio.com.br</string>
+
+    <!-- Biblioteca vazia (F3) -->
+    <string name="st_vazio_sem_pastas">Sua biblioteca está vazia. Em Pastas, toque em Adicionar pasta e escolha onde estão os seus vídeos.</string>
+    <string name="st_vazio_sem_videos">Nenhum vídeo nas pastas ainda. Confira o tipo de cada pasta em Pastas.</string>
+    <string name="st_vazio_procurando">Procurando os vídeos nas pastas…</string>
+    <string name="st_vazio_sem_permissao">Permita que o app leia os vídeos do aparelho para montar a biblioteca.</string>
+    <string name="st_lista_vazia_filmes">Nenhum filme ainda. Marque uma pasta como Filmes em Pastas.</string>
+    <string name="st_lista_vazia_series">Nenhuma série ainda. Marque uma pasta como Séries em Pastas.</string>
+    <string name="st_lista_vazia_shows">Nenhum show ainda. Marque uma pasta como Shows em Pastas.</string>
+    <string name="st_lista_vazia_desenhos">Nenhum desenho ainda. Marque uma pasta como Desenhos em Pastas.</string>
+    <string name="st_lista_vazia_standup">Nenhum stand-up ainda. Marque uma pasta como Stand-up em Pastas.</string>
+    <string name="st_video_nao_abriu">Não deu para abrir o vídeo. Confira se o HD está ligado.</string>
 </resources>
