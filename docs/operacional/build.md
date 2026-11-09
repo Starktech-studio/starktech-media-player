@@ -135,3 +135,13 @@ Publicar uma versão:
 1. Subir `versionCode` e `versionName` (§6) e gerar o APK.
 2. No repositório `Starktech-studio/starktech-media-player`, criar uma release `vX.Y.Z` no commit do APK e anexar o APK, com nome sem espaços (`StarkTech-Media-Player-X.Y.Z.apk`), e o `version.json` apontando para ele. O da 1.0.0 está pronto em `apks/version.json`.
 3. O anexo tem de se chamar `version.json`, e a release, ser a mais recente: é o que o endereço do app procura.
+
+O Git do WSL não guarda login: o push usa o gerenciador de credenciais do Windows. A release sai pelo GitHub CLI do Windows, já logado na conta `Starktech-studio`.
+
+```bash
+git -c credential.helper= -c 'credential.helper=!"/mnt/c/Program Files/Git/mingw64/bin/git-credential-manager.exe"' push origin main
+```
+
+```powershell
+gh release create vX.Y.Z -R Starktech-studio/starktech-media-player --target <commit> --latest StarkTech-Media-Player-X.Y.Z.apk version.json
+```

@@ -31,4 +31,4 @@
 
 | # | Item | Origem |
 |---|---|---|
-| 1 | Publicar a release `v1.0.0` no repositório `starktech-media-player`, público desde 09/11/2026, com o APK e o `version.json` (`docs/operacional/build.md` §7). Antes de abrir ao público: `docs/operacional/liberar-ao-publico.md` | Versão 1 (09/11/2026) |
+| 1 | Card na página `/apps` do site (DADOS §8). Antes de divulgar: `docs/operacional/liberar-ao-publico.md` | Versão 1 (09/11/2026) |
