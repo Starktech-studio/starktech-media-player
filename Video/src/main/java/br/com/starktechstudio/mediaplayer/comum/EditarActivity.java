@@ -76,7 +76,7 @@ import br.com.starktechstudio.mediaplayer.motor.ImagemDoAparelho;
  * já editados à mão ficam como estão. Na TV, o foco só realça a caixa de texto: OK entra, seleciona
  * o texto e abre o teclado. Filme: Coletânea (D5), para mover a outra, tirar dela ou voltar ao TMDB.
  * Capa de coletânea e de artista: só o nome, a capa e o fundo, sem Buscar no TMDB. Capa de artista:
- * as fotos do Deezer e da Wikipédia entram nas opções da capa, e "Buscar artista" troca o artista: com
+ * as fotos do fanart.tv e da Wikipédia entram nas opções da capa, e "Buscar artista" troca o artista: com
  * um que já está na biblioteca, os shows dos dois ficam juntos ("Queen + Adam Lambert" em "Queen"). O artista
  * escolhido aparece na hora (nome, foto como capa nova e as fotos dele nas opções); só o Salvar grava.
  */
@@ -173,7 +173,7 @@ public class EditarActivity extends AppCompatActivity {
     private final List<View> opcoesFundo = new ArrayList<>();
     private int porFileiraCapa = 1;
     private int porFileiraFundo = 1;
-    /** Capa de artista: as fotos do Deezer, depois que chegam ({@link #buscarFotosDoArtista}). */
+    /** Capa de artista: as fotos do fanart.tv e da Wikipédia, depois que chegam ({@link #buscarFotosDoArtista}). */
     private List<String> fotosDoArtista = new ArrayList<>();
     /** Pedido de fotos mais recente: a resposta de um artista anterior (trocou na busca) não entra. */
     private int pedidoDeFotos;
@@ -357,7 +357,7 @@ public class EditarActivity extends AppCompatActivity {
     }
 
     /**
-     * Capa do artista escolhido em "Buscar artista": a foto do Deezer ou, se ele já está na biblioteca, a capa
+     * Capa do artista escolhido em "Buscar artista": a foto do fanart.tv ou, se ele já está na biblioteca, a capa
      * que ele tem; nula sem artista escolhido.
      */
     @Nullable
@@ -370,7 +370,7 @@ public class EditarActivity extends AppCompatActivity {
     }
 
     /**
-     * Capa de artista: as fotos do Deezer e da Wikipédia entram nas opções quando chegam, sem segurar a tela:
+     * Capa de artista: as fotos do fanart.tv e da Wikipédia entram nas opções quando chegam, sem segurar a tela:
      * as deste artista ou, com {@code nome}, as do escolhido na busca. O banco só muda no Salvar, que baixa a
      * escolhida (como as opções do TMDB).
      */

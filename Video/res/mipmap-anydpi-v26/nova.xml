@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Nome herdado do Nova, conteúdo StarkTech (1.1.1): o mesmo ícone adaptativo de st_ic_launcher. -->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="@color/nova_background"/>
-    <foreground android:drawable="@mipmap/nova_foreground"/>
+    <background android:drawable="@color/st_fundo" />
+    <foreground android:drawable="@mipmap/st_ic_launcher_frente" />
 </adaptive-icon>

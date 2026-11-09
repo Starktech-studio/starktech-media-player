@@ -24,10 +24,11 @@
     <!-- Buscar artista, no Editar -->
     <string name="st_buscar_artista">Buscar artista</string>
     <string name="st_escolher_artista">Escolher o artista</string>
-    <string name="st_artista_ajuda">Escolha um artista da biblioteca para juntar os shows dele aos deste, ou um do Deezer para usar o nome e a foto.</string>
+    <string name="st_artista_ajuda">Escolha um artista da biblioteca para juntar os shows dele aos deste, ou um do MusicBrainz para usar o nome e a foto.</string>
     <string name="st_artista_buscando">Buscando artistas…</string>
-    <string name="st_artista_nada">Nada encontrado. Tente só uma parte do nome.</string>
-    <string name="st_artista_do_deezer">Deezer · %1$s fãs</string>
+    <string name="st_artista_nada">Nada encontrado. Tente o nome completo do artista.</string>
+    <string name="st_artista_do_musicbrainz">MusicBrainz · %1$s</string>
+    <string name="st_artista_do_musicbrainz_so">MusicBrainz</string>
     <plurals name="st_artista_na_biblioteca">
         <item quantity="one">Na biblioteca · %d show</item>
         <item quantity="other">Na biblioteca · %d shows</item>

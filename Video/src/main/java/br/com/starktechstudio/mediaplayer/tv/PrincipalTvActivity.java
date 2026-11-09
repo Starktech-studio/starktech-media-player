@@ -57,10 +57,10 @@ public class PrincipalTvActivity extends AppCompatActivity {
 
     private static final String ESTADO_ABA = "aba";
 
-    private static final Aba[] ABAS = {Aba.INICIO, Aba.FILMES, Aba.SERIES, Aba.TVSHOWS, Aba.DESENHOS, Aba.SHOWS, Aba.STANDUP};
+    private static final Aba[] ABAS = {Aba.INICIO, Aba.FILMES, Aba.SERIES, Aba.TVSHOWS, Aba.DESENHOS, Aba.SHOWS, Aba.STANDUP, Aba.MUSICAS};
     private static final int[] PILULAS = {
             R.id.st_pilula_inicio, R.id.st_pilula_filmes, R.id.st_pilula_series, R.id.st_pilula_tvshows,
-            R.id.st_pilula_desenhos, R.id.st_pilula_shows, R.id.st_pilula_standup
+            R.id.st_pilula_desenhos, R.id.st_pilula_shows, R.id.st_pilula_standup, R.id.st_pilula_musicas
     };
 
     private final TextView[] pilulas = new TextView[ABAS.length];

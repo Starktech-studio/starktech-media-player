@@ -25,7 +25,6 @@ import java.io.File;
 import java.io.IOException;
 import java.text.Collator;
 import java.text.Normalizer;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -1132,11 +1131,11 @@ public final class RepositorioReal implements RepositorioBiblioteca {
     @Override
     public List<String> fotosDoArtistaPeloNome(String nome) {
         if (!temTexto(nome)) return Collections.emptyList();
-        List<String> doDeezer = new BuscaArtista(app).fotosDeezer(nome.trim());
+        List<String> doFanart = new BuscaArtista(app).fotos(nome.trim());
         List<String> daWikipedia = new WikipediaArtista().fotos(nome.trim());
-        if (doDeezer == null && daWikipedia.isEmpty()) return null;
+        if (doFanart == null && daWikipedia.isEmpty()) return null;
         List<String> referencias = new ArrayList<>();
-        if (doDeezer != null) for (String foto : doDeezer) referencias.add("url:" + foto);
+        if (doFanart != null) for (String foto : doFanart) referencias.add("url:" + foto);
         for (String foto : daWikipedia) referencias.add("url:" + foto);
         return referencias;
     }
@@ -1154,10 +1153,10 @@ public final class RepositorioReal implements RepositorioBiblioteca {
                     app.getResources().getQuantityString(R.plurals.st_artista_na_biblioteca, t.numeroShows, t.numeroShows),
                     t.corCapa, capa == null ? null : Uri.fromFile(new File(capa)).toString()));
         }
-        NumberFormat numero = NumberFormat.getIntegerInstance(Locale.forLanguageTag("pt-BR"));
-        for (BuscaArtista.Encontrado achado : new BuscaArtista(app).artistasDeezer(consulta.trim())) {
+        for (BuscaArtista.Encontrado achado : new BuscaArtista(app).artistas(consulta.trim())) {
             lista.add(new ResultadoTmdb(achado.nome, achado.nome, "", Tipo.SHOW,
-                    app.getString(R.string.st_artista_do_deezer, numero.format(achado.fas)),
+                    achado.detalhe.isEmpty() ? app.getString(R.string.st_artista_do_musicbrainz_so)
+                            : app.getString(R.string.st_artista_do_musicbrainz, achado.detalhe),
                     corDe(Acervo.chaveArtista(achado.nome)), achado.foto));
         }
         return lista;
@@ -1865,6 +1864,12 @@ public final class RepositorioReal implements RepositorioBiblioteca {
                     novo.descricao = antes.descricao;
                     novo.resumo = antes.resumo;
                 }
+                // Achou só uma das imagens: a outra que já tinha fica
+                if (antes != null && novo.foto == null && existe(antes.foto) != null) {
+                    novo.foto = antes.foto;
+                    novo.fonte = antes.fonte;
+                }
+                if (antes != null && novo.fundo == null && existe(antes.fundo) != null) novo.fundo = antes.fundo;
                 // Falha não apaga a imagem que já tinha
                 if (novo.situacao == Acervo.ACHADO || antes == null || antes.situacao != Acervo.ACHADO) acervo.gravarArtista(novo);
                 if (++feitos % 5 == 0) reconstruirENotificar();

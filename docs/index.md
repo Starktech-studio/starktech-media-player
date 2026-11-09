@@ -74,8 +74,8 @@
 | `imagens/v1/tv-series.png` | Versão 1 — TV (emulador, vídeos de teste): Aba Séries |
 | `imagens/v1/tv-shows.png` | Versão 1 — TV (emulador, vídeos de teste): Aba Shows depois de juntar "Queen + Adam Lambert" em "Queen": 3 shows |
 | `imagens/v1/tv-artista.png` | Versão 1 — TV (emulador, vídeos de teste): Página do artista: foto, chips, texto da Wikipédia, Editar e os shows em destaque |
-| `imagens/v1/tv-editar-artista.png` | Versão 1 — TV (emulador, vídeos de teste): Editar do artista: opções de foto do Deezer e da Wikipédia e "Buscar artista" |
-| `imagens/v1/tv-buscar-artista.png` | Versão 1 — TV (emulador, vídeos de teste): Buscar artista: da biblioteca e do Deezer, com o número de fãs |
+| `imagens/v1/tv-editar-artista.png` | Versão 1 — TV (emulador, vídeos de teste): Editar do artista: opções de foto e "Buscar artista" (na 1.0.0, ainda do Deezer; da 1.1.1 em diante, fanart.tv e Wikipédia) |
+| `imagens/v1/tv-buscar-artista.png` | Versão 1 — TV (emulador, vídeos de teste): Buscar artista: da biblioteca e de fora (na 1.0.0, do Deezer, com o número de fãs; da 1.1.1 em diante, do MusicBrainz) |
 | `imagens/v1/tv-pastas.png` | Versão 1 — TV (emulador, vídeos de teste): Pastas: tipo de cada pasta e como organizar |
 | `imagens/v1/tv-configuracoes.png` | Versão 1 — TV (emulador, vídeos de teste): Configurações, seção App: Atualizar automaticamente, Versão instalada e Versão disponível |
 | `operacional/build.md` | Ambiente (WSL, JDK, SDK, NDK), comando de build, saída do APK, teste no aparelho, versão publicada e assinatura |

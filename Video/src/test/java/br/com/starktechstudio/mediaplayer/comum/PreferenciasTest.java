@@ -57,6 +57,7 @@ public class PreferenciasTest {
         assertTrue(Preferencias.abaLigada(contexto, Navegacao.Aba.AJUSTES));
         assertFalse(Preferencias.abaLigada(contexto, Navegacao.Aba.TVSHOWS));
         assertFalse(Preferencias.abaLigada(contexto, Navegacao.Aba.STANDUP));
+        assertFalse("Músicas, sem motor, só se ligar", Preferencias.abaLigada(contexto, Navegacao.Aba.MUSICAS));
 
         Preferencias.proximo(contexto, Preferencias.Item.NAV_STANDUP);
         assertTrue(Preferencias.abaLigada(contexto, Navegacao.Aba.STANDUP));

@@ -74,14 +74,14 @@ Versões: as do builder no commit da release. O próprio Nova avisa que a revis�
 | libtorrent | 2.1.2 (`native/libtorrent-android-builder/build.sh:46`) | no executável torrentd (`libtorrentd.so`) | BSD-3-Clause | arvidn/libtorrent@v2.1.2 `LICENSE` |
 | Boost | 1.92.0 (`native/boost/build.sh:3`) | no torrentd | BSL-1.0 | boostorg/boost@boost-1.92.0 `LICENSE_1_0.txt` |
 
-Nenhum componente GPL encontrado entre os nativos do manifesto. libyuv e libcurl não estão no manifesto v6.6 (`native/avos/avos_config_android.mk` sem `LIBYUV`). Dependências Java (Maven/JitPack) não estão no manifesto e não foram levantadas; entre elas está o jcifs-ng (`FileCoreLibrary/build.gradle:158`), cujo fork na organização é LGPL-2.1.
+Nenhum componente GPL encontrado entre os nativos do manifesto. libyuv e libcurl não estão no manifesto v6.6 (`native/avos/avos_config_android.mk` sem `LIBYUV`). Dependências Java (Maven/JitPack) não estão no manifesto: ficam na §9 (1.1.1).
 
 ## 3. O que as licenças obrigam (APK gratuito, baixado pelo site)
 
 | Licença | Obrigação | Base |
 |---|---|---|
 | Apache-2.0 (Nova, avos, libnativehelper, OpenSSL) | Texto da licença junto do APK; manter avisos de copyright; marcar arquivos alterados; incluir o NOTICE onde houver (libnativehelper); a marca "Nova"/"Archos" não é cedida | Apache-2.0 §4(a)-(d) e §6 (`LICENSE.txt` de cada pasta) |
-| LGPL-2.1 (FFmpeg, AudioCompress, FriBidi; jcifs-ng a confirmar) | Texto da licença e aviso no app; código-fonte das bibliotecas e das modificações (FFmpeg n9.0.2 + 4 patches + scripts de build) disponível no mesmo lugar do download ou por oferta escrita; termos do app não podem proibir engenharia reversa para depurar essas bibliotecas | LGPL-2.1 §6 (`native/audiocompress/COPYING`) |
+| LGPL-2.1 (FFmpeg, AudioCompress, FriBidi, jcifs-ng) | Texto da licença e aviso no app; código-fonte das bibliotecas e das modificações (FFmpeg n9.0.2 + 4 patches + scripts de build) disponível no mesmo lugar do download ou por oferta escrita; termos do app não podem proibir engenharia reversa para depurar essas bibliotecas | LGPL-2.1 §6 (`native/audiocompress/COPYING`) |
 | LGPL-2.1 com ligação estática (FriBidi no `libavos.so`) | Permitir religar: publicar também o código do motor (`native/avos`, com as mudanças da StarkTech) e os scripts de build. A interface Java não precisa ser aberta | LGPL-2.1 §6(a) |
 | BSD, ISC, MIT, Old MIT, fontconfig, libpng, libunibreak | Reproduzir aviso de copyright e licença na documentação do binário (tela de avisos de terceiros) | arquivos de licença da seção 2 |
 | FreeType (FTL) | Crédito na documentação: "Portions of this software are copyright © <ano> The FreeType Project (https://freetype.org). All rights reserved." | `FTL.TXT:37-38`, `:51-52` |
@@ -94,15 +94,13 @@ Nenhum componente GPL encontrado entre os nativos do manifesto. libyuv e libcurl
 |---|---|---|
 | 1 | FriBidi (LGPL-2.1) ligado estaticamente no `libavos.so` (`native/avos/ndkbuild.mk:59-60`): obriga a publicar o código do motor | Tratar na F4 |
 | 2 | OpenSSL 4.1.0 é Apache-2.0. O `LICENSE.md` do FFmpeg diz que Apache-2.0 é incompatível com LGPL v2.1 (`:108-111`), mas trata o OpenSSL como compatível (`:125-127`) e o `configure` não exige `--enable-version3` (`configure:2066-2158`). Leitura final não confirmada | Avaliar na F4 (opção conservadora: tratar o FFmpeg do APK como LGPL v3) |
-| 3 | Tela de licenças do Nova desatualizada (`Video/res/xml/preferences_licences.xml`): lista libcurl e libyuv (fora do manifesto) e não lista dav1d, Opus, OpenSSL, libmysofa, libass, FreeType, FriBidi, HarfBuzz, fontconfig, libunibreak, libxml2, libpng, zlib | Refazer na F4 com a seção 2 |
+| 3 | Tela de licenças do Nova desatualizada (`Video/res/xml/preferences_licences.xml`): lista libcurl e libyuv (fora do manifesto) e não lista dav1d, Opus, OpenSSL, libmysofa, libass, FreeType, FriBidi, HarfBuzz, fontconfig, libunibreak, libxml2, libpng, zlib | Resolvido na 1.1.1: o app usa o Sobre da StarkTech (§7), com a seção 2 e a §9 |
 
 ## 5. Pendências da F4
 
-- Levantar as dependências Java (Maven/JitPack) e suas licenças; confirmar a do jcifs-ng.
 - Confirmar a versão exata de cada binário pronto de `native/prebuilt/`.
-- Código-fonte LGPL junto do download (FFmpeg n9.0.2 + patches + scripts de build, AudioCompress, FriBidi e o motor `native/avos` com as mudanças da StarkTech): o repositório é público desde 09/11/2026; conferir se está tudo nele e dizer em Sobre onde está.
+- Código-fonte LGPL junto do download (FFmpeg n9.0.2 + patches + scripts de build, AudioCompress, FriBidi e o motor `native/avos` com as mudanças da StarkTech): o repositório é público desde 09/11/2026; o Sobre diz onde está (1.1.1); falta conferir se está tudo nele.
 - Chaves do Nova (TMDB, Trakt, OpenSubtitles): fora do código desde a F2 (etapa 4). O APK usa a chave própria do TMDB, vinda de fora do repositório no build (`docs/operacional/build.md` §2); Trakt e OpenSubtitles ficam desligados. Antes de distribuir, conferir os termos de uso da API do TMDB para a chave do app.
-- Decidir TheAudioDB e Deezer (§8).
 
 ## 6. Recursos da interface (F1)
 
@@ -110,14 +108,16 @@ Nenhum componente GPL encontrado entre os nativos do manifesto. libyuv e libcurl
 |---|---|---|---|---|
 | Fonte Inter | 4.1 (arquivos 4.001), release oficial `github.com/rsms/inter` v4.1 (16/11/2024): `Inter-4.1.zip`, sha256 `9883fdd4a49d4fb66bd8177ba6625ef9a64aa45899767dde3d36aa425756b11e`; TTF estáticos de `extras/ttf/` (Medium, SemiBold, Bold, ExtraBold, Black), sem alteração, só renomeados | `Video/res/font/st_inter_medium.ttf`, `st_inter_semibold.ttf`, `st_inter_bold.ttf`, `st_inter_extrabold.ttf`, `st_inter_black.ttf`; licença em `Video/res/raw/st_licenca_inter.txt` (cópia do `LICENSE.txt` do pacote) | OFL-1.1 ("Copyright (c) 2016 The Inter Project Authors") | Licença e aviso de copyright junto da fonte (feito no APK); aviso no Sobre (fase I); a fonte não pode ser vendida sozinha |
 | Ícones de traço (D6) | Lucide, paths dos SVG do desenho (`docs/paginas/telas-f1/`); versão do Lucide não identificada | `Video/res/drawable/st_ic_*.xml` (fases C a F) | ISC (D6) | Aviso de copyright e texto da licença no Sobre (fase I); texto a copiar do repositório `lucide-icons/lucide` |
-| Logo e aviso do TMDB | Logo do Nova `Video/res/drawable-xhdpi/tmdb_banner.webp` | Tela Sobre (fase I) | Termos de uso da API do TMDB | Conferir se é logo aprovado pelo TMDB e o texto do aviso (fase I / F4) |
-| Ícone, banner, abertura e logo StarkTech | Próprios. Ícone, banner e splash definitivos (31/10/2026), de `APLICAÇÕES\STARKTECH MEDIA PLAYER\ÍCONES\android\res\` (escudo com o lobo e o play, família StarkTech); originais de 1024 px em `design/icone/` (`app-icon.png` e `app-icon-monocromatico.png`, este ainda sem uso no APK); logo de 256 px reduzido de `INSTITUCIONAL\MARCA\LOGO\LOGO - STARKTECH - 02 - SEM FUNDO.png` | `Video/res/mipmap-anydpi-v26/st_ic_launcher.xml` (fundo `#020617` + `mipmap-*/st_ic_launcher_frente.png`), `mipmap-*/st_ic_launcher.png`, `drawable-xhdpi/st_banner.png`, `drawable-*/st_splash.png` (em `drawable/st_abertura.xml`, tema `Theme.StarkTech.Abertura` da `EntryActivity`), `drawable-nodpi/st_icone_app.png` (marca do topo, 192 px reduzido de `design/icone/app-icon.png`), `drawable-nodpi/st_logo.png` (rodapé da TV) | StarkTech Studio | — |
+| Logo e aviso do TMDB | `Video/res/drawable-xhdpi/tmdb_banner.webp`, herdado do Nova | Tela Sobre (fase I) | Termos de uso da API do TMDB | Conferido em 09/11/2026: é um dos logos da página de marca do TMDB |
+| Ícone, banner, abertura e logo StarkTech | Próprios. Ícone, banner e splash definitivos (31/10/2026), de `APLICAÇÕES\STARKTECH MEDIA PLAYER\ÍCONES\android\res\` (escudo com o lobo e o play, família StarkTech); originais de 1024 px em `design/icone/` (`app-icon.png` e `app-icon-monocromatico.png`, este o ícone da notificação desde a 1.1.1). Na 1.1.1, as imagens de marca do Nova que ainda ficavam no código (`mipmap-*/nova`, `nova_private`, `ic_launcher`, `nova_notification`, `widget_preview`; `nova_banner` e as frentes apagadas) passaram a ser as da StarkTech; logo de 256 px reduzido de `INSTITUCIONAL\MARCA\LOGO\LOGO - STARKTECH - 02 - SEM FUNDO.png` | `Video/res/mipmap-anydpi-v26/st_ic_launcher.xml` (fundo `#020617` + `mipmap-*/st_ic_launcher_frente.png`), `mipmap-*/st_ic_launcher.png`, `drawable-xhdpi/st_banner.png`, `drawable-*/st_splash.png` (em `drawable/st_abertura.xml`, tema `Theme.StarkTech.Abertura` da `EntryActivity`), `drawable-nodpi/st_icone_app.png` (marca do topo, 192 px reduzido de `design/icone/app-icon.png`), `drawable-nodpi/st_logo.png` (rodapé da TV) | StarkTech Studio | — |
 
 ## 7. O que o Sobre mostra (F1 fase I, 31/10/2026)
 
-`comum/SobreActivity`: ícone, nome, versão (do pacote), descrição e site; Créditos "Baseado no Nova Video Player · Apache-2.0"; avisos de terceiros, um por biblioteca (nome e licença; os 7 primeiros e "Ver todos"): Nova, FFmpeg, dav1d, libass, FreeType (com o crédito exigido pela FTL), Inter (OFL-1.1, com o copyright), Lucide, Opus, libmysofa, OpenSSL, FriBidi, HarfBuzz, fontconfig, libunibreak, libxml2, libpng, zlib, AudioCompress, libnativehelper, libtorrent, Boost, jcifs-ng; logo do TMDB (o do Nova) e o aviso "Este produto usa a API do TMDB, mas não é endossado nem certificado pelo TMDB."; crédito "Fotos de artistas: TheAudioDB (theaudiodb.com) e Deezer (deezer.com)." (plano 004); direitos.
+`comum/SobreActivity`: ícone, nome, versão (do pacote), descrição e site; Créditos "Baseado no Nova Video Player · Apache-2.0"; avisos de terceiros, um por biblioteca (nome e licença; os 7 primeiros e "Ver todos"): Nova, FFmpeg, dav1d, libass, FreeType (com o crédito exigido pela FTL), Inter (OFL-1.1, com o copyright), Lucide, Opus, libmysofa, OpenSSL, FriBidi, HarfBuzz, fontconfig, libunibreak, libxml2, libpng, zlib, AudioCompress, libnativehelper, libtorrent, Boost, jcifs-ng; logo do TMDB (o do Nova) e o aviso "Este produto usa a API do TMDB, mas não é endossado nem certificado pelo TMDB."; crédito dos artistas (`st_credito_artistas`: fanart.tv, Wikimedia Commons, MusicBrainz e Wikipédia, desde a 1.1.1); direitos.
 
-Falta para a F4 (também no `docs/backlog.md`): textos completos de cada licença (Apache-2.0, LGPL-2.1, OFL-1.1, ISC, BSD, MIT, FTL, BSL-1.0, zlib, PNG), oferta do código-fonte LGPL (FFmpeg, AudioCompress, FriBidi, motor), conferir se o `tmdb_banner.webp` é um logo aprovado pelo TMDB, versão do Lucide e confirmação da licença do jcifs-ng.
+Na 1.1.1, todos os avisos aparecem (sem "Ver todos"), incluindo as bibliotecas Java (§9), e cada um abre o texto completo da licença (`comum/LicencaActivity`, de `Video/res/raw/st_lic_*.txt`, montados de cópias das licenças oficiais). O Sobre diz onde está o código-fonte (`st_codigo_fonte`).
+
+Falta para a F4 (também no `docs/backlog.md`): conferir o código-fonte LGPL no repositório (FFmpeg, AudioCompress, FriBidi, motor) e a versão do Lucide.
 
 ## 8. Serviços de terceiros (plano 004, 04/11/2026)
 
@@ -125,8 +125,27 @@ Capa de artista na aba Shows (`motor/BuscaArtista`). Condições conhecidas na e
 
 | Serviço | O que o app usa | Condições conhecidas | Situação |
 |---|---|---|---|
-| TheAudioDB | Foto, fundo e país do artista, com chave fora do repositório (`docs/operacional/build.md` §2) | Chave gratuita com 30 pedidos/min; "You cannot publish apps to an appstore unless you are a paid subscriber" | Falta decidir antes do APK público |
-| Wikipédia e Wikimedia Commons | Texto do artista e opções de foto no Editar, sem chave | Texto em CC BY-SA, com o crédito "Texto da Wikipédia (CC BY-SA)" na página; cada foto do Commons tem a licença dela, e a escolhida é baixada para o aparelho | Crédito do texto na tela; falta o crédito em Sobre |
-| Deezer | Reserva: só a foto do artista, sem chave; e as opções de foto e a busca por nome no Editar do artista | "strictly limited for a non-commercial purpose"; uso "strictly private use within a family scope" | Falta decidir antes do APK público |
+| MusicBrainz (1.1.1) | Acha o artista pelo nome (código MBID e país), sem chave | Dados em CC0; um pedido por segundo e identificação no pedido | Crédito em Sobre |
+| fanart.tv (1.1.1) | Foto e fundo do artista, pelo MBID, com a chave de projeto fora do repositório (`docs/operacional/build.md` §2) | "Do not use our API for commercial use without written consent"; app gratuito, sem receita | Crédito em Sobre |
+| Wikipédia e Wikimedia Commons | Texto do artista, foto quando o fanart.tv não tem e opções de foto no Editar, sem chave | Texto em CC BY-SA, com o crédito "Texto da Wikipédia (CC BY-SA)" na página; cada foto do Commons tem a licença dela, e a escolhida é baixada para o aparelho | Crédito na tela e em Sobre |
+| Deezer e TheAudioDB | Saíram na 1.1.1 | Deezer: "strictly private use within a family scope"; TheAudioDB: app em loja só com assinatura paga | Fora do app |
 
 Bibliotecas: o plano 004 não acrescentou nenhuma em `Video/build.gradle`. Robolectric 4.17 (MIT) é só de teste (`testImplementation`) e não entra no APK.
+
+## 9. Bibliotecas Java do APK (1.1.1, 09/11/2026)
+
+Levantadas pela árvore de dependências do build e pelo POM de cada uma no cache do Gradle. O Sobre mostra todas (§7).
+
+| Licença | Bibliotecas | Texto no APK |
+|---|---|---|
+| Apache-2.0 | AndroidX, Material, OkHttp, Okio, Retrofit, Gson, Picasso, Kotlin, kotlinx, ThreeTenABP, sshj, smbj, Sardine, Apache Commons, HttpCore, Oltu, tmdb-java, trakt-java, logback-android, Jetty, Simple XML, ObservableScrollView, JSpecify, Error Prone, Guava, JetBrains annotations, ASN-One | `st_lic_apache_2_0.txt` |
+| LGPL-2.1 | jcifs-ng | `st_lic_lgpl_2_1.txt` |
+| BSD revisada e ISC | JSch, JZlib, jBCrypt | `st_lic_jsch.txt` |
+| BSD-3-Clause | ThreeTen Backport | `st_lic_threetenbp.txt` |
+| CDDL-1.0 | jUPnP | `st_lic_jupnp.txt` |
+| CDDL-1.1 ou GPLv2 com a exceção de classpath | Java Servlet API (vem com o Jetty) | `st_lic_servlet.txt` |
+| Licença do Bouncy Castle (tipo MIT) | Bouncy Castle | `st_lic_bouncycastle.txt` |
+| MIT | SLF4J, Sentry, MBassador, Epitaph | `st_lic_slf4j.txt`, `st_lic_sentry.txt`, `st_lic_mbassador.txt`, `st_lic_epitaph.txt` |
+| Apache-1.1 | Jakarta ORO | `st_lic_oro.txt` |
+
+CDDL: o código da biblioteca não foi alterado, então basta o aviso e o texto. Servlet API: vale a opção CDDL-1.1.

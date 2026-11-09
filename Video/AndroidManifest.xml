@@ -199,6 +199,11 @@
             android:name="br.com.starktechstudio.mediaplayer.comum.SobreActivity"
             android:exported="false"
             android:theme="@style/Theme.StarkTech" />
+
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.comum.LicencaActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech" />
         <activity
             android:name="br.com.starktechstudio.mediaplayer.comum.InformacoesUsoActivity"
             android:exported="false"

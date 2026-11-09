@@ -31,8 +31,8 @@
     <string name="st_imagem_ilegivel">Não deu para ler essa imagem.</string>
     <string name="st_imagem_sem_permissao">Sem permissão para ver as imagens do aparelho.</string>
     <string name="st_imagem_do_aparelho">Imagem do aparelho</string>
-    <string name="st_fotos_sem_rede">Sem resposta do Deezer: não deu para buscar outras fotos.</string>
-    <string name="st_fotos_nenhuma">O Deezer não tem outras fotos deste artista.</string>
+    <string name="st_fotos_sem_rede">Sem resposta da internet: não deu para buscar outras fotos.</string>
+    <string name="st_fotos_nenhuma">Não há outras fotos deste artista.</string>
 
     <!-- Campos -->
     <string name="st_campo_titulo">Título</string>

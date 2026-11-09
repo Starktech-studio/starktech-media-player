@@ -2,9 +2,10 @@
 
 package br.com.starktechstudio.mediaplayer.comum;
 
-import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +18,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RawRes;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.widget.ImageViewCompat;
@@ -24,42 +26,74 @@ import androidx.core.widget.ImageViewCompat;
 import com.archos.mediacenter.video.R;
 import com.archos.medialib.LibAvos;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Sobre (D17, sem desenho; no padrão das outras telas): ícone, nome e versão do app, descrição
  * (DADOS §2) e site; Créditos ("Baseado no Nova Video Player", Apache-2.0); avisos de terceiros, um
- * por biblioteca (docs/arquitetura/licencas.md §2 e §6), os primeiros e "Ver todos"; logo e aviso
- * do TMDB; fonte das fotos de artista; direitos. A logo StarkTech não entra aqui (D5: só no rodapé da
- * TV e na barra do tablet).
- * Os textos completos das licenças entram na F4.
+ * por biblioteca (docs/arquitetura/licencas.md §2, §6 e §9), os primeiros e "Ver todos", e OK ou toque num
+ * aviso abre o texto completo da licença ({@link LicencaActivity}, 1.1.1); onde está o código-fonte; logo
+ * e aviso do TMDB; fonte dos dados de artista; direitos. A logo StarkTech não entra aqui (D5: só no rodapé
+ * da TV e na barra do tablet).
  */
 public class SobreActivity extends AppCompatActivity {
 
-    /** Biblioteca e licença (licencas.md §2 e §6; jcifs-ng ainda a confirmar). */
-    private static final String[][] TERCEIROS = {
-            {"Nova Video Player", "Apache-2.0"},
-            {"FFmpeg", "LGPL 2.1 ou posterior"},
-            {"dav1d", "BSD-2-Clause"},
-            {"libass", "ISC"},
-            {"FreeType", "FreeType License (FTL) · Portions of this software are copyright © The FreeType Project (https://freetype.org). All rights reserved."},
-            {"Inter", "SIL Open Font License 1.1 · © 2016 The Inter Project Authors"},
-            {"Lucide", "ISC"},
-            {"Opus", "BSD-3-Clause"},
-            {"libmysofa", "BSD-3-Clause"},
-            {"OpenSSL", "Apache-2.0"},
-            {"FriBidi", "LGPL-2.1"},
-            {"HarfBuzz", "Old MIT"},
-            {"fontconfig", "Licença do fontconfig"},
-            {"libunibreak", "zlib"},
-            {"libxml2", "MIT"},
-            {"libpng", "PNG Reference Library License v2"},
-            {"zlib", "zlib"},
-            {"AudioCompress", "LGPL-2.1"},
-            {"libnativehelper (AOSP)", "Apache-2.0"},
-            {"libtorrent", "BSD-3-Clause"},
-            {"Boost", "Boost Software License 1.0"},
-            {"jcifs-ng", "LGPL-2.1"},
-    };
+    /** Uma biblioteca (ou um grupo com a mesma licença), a licença e o texto completo em res/raw. */
+    private static final class Aviso {
+        final String nome;
+        final String licenca;
+        @RawRes
+        final int texto;
+
+        Aviso(String nome, String licenca, @RawRes int texto) {
+            this.nome = nome;
+            this.licenca = licenca;
+            this.texto = texto;
+        }
+    }
+
     private static final int MOSTRADOS = 7;
+
+    /** Nativos, recursos e bibliotecas Java do APK (licencas.md §2, §6 e §9). */
+    private List<Aviso> terceiros() {
+        return Arrays.asList(
+                new Aviso("Nova Video Player", "Apache-2.0", R.raw.st_lic_apache_2_0),
+                new Aviso("FFmpeg", "LGPL 2.1 ou posterior", R.raw.st_lic_lgpl_2_1),
+                new Aviso("dav1d", "BSD-2-Clause", R.raw.st_lic_dav1d),
+                new Aviso("libass", "ISC", R.raw.st_lic_libass),
+                new Aviso("FreeType", "FreeType License (FTL) · Portions of this software are copyright © The FreeType Project (https://freetype.org). All rights reserved.", R.raw.st_lic_freetype),
+                new Aviso("Inter", "SIL Open Font License 1.1 · © 2016 The Inter Project Authors", R.raw.st_licenca_inter),
+                new Aviso("Lucide", "ISC", R.raw.st_lic_lucide),
+                new Aviso("Opus", "BSD-3-Clause", R.raw.st_lic_opus),
+                new Aviso("libmysofa", "BSD-3-Clause", R.raw.st_lic_libmysofa),
+                new Aviso("OpenSSL", "Apache-2.0", R.raw.st_lic_apache_2_0),
+                new Aviso("FriBidi", "LGPL-2.1", R.raw.st_lic_lgpl_2_1),
+                new Aviso("HarfBuzz", "Old MIT", R.raw.st_lic_harfbuzz),
+                new Aviso("fontconfig", "Licença do fontconfig", R.raw.st_lic_fontconfig),
+                new Aviso("libunibreak", "zlib", R.raw.st_lic_libunibreak),
+                new Aviso("libxml2", "MIT", R.raw.st_lic_libxml2),
+                new Aviso("libpng", "PNG Reference Library License v2", R.raw.st_lic_libpng),
+                new Aviso("zlib", "zlib", R.raw.st_lic_zlib),
+                new Aviso("AudioCompress", "LGPL-2.1", R.raw.st_lic_lgpl_2_1),
+                new Aviso("libnativehelper (AOSP)", "Apache-2.0 · NOTICE", R.raw.st_lic_libnativehelper),
+                new Aviso("libtorrent", "BSD-3-Clause", R.raw.st_lic_libtorrent),
+                new Aviso("Boost", "Boost Software License 1.0", R.raw.st_lic_boost),
+                new Aviso("jcifs-ng", "LGPL-2.1", R.raw.st_lic_lgpl_2_1),
+                new Aviso("JSch, JZlib e jBCrypt", "BSD revisada e ISC", R.raw.st_lic_jsch),
+                new Aviso("jUPnP", "CDDL-1.0", R.raw.st_lic_jupnp),
+                new Aviso("Java Servlet API", "CDDL 1.1 ou GPLv2 com a exceção de classpath", R.raw.st_lic_servlet),
+                new Aviso("Bouncy Castle", "Licença do Bouncy Castle (tipo MIT)", R.raw.st_lic_bouncycastle),
+                new Aviso("SLF4J", "MIT", R.raw.st_lic_slf4j),
+                new Aviso("ThreeTen Backport", "BSD-3-Clause", R.raw.st_lic_threetenbp),
+                new Aviso("Jakarta ORO", "Apache-1.1", R.raw.st_lic_oro),
+                new Aviso("Sentry", "MIT", R.raw.st_lic_sentry),
+                new Aviso("MBassador", "MIT", R.raw.st_lic_mbassador),
+                new Aviso("Epitaph", "MIT", R.raw.st_lic_epitaph),
+                new Aviso(getString(R.string.st_bibliotecas_java), "Apache-2.0", R.raw.st_lic_apache_2_0));
+    }
+
+    private List<Aviso> avisosTerceiros;
 
     private boolean tv;
     private LinearLayout avisos;
@@ -89,10 +123,17 @@ public class SobreActivity extends AppCompatActivity {
                 comTopo(Medidas.px(this, 10)));
 
         pagina.addView(Textos.rotulo(this, getString(R.string.st_avisos_terceiros), 14), comTopo(Medidas.px(this, 36)));
+        pagina.addView(Textos.novo(this, getString(R.string.st_avisos_dica), R.font.st_inter_semibold, 16, R.color.st_texto_apagado),
+                comTopo(Medidas.px(this, 6)));
+        avisosTerceiros = terceiros();
         avisos = new LinearLayout(this);
         avisos.setOrientation(LinearLayout.VERTICAL);
         pagina.addView(avisos, comTopo(Medidas.px(this, 10)));
         mostrarAvisos();
+        TextView codigo = Textos.novo(this, getString(R.string.st_codigo_fonte), R.font.st_inter_semibold, 17, R.color.st_texto_secundario);
+        codigo.setLineSpacing(0f, 1.2f);
+        codigo.setMaxWidth(Medidas.px(this, 1400));
+        pagina.addView(codigo, comTopo(Medidas.px(this, 24)));
 
         pagina.addView(tmdb(), comTopo(Medidas.px(this, 36)));
         pagina.addView(Textos.novo(this, getString(R.string.st_credito_artistas), R.font.st_inter_semibold, 17, R.color.st_texto_secundario),
@@ -168,26 +209,36 @@ public class SobreActivity extends AppCompatActivity {
         return bloco;
     }
 
-    /** Um aviso por biblioteca; "Ver todos" mostra a lista inteira. */
+    /** Um aviso por biblioteca; "Ver todos" mostra a lista inteira. OK ou toque abre o texto da licença. */
     private void mostrarAvisos() {
         avisos.removeAllViews();
-        int quantos = todos ? TERCEIROS.length : Math.min(MOSTRADOS, TERCEIROS.length);
+        int quantos = todos ? avisosTerceiros.size() : Math.min(MOSTRADOS, avisosTerceiros.size());
+        int folga = Medidas.px(this, 8);
         for (int i = 0; i < quantos; i++) {
+            final Aviso aviso = avisosTerceiros.get(i);
             LinearLayout linha = new LinearLayout(this);
             linha.setOrientation(LinearLayout.VERTICAL);
+            linha.setPadding(folga, folga, folga, folga);
+            linha.setFocusable(true);
+            linha.setClickable(true);
             if (tv) {
                 // Na TV cada aviso recebe o foco: o controle desce a página por eles
-                linha.setFocusable(true);
                 linha.setForeground(ContextCompat.getDrawable(this, R.drawable.st_foco_tv));
-                int folga = Medidas.px(this, 8);
-                linha.setPadding(folga, folga, folga, folga);
+            } else {
+                TypedValue realce = new TypedValue();
+                getTheme().resolveAttribute(android.R.attr.selectableItemBackground, realce, true);
+                linha.setForeground(ContextCompat.getDrawable(this, realce.resourceId));
             }
-            linha.addView(Textos.novo(this, TERCEIROS[i][0], R.font.st_inter_extrabold, 18, R.color.st_texto));
-            linha.addView(Textos.novo(this, TERCEIROS[i][1], R.font.st_inter_semibold, 16, R.color.st_texto_apagado),
+            linha.setOnClickListener(v -> startActivity(new Intent(this, LicencaActivity.class)
+                    .putExtra(LicencaActivity.EXTRA_NOME, aviso.nome)
+                    .putExtra(LicencaActivity.EXTRA_LICENCA, aviso.licenca)
+                    .putExtra(LicencaActivity.EXTRA_TEXTO, aviso.texto)));
+            linha.addView(Textos.novo(this, aviso.nome, R.font.st_inter_extrabold, 18, R.color.st_texto));
+            linha.addView(Textos.novo(this, aviso.licenca, R.font.st_inter_semibold, 16, R.color.st_texto_apagado),
                     comTopo(Medidas.px(this, 4)));
-            avisos.addView(linha, comTopo(i == 0 ? 0 : Medidas.px(this, tv ? 6 : 14)));
+            avisos.addView(linha, comTopo(i == 0 ? 0 : Medidas.px(this, tv ? 6 : 6)));
         }
-        if (!todos && TERCEIROS.length > MOSTRADOS) {
+        if (!todos && avisosTerceiros.size() > MOSTRADOS) {
             int estilo = tv ? R.style.StarkTech_Botao_Tv_Secundario : R.style.StarkTech_Botao_Tablet_Secundario;
             Button verTodos = new Button(this, null, 0, estilo);
             verTodos.setText(R.string.st_ver_todos);
@@ -203,7 +254,7 @@ public class SobreActivity extends AppCompatActivity {
         }
     }
 
-    /** Logo do TMDB (o do Nova; conferir na F4 se é o aprovado pelo TMDB) e o aviso exigido. */
+    /** Logo do TMDB (o "TMDB" com a pílula em degradê, um dos logos da página de marca do TMDB) e o aviso exigido. */
     private View tmdb() {
         LinearLayout bloco = new LinearLayout(this);
         bloco.setOrientation(LinearLayout.VERTICAL);

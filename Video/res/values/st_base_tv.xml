@@ -5,5 +5,5 @@
     <string name="st_sem_artista">Sem artista</string>
     <string name="st_sem_grupo">Sem grupo</string>
     <!-- Sobre: fonte das fotos de artista -->
-    <string name="st_credito_artistas">Artistas: fotos do Deezer (deezer.com) e do Wikimedia Commons, cada uma com a sua licença; textos da Wikipédia (CC BY-SA).</string>
+    <string name="st_credito_artistas">Artistas: fotos e fundos do fanart.tv e do Wikimedia Commons, cada um com a sua licença; dados do MusicBrainz; textos da Wikipédia (CC BY-SA).</string>
 </resources>

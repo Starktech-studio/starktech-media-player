@@ -21,7 +21,7 @@
     <!-- Capas e cartões -->
     <string name="st_assistido">Assistido</string>
     <string name="st_selo_4k">4K</string>
-    <string name="st_selo_hdr">HDR</string>
+    <string name="st_selo_1080p">1080p</string>
     <string name="st_so_nao_assistidos">Só não assistidos</string>
     <string name="st_lista_tudo_assistido">Tudo assistido por aqui. Desligue "Só não assistidos" para ver de novo.</string>
     <string name="st_favorito">Favorito</string>

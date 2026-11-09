@@ -63,6 +63,8 @@ public final class Preferencias {
         NAV_DESENHOS("nav_desenhos", 0, R.string.st_valor_ligado, R.string.st_valor_desligado),
         NAV_SHOWS("nav_shows", 0, R.string.st_valor_ligado, R.string.st_valor_desligado),
         NAV_STANDUP("nav_standup", 1, R.string.st_valor_ligado, R.string.st_valor_desligado),
+        /** Músicas (1.1.1, sem motor): desligada de fábrica. */
+        NAV_MUSICAS("nav_musicas", 1, R.string.st_valor_ligado, R.string.st_valor_desligado),
 
         // Do motor do Nova: Player.java, MediaFactory.java e CustomApplication.applyAudioOutputToNative
         /** Só na TV. "1": escolhe o modo de tela pelo fps do vídeo. */

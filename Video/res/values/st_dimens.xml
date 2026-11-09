@@ -100,6 +100,8 @@
     <dimen name="st_tablet_barra_lateral">112dp</dimen>
     <dimen name="st_tablet_barra_item">84dp</dimen>
     <dimen name="st_tablet_barra_item_canto">18dp</dimen>
+    <!-- Linha do nome no item da barra: o texto de 13 sp cabe; maior que isso, diminui -->
+    <dimen name="st_tablet_item_barra_texto_altura">17dp</dimen>
     <dimen name="st_tablet_marca_icone">48dp</dimen>
     <dimen name="st_tablet_margem_h">40dp</dimen>
     <dimen name="st_tablet_margem_v">28dp</dimen>

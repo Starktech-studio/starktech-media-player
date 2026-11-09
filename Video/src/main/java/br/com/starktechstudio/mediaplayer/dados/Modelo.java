@@ -200,9 +200,9 @@ public final class Modelo {
             return qualidade != null && qualidade.startsWith("4K");
         }
 
-        /** Selo "HDR" da capa ({@link #qualidade}: "4K HDR", ou só "HDR10" / "HLG" sem o tamanho da imagem). */
-        public boolean ehHdr() {
-            return qualidade != null && (qualidade.contains("HDR") || qualidade.contains("HLG"));
+        /** Selo "1080p" da capa (1.1.1: a capa só mostra o tamanho, 4K ou 1080p; HDR saiu). */
+        public boolean eh1080p() {
+            return qualidade != null && qualidade.startsWith("1080p");
         }
 
         /** Nota só em filme (D6) e só com assistido. */

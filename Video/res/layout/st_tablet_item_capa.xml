@@ -70,7 +70,7 @@
         android:layout_height="0dp"
         android:layout_weight="1" />
 
-    <!-- Selos 4K, HDR e nota: ficam com a capa de verdade, ao contrário do título e do ano -->
+    <!-- Selos 4K ou 1080p e nota: ficam com a capa de verdade, ao contrário do título e do ano -->
     <LinearLayout
         android:id="@+id/st_capa_selos"
         android:layout_width="wrap_content"
@@ -94,7 +94,7 @@
             android:textSize="@dimen/st_tablet_texto_selo_assistido" />
 
         <TextView
-            android:id="@+id/st_capa_selo_hdr"
+            android:id="@+id/st_capa_selo_1080p"
             style="@style/StarkTech.Texto.Botao"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -104,7 +104,7 @@
             android:paddingTop="4dp"
             android:paddingEnd="8dp"
             android:paddingBottom="4dp"
-            android:text="@string/st_selo_hdr"
+            android:text="@string/st_selo_1080p"
             android:textSize="@dimen/st_tablet_texto_selo_assistido" />
 
         <LinearLayout

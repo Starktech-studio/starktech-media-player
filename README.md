@@ -8,7 +8,7 @@ Sem login e sem conta: a biblioteca fica no aparelho. O mesmo APK roda na TV, no
 
 | | |
 |---|---|
-| **Versão** | 1.0.0 |
+| **Versão** | 1.1.1 |
 | **Pacote** | `br.com.starktechstudio.mediaplayer` |
 | **Android** | 6.0 ou mais novo |
 | **Tamanho do APK** | cerca de 110 MB (um APK só, para qualquer processador) |
@@ -50,7 +50,7 @@ Na TV. Prints feitos no emulador, com vídeos de teste gerados só para isso (po
 - **Por pastas:** você marca o tipo de cada pasta (Filmes, Séries, Desenhos, Shows, Stand-up) e os vídeos vão para o lugar certo. Pasta com esses nomes é reconhecida sozinha.
 - **Dados do TMDB:** capa, fundo, sinopse, ano, gêneros, elenco e coletâneas ("Dune - Coleção" reúne os filmes dela).
 - **Continuar assistindo e Favoritos:** o cartão sem imagem do TMDB usa um quadro do próprio vídeo.
-- **Selos na capa:** 4K, HDR e a nota do filme.
+- **Selos na capa:** 4K ou 1080p e a nota do filme.
 - **Só não assistidos:** um botão esconde o que você já viu, em todas as abas.
 - **Editar:** corrige título, ano, sinopse, capa e fundo à mão; o que você muda não é sobrescrito. Vídeo que o app não reconhece vai para Não identificados.
 - **Persistente:** tirar o HD e colocar de novo não apaga nada.
@@ -58,7 +58,7 @@ Na TV. Prints feitos no emulador, com vídeos de teste gerados só para isso (po
 ### Shows
 
 - **Por artista:** cada artista tem capa e página própria, com o texto da Wikipédia e os shows dele em destaque; se quiser, em grupos por subpasta.
-- **Trocar a foto:** opções do artista certo, do Deezer e da Wikipédia, ou uma imagem sua.
+- **Trocar a foto:** opções do artista certo, do fanart.tv e da Wikipédia, ou uma imagem sua.
 - **Juntar pastas:** "Queen + Adam Lambert" pode entrar em "Queen" pelo Editar, sem mexer nos arquivos. Restaurar original desfaz.
 
 ### Player
@@ -93,7 +93,7 @@ Shows/Artista - Show (2019).mkv
 Stand-up/Nome do especial (2021).mkv
 ```
 
-**TV sem a tela do acesso a todos os arquivos** (algumas não têm): sem ele, o app funciona, mas sem legenda em arquivo. Para liberar por um computador, depois de instalar:
+**Sem o acesso a todos os arquivos** (recusado, ou TV sem essa tela): a legenda em arquivo vem do índice de mídia do Android (`.srt` e `.vtt` com certeza; `.ass` e `.ssa` podem ficar de fora). Para liberar o acesso por um computador, depois de instalar:
 
 ```bash
 adb shell appops set --uid br.com.starktechstudio.mediaplayer MANAGE_EXTERNAL_STORAGE allow
@@ -130,7 +130,7 @@ cd Video
 ./gradlew -Puniversal assembleNoamazonRelease                       # versão publicada
 ```
 
-Chaves (TMDB, TheAudioDB e a assinatura do APK) ficam fora do repositório. Detalhes em [`docs/operacional/build.md`](docs/operacional/build.md).
+Chaves (TMDB, fanart.tv e a assinatura do APK) ficam fora do repositório. Detalhes em [`docs/operacional/build.md`](docs/operacional/build.md).
 
 ## Documentação
 
@@ -146,15 +146,15 @@ Chaves (TMDB, TheAudioDB e a assinatura do APK) ficam fora do repositório. Deta
 
 ## Situação
 
-Versão 1.0.0, de uso próprio, em teste. O código é público, e as versões do app ficam nas releases deste repositório.
+Versão 1.1.1, de uso próprio, em teste. O código é público, e as versões do app ficam nas releases deste repositório.
 
-**Antes de liberar ao público**, há pendências de termos e licenças. A principal: os termos do Deezer limitam o uso a fim privado e familiar, então ele precisa sair do app ou ter autorização. A lista completa, com o que os termos do TMDB, da Wikipédia e das bibliotecas pedem, está em [`liberar-ao-publico.md`](docs/operacional/liberar-ao-publico.md).
+**Antes de liberar ao público**, há pendências de termos e licenças. A principal: confirmar com o TMDB o uso da chave e o prazo de 6 meses dos dados guardados. A lista completa, com o que os termos do TMDB, da Wikipédia e das bibliotecas pedem, está em [`liberar-ao-publico.md`](docs/operacional/liberar-ao-publico.md).
 
 ## Créditos
 
 - Baseado no [Nova Video Player](https://github.com/nova-video-player/aos-AVP) (Apache-2.0).
 - Este produto usa a API do TMDB, mas não é endossado nem certificado pelo [TMDB](https://www.themoviedb.org/).
-- Texto dos artistas: [Wikipédia](https://pt.wikipedia.org/) (CC BY-SA). Fotos: [Deezer](https://www.deezer.com/) e [Wikimedia Commons](https://commons.wikimedia.org/), cada uma com a sua licença.
+- Texto dos artistas: [Wikipédia](https://pt.wikipedia.org/) (CC BY-SA). Fotos e fundos: [fanart.tv](https://fanart.tv/) e [Wikimedia Commons](https://commons.wikimedia.org/), cada um com a sua licença; dados de artistas: [MusicBrainz](https://musicbrainz.org/).
 - FFmpeg, dav1d, libass, FreeType, FriBidi, HarfBuzz e as demais bibliotecas: lista e licenças em [`licencas.md`](docs/arquitetura/licencas.md) e na tela Sobre do app.
 
 ---

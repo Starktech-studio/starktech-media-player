@@ -175,7 +175,7 @@ public interface RepositorioBiblioteca {
     List<String> opcoesFundo(String idTitulo);
 
     /**
-     * Rede. Capa de artista no Editar: as fotos do Deezer para escolher, em referências {@code url:};
+     * Rede. Capa de artista no Editar: as fotos do fanart.tv e da Wikipédia para escolher, em referências {@code url:};
      * sem nada gravado (quem grava é {@link #escolherCapa}). Vazia = não há; nula = sem resposta.
      */
     @Nullable
@@ -186,7 +186,7 @@ public interface RepositorioBiblioteca {
     List<String> fotosDoArtistaPeloNome(String nome);
 
     /**
-     * Rede. "Buscar artista" no Editar: os artistas da biblioteca com esse nome, depois os do Deezer.
+     * Rede. "Buscar artista" no Editar: os artistas da biblioteca com esse nome, depois os do MusicBrainz (com a foto do fanart.tv).
      * {@code ResultadoTmdb.id} é o nome e {@code sinopse}, a linha de apoio.
      */
     List<ResultadoTmdb> buscarArtista(String idArtista, String consulta);

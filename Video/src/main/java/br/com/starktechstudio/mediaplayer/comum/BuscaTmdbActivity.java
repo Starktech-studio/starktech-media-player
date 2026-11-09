@@ -43,7 +43,7 @@ import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
  * Editar relê ao voltar. F3: busca de verdade no TMDB (fora da tela), com a capa de cada resultado,
  * 4 por página (Anterior / Próxima: a lista grande cobria o Editar); sem a chave no APK, avisa em
  * vez de buscar. Selecionar devolve o resultado ao Editar ({@link #EXTRA_RESULTADO}): a troca só
- * vale no Salvar de lá. Capa de artista: busca artistas, na biblioteca e no Deezer, pelo nome.
+ * vale no Salvar de lá. Capa de artista: busca artistas, na biblioteca e no MusicBrainz, pelo nome.
  */
 public class BuscaTmdbActivity extends AppCompatActivity {
 
@@ -58,7 +58,7 @@ public class BuscaTmdbActivity extends AppCompatActivity {
     private RepositorioBiblioteca repositorio;
     private String id;
     private boolean tv;
-    /** Capa de artista: a mesma janela busca artistas, na biblioteca e no Deezer, e não no TMDB. */
+    /** Capa de artista: a mesma janela busca artistas, na biblioteca e no MusicBrainz, e não no TMDB. */
     private boolean deArtista;
     private EditText consulta;
     private LinearLayout resultados;

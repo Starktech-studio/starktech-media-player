@@ -19,101 +19,81 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-/** Respostas da TheAudioDB e do Deezer e a comparação do nome do artista (sem rede). */
+/** Respostas do MusicBrainz e do fanart.tv e a comparação do nome do artista (sem rede). */
 @RunWith(RobolectricTestRunner.class)
 @Config(application = Application.class, manifest = Config.NONE, sdk = 34)
 public class BuscaArtistaTest {
 
-    private static final String THEAUDIODB = "{\"artists\":[{\"idArtist\":\"1\",\"strArtist\":\"Coldplay\",\"strArtistAlternate\":null,"
-            + "\"strCountry\":\"London, England\",\"strArtistThumb\":\"https://r2.theaudiodb.com/thumb.jpg\","
-            + "\"strArtistFanart\":\"https://r2.theaudiodb.com/fanart.jpg\",\"strArtistWideThumb\":\"https://r2.theaudiodb.com/wide.jpg\"}]}";
+    private static final String MUSICBRAINZ = "{\"created\":\"2026-11-09\",\"count\":3,\"artists\":["
+            + "{\"id\":\"0383dadf-2a4e-4d10-a46a-e9e041da8eb3\",\"score\":100,\"name\":\"Queen\",\"country\":\"GB\","
+            + "\"area\":{\"name\":\"United Kingdom\"},\"disambiguation\":\"UK rock group\"},"
+            + "{\"id\":\"2\",\"score\":100,\"name\":\"Queen\",\"area\":null},"
+            + "{\"id\":\"3\",\"score\":80,\"name\":\"Queen + Adam Lambert\"}]}";
 
-    private static final String DEEZER = "{\"data\":["
-            + "{\"id\":2,\"name\":\"Coldplay Tribute\",\"picture_big\":\"https://cdn.dzcdn.net/images/artist/errado/500x500.jpg\"},"
-            + "{\"id\":892,\"name\":\"Coldplay\",\"picture_big\":\"https://cdn.dzcdn.net/images/artist/certo/500x500.jpg\","
-            + "\"picture_xl\":\"https://cdn.dzcdn.net/images/artist/certo/1000x1000.jpg\"}],\"total\":2}";
+    private static final String FANART = "{\"name\":\"Queen\",\"artistthumb\":["
+            + "{\"id\":\"1\",\"url\":\"https://assets.fanart.tv/fanart/queen-pouco.jpg\",\"likes\":\"2\"},"
+            + "{\"id\":\"2\",\"url\":\"https://assets.fanart.tv/fanart/queen-mais.jpg\",\"likes\":\"8\"},"
+            + "{\"id\":\"3\",\"url\":\"http://assets.fanart.tv/fanart/inseguro.jpg\",\"likes\":\"99\"}],"
+            + "\"artistbackground\":[{\"id\":\"4\",\"url\":\"https://assets.fanart.tv/fanart/queen-fundo.jpg\",\"likes\":\"4\"}]}";
 
     @Test
-    public void theAudioDb_fotoFundoEPais() throws JSONException {
-        BuscaArtista.Achado achado = BuscaArtista.lerTheAudioDb(THEAUDIODB, "coldplay");
-        assertEquals("https://r2.theaudiodb.com/thumb.jpg", achado.foto);
-        assertEquals("https://r2.theaudiodb.com/fanart.jpg", achado.fundo);
-        assertEquals("London, England", achado.pais);
+    public void musicBrainz_naOrdemDele_comPaisEDescricao() throws JSONException, IOException {
+        List<BuscaArtista.ArtistaMb> lista = BuscaArtista.lerMusicBrainz(MUSICBRAINZ);
+        assertEquals(3, lista.size());
+        assertEquals("0383dadf-2a4e-4d10-a46a-e9e041da8eb3", lista.get(0).id);
+        assertEquals("United Kingdom", lista.get(0).area);
+        assertEquals("United Kingdom · UK rock group", BuscaArtista.detalhe(lista.get(0)));
+        assertNull(lista.get(1).area);
+        assertEquals("", BuscaArtista.detalhe(lista.get(2)));
     }
 
     @Test
-    public void theAudioDb_semFanart_usaALarga() throws JSONException {
-        String semFanart = "{\"artists\":[{\"strArtist\":\"Coldplay\",\"strArtistThumb\":null,\"strArtistFanart\":null,"
-                + "\"strArtistWideThumb\":\"https://r2.theaudiodb.com/wide.jpg\"}]}";
-        BuscaArtista.Achado achado = BuscaArtista.lerTheAudioDb(semFanart, "Coldplay");
-        assertNull("nulo no JSON não vira o texto \"null\"", achado.foto);
-        assertEquals("https://r2.theaudiodb.com/wide.jpg", achado.fundo);
-        assertNull(achado.pais);
-    }
-
-    @Test
-    public void theAudioDb_semArtista_ouOutroNome() throws JSONException {
-        assertNull(BuscaArtista.lerTheAudioDb("{\"artists\":null}", "Coldplay"));
-        assertNull(BuscaArtista.lerTheAudioDb(THEAUDIODB, "Outra banda"));
-    }
-
-    @Test
-    public void deezer_soONomeIgual() throws JSONException, IOException {
-        assertEquals("https://cdn.dzcdn.net/images/artist/certo/500x500.jpg", BuscaArtista.lerDeezer(DEEZER, "COLDPLAY").foto);
-        assertNull(BuscaArtista.lerDeezer(DEEZER, "Queen"));
-        assertNull(BuscaArtista.lerDeezer("{\"data\":[],\"total\":0}", "Coldplay"));
-    }
-
-    @Test
-    public void deezer_imagemPadraoNaoVale() throws JSONException, IOException {
-        String semFoto = "{\"data\":[{\"name\":\"Coldplay\",\"picture_big\":\"https://cdn.dzcdn.net/images/artist//500x500.jpg\","
-                + "\"picture_xl\":\"https://cdn.dzcdn.net/images/artist//1000x1000.jpg\"}]}";
-        assertNull(BuscaArtista.lerDeezer(semFoto, "Coldplay").foto);
+    public void musicBrainz_soONomeIgual() throws JSONException, IOException {
+        List<BuscaArtista.ArtistaMb> iguais = BuscaArtista.mesmoNome(BuscaArtista.lerMusicBrainz(MUSICBRAINZ), "queen");
+        assertEquals(2, iguais.size());
+        assertEquals("0383dadf-2a4e-4d10-a46a-e9e041da8eb3", iguais.get(0).id);
     }
 
     @Test(expected = IOException.class)
-    public void deezer_erroComHttp200_valeComoSemResposta() throws JSONException, IOException {
-        BuscaArtista.lerDeezer("{\"error\":{\"type\":\"Exception\",\"message\":\"Quota limit exceeded\",\"code\":4}}", "Coldplay");
-    }
-
-    /** Como vem de verdade: vários "Queen" pequenos antes do maior. */
-    private static final String HOMONIMOS = "{\"data\":["
-            + "{\"name\":\"Queen\",\"nb_fan\":44,\"picture_big\":\"https://cdn.dzcdn.net/images/artist/pequeno/500x500.jpg\"},"
-            + "{\"name\":\"Queen\",\"nb_fan\":471,\"picture_big\":\"https://cdn.dzcdn.net/images/artist//500x500.jpg\"},"
-            + "{\"name\":\"Queen\",\"nb_fan\":12862509,\"picture_big\":\"https://cdn.dzcdn.net/images/artist/banda/500x500.jpg\"},"
-            + "{\"name\":\"Queen\",\"nb_fan\":2000000,\"picture_big\":\"https://cdn.dzcdn.net/images/artist/parecido/500x500.jpg\"},"
-            + "{\"name\":\"Josiah Queen\",\"nb_fan\":12207,\"picture_big\":\"https://cdn.dzcdn.net/images/artist/outro/500x500.jpg\"}]}";
-
-    @Test
-    public void deezer_entreHomonimos_oDeMaisFas() throws JSONException, IOException {
-        assertEquals("https://cdn.dzcdn.net/images/artist/banda/500x500.jpg", BuscaArtista.lerDeezer(HOMONIMOS, "Queen").foto);
+    public void musicBrainz_ocupado_valeComoSemResposta() throws JSONException, IOException {
+        BuscaArtista.lerMusicBrainz("{\"error\": \"The MusicBrainz web server is currently busy. Please try again later.\"}");
     }
 
     @Test
-    public void fotosDeezer_soONomeIgualEQuemTemPublicoPertoDoMaior() throws JSONException, IOException {
-        assertEquals(Arrays.asList("https://cdn.dzcdn.net/images/artist/banda/500x500.jpg",
-                "https://cdn.dzcdn.net/images/artist/parecido/500x500.jpg"), BuscaArtista.lerFotosDeezer(HOMONIMOS, "Queen"));
-        assertTrue(BuscaArtista.lerFotosDeezer("{\"data\":[]}", "Coldplay").isEmpty());
+    public void musicBrainz_nomeVaiComoFrase() {
+        assertEquals("\"AC/DC\"", BuscaArtista.consultaMusicBrainz(" AC/DC "));
+        assertEquals("\"Guns N\\\" Roses\"", BuscaArtista.consultaMusicBrainz("Guns N\" Roses"));
     }
 
     @Test
-    public void artistasDeezer_doMaisConhecidoAoMenos_comNomeESemQuemNaoTemFoto() throws JSONException, IOException {
-        List<BuscaArtista.Encontrado> achados = BuscaArtista.lerArtistasDeezer(HOMONIMOS);
-        assertEquals(4, achados.size());
-        assertEquals(12862509, achados.get(0).fas);
-        assertEquals("https://cdn.dzcdn.net/images/artist/banda/500x500.jpg", achados.get(0).foto);
-        assertEquals("Josiah Queen", achados.get(2).nome);
+    public void fanart_aFotoEOFundoMaisCurtidos_soHttps() throws JSONException, IOException {
+        BuscaArtista.Achado achado = BuscaArtista.lerFanart(FANART);
+        assertEquals("https://assets.fanart.tv/fanart/queen-mais.jpg", achado.foto);
+        assertEquals("https://assets.fanart.tv/fanart/queen-fundo.jpg", achado.fundo);
+    }
+
+    @Test
+    public void fanart_semNada_semFotoNemFundo() throws JSONException, IOException {
+        BuscaArtista.Achado achado = BuscaArtista.lerFanart("{}");
+        assertNull(achado.foto);
+        assertNull(achado.fundo);
+    }
+
+    @Test
+    public void fanart_semFundoComum_usaO4k() throws JSONException, IOException {
+        BuscaArtista.Achado achado = BuscaArtista.lerFanart("{\"artist4kbackground\":[{\"url\":\"https://assets.fanart.tv/fanart/4k.jpg\",\"likes\":\"1\"}]}");
+        assertEquals("https://assets.fanart.tv/fanart/4k.jpg", achado.fundo);
     }
 
     @Test(expected = IOException.class)
-    public void fotosDeezer_erroComHttp200_valeComoSemResposta() throws JSONException, IOException {
-        BuscaArtista.lerFotosDeezer("{\"error\":{\"code\":4}}", "Coldplay");
+    public void fanart_erro_valeComoSemResposta() throws JSONException, IOException {
+        BuscaArtista.lerFanart("{\"status\":\"error\",\"error message\":\"Not found\"}");
     }
 
     @Test
-    public void soHttps() throws JSONException {
-        String inseguro = "{\"artists\":[{\"strArtist\":\"Coldplay\",\"strArtistThumb\":\"http://r2.theaudiodb.com/thumb.jpg\"}]}";
-        assertNull(BuscaArtista.lerTheAudioDb(inseguro, "Coldplay").foto);
+    public void fanart_fotosDaMaisCurtidaAMenos() throws JSONException, IOException {
+        assertEquals(Arrays.asList("https://assets.fanart.tv/fanart/queen-mais.jpg", "https://assets.fanart.tv/fanart/queen-pouco.jpg"),
+                BuscaArtista.lerFotosFanart(FANART));
     }
 
     @Test
@@ -129,7 +109,7 @@ public class BuscaArtistaTest {
     public void mesmoNome_outroArtistaOuVazio() {
         assertFalse(BuscaArtista.mesmoNome("Coldplay", "Coldplay Tribute"));
         assertFalse(BuscaArtista.mesmoNome("", ""));
-        assertFalse(BuscaArtista.mesmoNome(null, "Coldplay"));
+        assertFalse(BuscaArtista.mesmoNome((String) null, "Coldplay"));
         assertFalse(BuscaArtista.mesmoNome("!!!", "???"));
     }
 }

@@ -23,7 +23,7 @@ import br.com.starktechstudio.mediaplayer.dados.Modelo.Titulo;
 
 /**
  * Capas 2:3 (Main.dc.html, tablet-biblioteca.dc.html, tv-menu-capa.dc.html): bloco de cor
- * no lugar da imagem quando falta a capa ({@link Imagens}), selo "Assistido", selos 4K, HDR e nota, título e ano. TV: foco com borda branca e
+ * no lugar da imagem quando falta a capa ({@link Imagens}), selo "Assistido", selos 4K ou 1080p e nota, título e ano. TV: foco com borda branca e
  * aumento de 6 % ({@link FocoTv}); tablet: toque. O clique abre o título por {@link Navegacao};
  * segurar OK ou tocar e segurar abre o Menu da capa. Capa de coletânea e de artista (D5, D7): sempre
  * com o nome e a contagem, o clique abre a lista dela e segurar vai ao Editar (o Menu da capa é de
@@ -101,7 +101,7 @@ public class CapaAdapter extends RecyclerView.Adapter<CapaAdapter.Capa> {
         private final TextView ano;
         private final View selos;
         private final View selo4k;
-        private final View seloHdr;
+        private final View selo1080p;
         private final View seloNota;
         private final TextView notaValor;
         private Titulo atual;
@@ -115,7 +115,7 @@ public class CapaAdapter extends RecyclerView.Adapter<CapaAdapter.Capa> {
             ano = item.findViewById(R.id.st_capa_ano);
             selos = item.findViewById(R.id.st_capa_selos);
             selo4k = item.findViewById(R.id.st_capa_selo_4k);
-            seloHdr = item.findViewById(R.id.st_capa_selo_hdr);
+            selo1080p = item.findViewById(R.id.st_capa_selo_1080p);
             seloNota = item.findViewById(R.id.st_capa_selo_nota);
             notaValor = item.findViewById(R.id.st_capa_nota_valor);
             item.setOnClickListener(v -> {
@@ -169,10 +169,10 @@ public class CapaAdapter extends RecyclerView.Adapter<CapaAdapter.Capa> {
         /** Só com o que o título tem: coletânea e artista não têm tamanho de imagem nem nota. */
         private void mostrarSelos(Titulo t) {
             selo4k.setVisibility(t.eh4k() ? View.VISIBLE : View.GONE);
-            seloHdr.setVisibility(t.ehHdr() ? View.VISIBLE : View.GONE);
+            selo1080p.setVisibility(t.eh1080p() ? View.VISIBLE : View.GONE);
             seloNota.setVisibility(t.nota != null ? View.VISIBLE : View.GONE);
             if (t.nota != null) notaValor.setText(String.valueOf(t.nota));
-            selos.setVisibility(t.eh4k() || t.ehHdr() || t.nota != null ? View.VISIBLE : View.GONE);
+            selos.setVisibility(t.eh4k() || t.eh1080p() || t.nota != null ? View.VISIBLE : View.GONE);
         }
 
         private void sombra(Context contexto, boolean ligada) {

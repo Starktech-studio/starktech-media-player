@@ -161,4 +161,25 @@ public class BancoStarkTechMigracaoTest {
         assertEquals("/foto.jpg", lido.foto);
         assertEquals(BuscaArtista.DEEZER, lido.fonte);
     }
+
+    @Test
+    public void versao6_quemVeioDoDeezerOuDaTheAudioDbVoltaAFila() {
+        BancoStarkTech banco = new BancoStarkTech(ApplicationProvider.getApplicationContext(), null);
+        Acervo acervo = new Acervo(banco);
+        String[][] artistas = {{"Queen", BuscaArtista.DEEZER}, {"Coldplay", BuscaArtista.THEAUDIODB}, {"Muse", BuscaArtista.FANART}};
+        for (String[] a : artistas) {
+            Acervo.Artista artista = new Acervo.Artista();
+            artista.chave = Acervo.chaveArtista(a[0]);
+            artista.nome = a[0];
+            artista.situacao = Acervo.ACHADO;
+            artista.fonte = a[1];
+            artista.foto = "/" + a[0] + ".jpg";
+            acervo.gravarArtista(artista);
+        }
+        BancoStarkTech.criarVersao6(banco.getWritableDatabase());
+        assertEquals(Acervo.PENDENTE, acervo.artistas().get(Acervo.chaveArtista("Queen")).situacao);
+        assertEquals(Acervo.PENDENTE, acervo.artistas().get(Acervo.chaveArtista("Coldplay")).situacao);
+        assertEquals(Acervo.ACHADO, acervo.artistas().get(Acervo.chaveArtista("Muse")).situacao);
+        assertEquals("a foto antiga fica até achar outra", "/Queen.jpg", acervo.artistas().get(Acervo.chaveArtista("Queen")).foto);
+    }
 }

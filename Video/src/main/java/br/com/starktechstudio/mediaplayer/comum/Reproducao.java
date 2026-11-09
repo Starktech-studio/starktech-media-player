@@ -30,6 +30,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Capitulo;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Episodio;
@@ -44,6 +47,7 @@ import br.com.starktechstudio.mediaplayer.motor.Capitulos;
 import br.com.starktechstudio.mediaplayer.motor.CapitulosDoArquivo;
 import br.com.starktechstudio.mediaplayer.motor.Faixas;
 import br.com.starktechstudio.mediaplayer.motor.LegendaExterna;
+import br.com.starktechstudio.mediaplayer.motor.LegendasNoIndice;
 
 /**
  * Reprodução de verdade (F3): o motor do Nova ({@link Player}, com o {@link SurfaceController} e as
@@ -84,6 +88,8 @@ public final class Reproducao implements Player.Listener {
     private static final long TIQUE_MS = 500;
     /** Quanto "Carregar legenda" espera o motor ler o arquivo. */
     private static final long ESPERA_LEGENDA_MS = 10_000;
+    /** Quanto a abertura espera as legendas do índice (sem o acesso a todos os arquivos). */
+    private static final long ESPERA_INDICE_MS = 1_500;
     /** Legenda em arquivo guardada pelo nome dele ({@link #codigoDaLegenda}). */
     private static final String LEGENDA_POR_NOME = "arquivo:";
     private static final String LOG = "StarkTechReproducao";
@@ -279,10 +285,45 @@ public final class Reproducao implements Player.Listener {
         player.setListener(this);
         // Antes de abrir: a primeira legenda já sai na forma escolhida
         aplicarEstiloDaLegenda();
+        trazerLegendasDoIndice();
         player.setVideoURI(Uri.fromFile(new File(caminho)), null);
         // Depois de abrir: setVideoURI apaga a posição pedida antes (começava sempre do zero)
         if (posicaoPedida > 0) player.seekTo(posicaoPedida * 1000);
         naTela = this;
+    }
+
+    /**
+     * Sem o acesso a todos os arquivos (TV sem a tela dele): as legendas do vídeo vêm do índice de mídia para a
+     * pasta de legendas do app antes de abrir, e o motor as acha como sempre. Espera até
+     * {@link #ESPERA_INDICE_MS}; se demorar mais, entram quando chegarem (procura de novo).
+     */
+    private void trazerLegendasDoIndice() {
+        if (!LegendasNoIndice.precisa()) return;
+        final File video = new File(caminho);
+        final File pasta = MediaUtils.getSubsDir(contexto);
+        // 0 = andando; 1 = chegou a tempo; 2 = a tela não esperou mais
+        final AtomicInteger fase = new AtomicInteger();
+        final CountDownLatch pronto = new CountDownLatch(1);
+        new Thread(() -> {
+            int copiadas = 0;
+            try {
+                copiadas = LegendasNoIndice.trazerDoVideo(contexto, video, pasta);
+            } catch (RuntimeException e) {
+                Log.w(LOG, "legendas do índice: " + e.getClass().getSimpleName());
+            }
+            pronto.countDown();
+            if (!fase.compareAndSet(0, 1) && copiadas > 0) {
+                relogio.post(() -> {
+                    if (player != null) player.checkSubtitles();
+                });
+            }
+        }, "StarkTechLegendasIndice").start();
+        try {
+            pronto.await(ESPERA_INDICE_MS, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        fase.compareAndSet(0, 2);
     }
 
     /** Avisado quando os capítulos chegam depois de abrir (marcas, botões e lista). */
@@ -601,7 +642,8 @@ public final class Reproducao implements Player.Listener {
             File pronta = null;
             try {
                 File pasta = MediaUtils.getSubsDir(contexto);
-                pronta = LegendaExterna.paraOMotor(new File(caminho), arquivo, pasta);
+                // Sem o acesso a todos os arquivos, a cópia vem pelo índice de mídia (LegendasNoIndice)
+                pronta = LegendasNoIndice.paraOMotor(contexto, new File(caminho), arquivo, pasta);
                 MediaUtils.removeLastSubs(contexto);
             } catch (IOException | RuntimeException e) {
                 Log.w(LOG, "não deu para preparar a legenda " + arquivo, e);

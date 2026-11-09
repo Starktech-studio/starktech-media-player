@@ -28,11 +28,14 @@ import android.database.sqlite.SQLiteOpenHelper;
  *
  * <p>Versão 5 (só acrescenta): {@code artista.descricao} e {@code artista.resumo}, da Wikipédia. As capas
  * do Deezer voltam a ser buscadas: pegavam o primeiro homônimo, não o artista de verdade.
+ *
+ * <p>Versão 6 (1.1.1, só a fila): o Deezer e a TheAudioDB saíram; os artistas que vieram deles voltam a ser
+ * buscados no fanart.tv e na Wikipédia. A imagem antiga só troca se achar outra.
  */
 public final class BancoStarkTech extends SQLiteOpenHelper {
 
     public static final String NOME = "starktech.db";
-    private static final int VERSAO = 5;
+    private static final int VERSAO = 6;
 
     static final String EDICAO = "edicao";
     static final String CHAVE = "chave";
@@ -79,6 +82,13 @@ public final class BancoStarkTech extends SQLiteOpenHelper {
         if (versaoAntiga < 3) criarVersao3(banco);
         if (versaoAntiga < 4) criarVersao4(banco);
         if (versaoAntiga < 5) criarVersao5(banco);
+        if (versaoAntiga < 6) criarVersao6(banco);
+    }
+
+    /** Versão 6: quem veio do Deezer ou da TheAudioDB entra na fila de novo (fanart.tv e Wikipédia). */
+    static void criarVersao6(SQLiteDatabase banco) {
+        banco.execSQL("UPDATE " + ARTISTA + " SET situacao = " + Acervo.PENDENTE + " WHERE fonte IN ('"
+                + BuscaArtista.DEEZER + "', '" + BuscaArtista.THEAUDIODB + "')");
     }
 
     /** Versão 5: o texto do artista; quem veio do Deezer entra na fila de novo, e a foto só troca se achar outra. */

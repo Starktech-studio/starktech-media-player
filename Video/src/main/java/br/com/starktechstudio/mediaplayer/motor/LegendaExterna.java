@@ -88,6 +88,11 @@ public final class LegendaExterna {
         return copia;
     }
 
+    /** Nome na pasta de legendas do app: o mesmo, se já é do vídeo ("Filme.por.srt"); senão, {@link #nomeDaCopia}. */
+    public static String nomeNoMotor(String nomeDoVideo, String nomeDaLegenda) {
+        return doVideo(nomeDoVideo, nomeDaLegenda) ? nomeDaLegenda : nomeDaCopia(nomeDoVideo, nomeDaLegenda);
+    }
+
     /** "Filme.mkv" + "Minha legenda.SRT" → "Filme.Minha legenda.srt"; nome longo demais: "Filme.srt". */
     static String nomeDaCopia(String nomeDoVideo, String nomeDaLegenda) {
         String base = semExtensao(nomeDoVideo);

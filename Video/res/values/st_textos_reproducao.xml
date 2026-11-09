@@ -37,6 +37,7 @@
     <string name="st_pedir_acesso_arquivos">Permita o acesso a todos os arquivos para o app ler legendas em arquivo.</string>
     <string name="st_legenda_sem_acesso">Sem o acesso a todos os arquivos, o app não vê as legendas.</string>
     <string name="st_legenda_sem_tela_de_acesso">Este aparelho não tem a tela do acesso a todos os arquivos. Sem ele, o app não vê as legendas.</string>
+    <string name="st_legenda_pelo_indice">Sem o acesso a todos os arquivos: aparecem as legendas que o Android mostra ao app.</string>
     <string name="st_expandir">Expandir</string>
     <string name="st_volume">Volume %1$d%%</string>
 </resources>

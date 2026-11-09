@@ -11,8 +11,14 @@
 
     <!-- Modal da versão nova -->
     <string name="st_versao_nova_titulo">Versão %1$s disponível</string>
-    <string name="st_versao_novidade">• %1$s</string>
+    <string name="st_versao_rotulo">Atualização disponível</string>
+    <string name="st_versao_titulo">Versão %1$s</string>
+    <string name="st_versao_selo_instalada">Instalada %1$s</string>
+    <string name="st_versao_selo_nova">Nova %1$s</string>
+    <string name="st_versao_novidades_rotulo">O que há de novo</string>
     <string name="st_versao_sem_novidades">Esta versão não informou as novidades.</string>
+    <string name="st_versao_rodape">Instala por cima da versão atual, sem perder os seus dados. O Android pede a confirmação antes.</string>
+    <string name="st_versao_agora_nao">Agora não</string>
     <string name="st_versao_baixar_instalar">Baixar e instalar</string>
     <string name="st_versao_baixando">Baixando…</string>
     <string name="st_versao_baixando_percentual">Baixando… %1$d%%</string>

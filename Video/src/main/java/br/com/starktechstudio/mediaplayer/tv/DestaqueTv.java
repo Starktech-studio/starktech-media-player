@@ -40,11 +40,11 @@ import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
  * Destaque "Novidades na biblioteca" do Início da TV: os slides de
  * {@link RepositorioBiblioteca#destaques()}, trocados no tempo de Configurações (10 s de fábrica,
  * pode estar desligada) enquanto o foco está fora dele.
- * Só há o botão Assistir, que abre a reprodução; segurar OK nele abre o Menu da capa.
- * ←/→ em Assistir trocam o item em laço (fade e deslize de 250 ms; sem animação com "remover
- * animações") e os pontos só indicam, sem foco. O botão fica parado na troca: só a capa e os
- * textos do item se movem.
- * Expansão (D2): o foco em Assistir expande o item (borda de foco, área da imagem maior, com o
+ * Botões Assistir, que abre a reprodução, e Detalhes (1.1.1), que abre o Detalhe ou a Série; segurar OK
+ * nos dois abre o Menu da capa. → no Assistir vai a Detalhes e ← no Detalhes volta; ← no Assistir e → no
+ * Detalhes trocam o item em laço (fade e deslize de 250 ms; sem animação com "remover animações"),
+ * e os pontos só indicam, sem foco. Os botões ficam parados na troca: só a capa e os textos do item se movem.
+ * Expansão (D2): o foco num dos botões expande o item (borda de foco, área da imagem maior, com o
  * fundo no lugar da capa); o primeiro ↓ recolhe e o segundo desce à fileira. A prévia em vídeo
  * ({@link PreviaVideoTv}) se liga por {@link #definirExpansao}.
  */
@@ -82,6 +82,7 @@ final class DestaqueTv {
     private final TextView qualidade;
     private final TextView sinopse;
     private final TextView assistir;
+    private final TextView detalhes;
     private final LinearLayout pontos;
     private final List<ImageView> listaPontos = new ArrayList<>();
     /** O que se move na troca de item. */
@@ -138,6 +139,7 @@ final class DestaqueTv {
         sinopse = raiz.findViewById(R.id.st_destaque_sinopse);
         pontos = raiz.findViewById(R.id.st_destaque_pontos);
         assistir = raiz.findViewById(R.id.st_destaque_assistir);
+        detalhes = raiz.findViewById(R.id.st_destaque_detalhes);
         partesDoItem = new View[]{capa, raiz.findViewById(R.id.st_destaque_textos)};
 
         Resources res = atividade.getResources();
@@ -162,6 +164,7 @@ final class DestaqueTv {
                 ContextCompat.getColor(atividade, R.color.st_texto));
 
         Icones.noTexto(assistir, R.drawable.st_ic_assistir, res.getDimensionPixelSize(R.dimen.st_tv_botao_icone));
+        Icones.noTexto(detalhes, R.drawable.st_ic_detalhes, res.getDimensionPixelSize(R.dimen.st_tv_botao_icone));
 
         assistir.setOnClickListener(v -> {
             Titulo t = atual();
@@ -174,14 +177,22 @@ final class DestaqueTv {
             }
             abrirReproducao(t.id);
         });
+        // Detalhes: a página do título (série: a da série), como o OK numa capa
+        detalhes.setOnClickListener(v -> {
+            Titulo t = atual();
+            if (t != null) Navegacao.abrirCapa(atividade, t);
+        });
         // Segurar OK: Menu da capa (favoritar, marcar como assistido, editar)
-        assistir.setOnLongClickListener(v -> {
+        View.OnLongClickListener menu = v -> {
             Titulo t = atual();
             if (t == null) return false;
             Navegacao.abrirMenuCapa(atividade, t.id);
             return true;
-        });
-        assistir.setOnKeyListener((v, tecla, evento) -> aoTeclar(tecla, evento));
+        };
+        assistir.setOnLongClickListener(menu);
+        detalhes.setOnLongClickListener(menu);
+        assistir.setOnKeyListener((v, tecla, evento) -> aoTeclar(tecla, evento, true));
+        detalhes.setOnKeyListener((v, tecla, evento) -> aoTeclar(tecla, evento, false));
     }
 
     /** Relê os slides (o estado ou a biblioteca podem ter mudado) e mostra o atual. */
@@ -197,9 +208,10 @@ final class DestaqueTv {
         }
     }
 
-    /** ↓ em Assistir, já recolhido, vai à fileira {@code idFileira} (a primeira visível). */
+    /** ↓ em Assistir ou Detalhes, já recolhido, vai à fileira {@code idFileira} (a primeira visível). */
     void definirDescida(int idFileira) {
         assistir.setNextFocusDownId(idFileira);
+        detalhes.setNextFocusDownId(idFileira);
     }
 
     /** Liga quem reage ao item expandido. */
@@ -249,18 +261,21 @@ final class DestaqueTv {
     }
 
     /**
-     * Teclas em Assistir. ← e → sempre ficam aqui: a busca de foco cairia numa fileira de baixo.
-     * ↓ expandido recolhe; recolhido segue para a rolagem, que desce à fileira de
-     * {@link #definirDescida}. Tecla segurada não repete: um toque longo em ↓ não passa do
-     * recolher à fileira.
+     * Teclas em Assistir e Detalhes. ← e → sempre ficam no destaque: a busca de foco cairia numa fileira
+     * de baixo. Entre os dois botões, a seta leva ao outro; para fora (← no Assistir, → no Detalhes), troca
+     * o item. ↓ expandido recolhe; recolhido segue para a rolagem, que desce à fileira de
+     * {@link #definirDescida}. Tecla segurada não repete: um toque longo em ↓ não passa do recolher à fileira.
      */
-    private boolean aoTeclar(int tecla, KeyEvent evento) {
+    private boolean aoTeclar(int tecla, KeyEvent evento, boolean noAssistir) {
         boolean seta = tecla == KeyEvent.KEYCODE_DPAD_LEFT || tecla == KeyEvent.KEYCODE_DPAD_RIGHT;
         if (!seta && tecla != KeyEvent.KEYCODE_DPAD_DOWN) return false;
         if (evento.getAction() != KeyEvent.ACTION_DOWN) return false;
         if (evento.getRepeatCount() > 0) return true;
         if (seta) {
-            passar(tecla == KeyEvent.KEYCODE_DPAD_RIGHT ? 1 : -1);
+            boolean direita = tecla == KeyEvent.KEYCODE_DPAD_RIGHT;
+            if (noAssistir && direita) detalhes.requestFocus();
+            else if (!noAssistir && !direita) assistir.requestFocus();
+            else passar(direita ? 1 : -1);
             return true;
         }
         if (expandido) {

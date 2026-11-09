@@ -163,11 +163,11 @@ android {
         // below version tracks the one from F-Droid or universal package when generated with ./gradlew -Puniversal
         // this is overridden when using split apk and normal split apk generation or oneapk amazon generation
         // amazon apk is generated with ./gradlew -Poneapk
-        // StarkTech: a cada versão publicada, sobe os dois aqui ou no comando, com -Pstarktech.versionCode=4 e
+        // StarkTech: a cada versão publicada, sobe os dois aqui ou no comando, com -Pstarktech.versionCode=5 e
         // -Pstarktech.versionName=1.2.0. O versionCode é o que o app compara com o version.json publicado
-        // (motor/Atualizador). 1 foi o dos APKs de teste, por isso a 1.0.0 é o 2 e a 1.1.0, o 3.
-        versionCode = (project.findProperty('starktech.versionCode') ?: '3').toString().trim().toInteger()
-        versionName = (project.findProperty('starktech.versionName') ?: '1.1.0').toString().trim()
+        // (motor/Atualizador). 1 foi o dos APKs de teste, por isso a 1.0.0 é o 2, a 1.1.0 o 3 e a 1.1.1 o 4.
+        versionCode = (project.findProperty('starktech.versionCode') ?: '4').toString().trim().toInteger()
+        versionName = (project.findProperty('starktech.versionName') ?: '1.1.1').toString().trim()
         def novaVersionName = versionName
         if (! project.hasProperty("universal")) {
             // override versionName and versionCode to get it dependent on the date
@@ -206,10 +206,10 @@ android {
         }
         resValue "string", "VERSION_NAME", versionName
         resValue "string", "APP_INFO", "StarkTech Media Player v" + versionName + " (" + applicationId + ")"
-        // StarkTech: chave da TheAudioDB (capa de artista) fora do repositório — linha
-        // "starktech.theaudiodb.chave=" do ~/.gradle/gradle.properties do WSL; sem a linha, fica vazia
-        // e a busca usa só o Deezer, que responde sem chave.
-        resValue "string", "st_chave_theaudiodb", (project.findProperty('starktech.theaudiodb.chave') ?: '').toString().trim()
+        // StarkTech (1.1.1): chave de projeto do fanart.tv (foto e fundo de artista) fora do repositório — linha
+        // "starktech.fanart.chave=" do ~/.gradle/gradle.properties do WSL; sem a linha, fica vazia e a capa
+        // de artista vem só da Wikipédia. O Deezer e a TheAudioDB saíram (termos de uso).
+        resValue "string", "st_chave_fanart", (project.findProperty('starktech.fanart.chave') ?: '').toString().trim()
     }
     androidResources {
         // StarkTech: app só em pt-BR (os textos sem qualificador de idioma ficam como reserva)

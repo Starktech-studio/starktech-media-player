@@ -14,10 +14,9 @@ import android.widget.Toast;
 import com.archos.mediacenter.video.R;
 
 /**
- * Acesso a todos os arquivos: do Android 11 em diante, sem ele o sistema só mostra ao app os vídeos e
- * as imagens, e a legenda em arquivo (.srt, .ass) fica invisível, para o app e para o motor. Só se
- * libera numa tela do sistema, que algumas TVs não têm: ali, só por adb
- * ({@code docs/operacional/build.md} §3).
+ * Acesso a todos os arquivos: do Android 11 em diante, sem ele o app não lê a legenda em arquivo (.srt, .ass)
+ * pelo caminho, nem o motor. Só se libera numa tela do sistema, que algumas TVs não têm. Sem ele (recusado ou
+ * sem a tela), as legendas vêm do índice de mídia do Android ({@code motor/LegendasNoIndice}, 1.1.1).
  */
 public final class AcessoTodosArquivos {
 

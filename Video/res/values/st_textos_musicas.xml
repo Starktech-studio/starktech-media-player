@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<!-- Aba Músicas (1.1.1: só a navegação; o motor é da versão 1.5). Só pt-BR (D4). -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="pt-BR">
+    <string name="st_musicas_dica">Sua coleção de músicas, por artista, álbum e playlist</string>
+    <string name="st_musicas_artistas">Artistas</string>
+    <string name="st_musicas_albuns">Álbuns</string>
+    <string name="st_musicas_playlists">Playlists</string>
+    <string name="st_musicas_em_breve">Em breve</string>
+    <string name="st_musicas_artistas_texto">Cada artista da sua coleção, com a foto e os álbuns dele.</string>
+    <string name="st_musicas_albuns_texto">Os álbuns, com a capa e as faixas na ordem do disco.</string>
+    <string name="st_musicas_playlists_texto">As playlists que você criar aqui, com as músicas da sua coleção.</string>
+</resources>

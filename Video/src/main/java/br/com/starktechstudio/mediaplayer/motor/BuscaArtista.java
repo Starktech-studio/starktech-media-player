@@ -25,50 +25,71 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Capa de artista (aba Shows): TheAudioDB (foto, fundo e país), com o Deezer de reserva (só a foto).
- * A TheAudioDB pede chave, que entra no APK na hora do build, vinda da linha
- * {@code starktech.theaudiodb.chave=} do {@code ~/.gradle/gradle.properties} do WSL — nunca do
- * repositório; sem ela, só o Deezer, que responde sem chave. As imagens são baixadas uma vez, para
- * {@code files/artistas/}. Só aceita o artista de nome igual ({@link #mesmoNome}) e, entre os homônimos do
- * Deezer, o de mais fãs; se ainda vier errado, fica a troca da capa no Editar ({@link #fotosDeezer}) e a
- * busca pelo nome ({@link #artistasDeezer}). O texto vem da {@link WikipediaArtista}. Sem resposta, fica o
- * bloco de cor. Tudo aqui usa a rede: só fora da thread da tela.
+ * Capa de artista (aba Shows), da 1.1.1 em diante: o artista é achado pelo nome no MusicBrainz (gratuito, sem
+ * chave, um pedido por segundo e com identificação), e a foto e o fundo vêm do fanart.tv, pelo código dele
+ * (MBID), com a chave de projeto que entra no APK na hora do build — linha {@code starktech.fanart.chave=} do
+ * {@code ~/.gradle/gradle.properties} do WSL, nunca do repositório; sem ela, nada do fanart.tv. Sem foto lá, a
+ * primeira foto da {@link WikipediaArtista}. O Deezer e a TheAudioDB saíram (termos de uso). Só aceita o artista
+ * de nome igual ({@link #mesmoNome}); entre os homônimos, vale o primeiro do MusicBrainz que tem imagem no
+ * fanart.tv. Se ainda vier errado, ficam a troca da capa no Editar ({@link #fotos}) e a busca pelo nome
+ * ({@link #artistas}). As imagens são baixadas uma vez, para {@code files/artistas/}. O texto vem da
+ * {@link WikipediaArtista}. Sem resposta, fica o bloco de cor. Tudo aqui usa a rede: só fora da thread da tela.
  */
 public final class BuscaArtista {
 
+    public static final String FANART = "fanart";
+    public static final String WIKIPEDIA = "wikipedia";
+    /** Fontes até a 1.1.0: quem veio delas volta a ser buscado (banco v6). */
     public static final String THEAUDIODB = "theaudiodb";
     public static final String DEEZER = "deezer";
+    static final String MUSICBRAINZ = "musicbrainz";
 
     private static final String LOG = "StarkTechVarredura";
-    private static final String ENDERECO_THEAUDIODB = "https://www.theaudiodb.com/api/v1/json/%s/search.php?s=%s";
-    /** 25: o artista de verdade costuma vir depois de vários homônimos pequenos ("Queen" vem em 6º). */
-    private static final String ENDERECO_DEEZER = "https://api.deezer.com/search/artist?limit=25&q=%s";
-    /** Identifica o app nos pedidos: a Wikipédia recusa quem não se identifica. */
+    private static final String ENDERECO_MUSICBRAINZ = "https://musicbrainz.org/ws/2/artist/?query=%s&fmt=json&limit=%d";
+    private static final String ENDERECO_FANART = "https://webservice.fanart.tv/v3/music/%s?api_key=%s";
+    /** Identifica o app nos pedidos: o MusicBrainz e a Wikipédia recusam quem não se identifica. */
     public static final String IDENTIFICACAO = "StarkTechMediaPlayer/1.0 (https://starktechstudio.com.br)";
-    /** Homônimo com menos que esta parte dos fãs do maior não é o artista. */
-    private static final int HOMONIMO_DIVISOR = 10;
+    /** Homônimos de nome igual testados no fanart.tv, do mais parecido ao menos. */
+    private static final int CANDIDATOS = 3;
     private static final int MAXIMO_RESULTADOS = 12;
-    /** Limite da TheAudioDB na chave gratuita: 30 pedidos por minuto (o mesmo passo vale para o Deezer). */
-    private static final long INTERVALO_MS = 2100;
+    /** Resultados da busca pelo nome que ganham foto do fanart.tv (os primeiros). */
+    private static final int RESULTADOS_COM_FOTO = 5;
+    /** MusicBrainz: um pedido por segundo. */
+    private static final long INTERVALO_MS = 1100;
     private static final long LIMITE_RESPOSTA = 2L * 1024 * 1024;
 
-    /** O que uma fonte trouxe: endereços das imagens e o país. */
+    /** O que o fanart.tv trouxe: endereços da foto e do fundo. */
     static final class Achado {
         String foto;
         String fundo;
-        String pais;
     }
 
-    /** Artista da busca do Deezer, para escolher pelo nome e pela foto. */
+    /** Artista do MusicBrainz: o código (MBID), o nome e o que ajuda a reconhecer (país, descrição). */
+    static final class ArtistaMb {
+        final String id;
+        final String nome;
+        final String area;
+        final String descricao;
+
+        ArtistaMb(String id, String nome, String area, String descricao) {
+            this.id = id;
+            this.nome = nome;
+            this.area = area;
+            this.descricao = descricao;
+        }
+    }
+
+    /** Artista da busca pelo nome, para escolher pelo nome, pela linha de apoio e pela foto (nula sem foto). */
     public static final class Encontrado {
         public final String nome;
         public final String foto;
-        public final long fas;
+        /** "United Kingdom · rock band"; vazio se o MusicBrainz não diz. */
+        public final String detalhe;
 
-        Encontrado(String nome, String foto, long fas) {
+        Encontrado(String nome, String foto, String detalhe) {
             this.nome = nome;
             this.foto = foto;
-            this.fas = fas;
+            this.detalhe = detalhe;
         }
     }
 
@@ -78,7 +99,7 @@ public final class BuscaArtista {
 
     public BuscaArtista(Context contexto) {
         pasta = new File(contexto.getFilesDir(), "artistas");
-        chave = contexto.getString(R.string.st_chave_theaudiodb).trim();
+        chave = contexto.getString(R.string.st_chave_fanart).trim();
     }
 
     /**
@@ -92,40 +113,46 @@ public final class BuscaArtista {
         linha.buscado = System.currentTimeMillis();
         boolean falhou = false;
 
-        Achado principal = null;
-        if (!chave.isEmpty()) {
+        List<ArtistaMb> candidatos = new ArrayList<>();
+        try {
+            candidatos = mesmoNome(lerMusicBrainz(pedirMusicBrainz(nome, 10)), nome);
+        } catch (IOException | JSONException e) {
+            semResposta(MUSICBRAINZ, e);
+            falhou = true;
+        }
+        if (!candidatos.isEmpty()) linha.pais = candidatos.get(0).area;
+        Achado achado = null;
+        for (int i = 0; i < Math.min(CANDIDATOS, candidatos.size()) && !chave.isEmpty(); i++) {
             try {
-                principal = lerTheAudioDb(pedir(String.format(Locale.ROOT, ENDERECO_THEAUDIODB, chave, codificar(nome))), nome);
+                Achado deste = lerFanart(lerTexto(String.format(Locale.ROOT, ENDERECO_FANART, candidatos.get(i).id, chave)));
+                if (deste != null && (deste.foto != null || deste.fundo != null)) {
+                    achado = deste;
+                    if (candidatos.get(i).area != null) linha.pais = candidatos.get(i).area;
+                    break;
+                }
             } catch (IOException | JSONException e) {
-                semResposta(THEAUDIODB, e);
+                semResposta(FANART, e);
                 falhou = true;
+                break;
             }
         }
-        if (principal != null) {
-            linha.pais = principal.pais;
-            if (principal.fundo != null) {
-                linha.fundo = baixar(principal.fundo);
+        if (achado != null) {
+            if (achado.fundo != null) {
+                linha.fundo = baixar(achado.fundo);
                 if (linha.fundo == null) falhou = true;
             }
-            if (principal.foto != null) {
-                // A menor da TheAudioDB (500 px) já serve para a capa; sem ela, a original
-                linha.foto = baixar(principal.foto + "/medium");
-                if (linha.foto == null) linha.foto = baixar(principal.foto);
-                if (linha.foto != null) linha.fonte = THEAUDIODB;
+            if (achado.foto != null) {
+                linha.foto = baixar(achado.foto);
+                if (linha.foto != null) linha.fonte = FANART;
                 else falhou = true;
             }
         }
         if (linha.foto == null) {
-            try {
-                Achado reserva = lerDeezer(pedir(String.format(Locale.ROOT, ENDERECO_DEEZER, codificar(nome))), nome);
-                if (reserva != null && reserva.foto != null) {
-                    linha.foto = baixar(reserva.foto);
-                    if (linha.foto != null) linha.fonte = DEEZER;
-                    else falhou = true;
-                }
-            } catch (IOException | JSONException e) {
-                semResposta(DEEZER, e);
-                falhou = true;
+            // Reserva: a foto do artigo da Wikipédia (ou do Commons com o nome dele)
+            List<String> daWikipedia = new WikipediaArtista().fotos(nome);
+            if (!daWikipedia.isEmpty()) {
+                linha.foto = baixar(daWikipedia.get(0));
+                if (linha.foto != null) linha.fonte = WIKIPEDIA;
             }
         }
         linha.situacao = linha.foto != null || linha.fundo != null ? Acervo.ACHADO : falhou ? Acervo.ERRO : Acervo.NAO_ACHADO;
@@ -146,24 +173,45 @@ public final class BuscaArtista {
         }
     }
 
-    /** Fotos do Deezer para escolher no Editar ({@link #lerFotosDeezer}); nula = sem resposta. */
-    public List<String> fotosDeezer(String nome) {
+    /**
+     * Fotos do fanart.tv para escolher no Editar: as do primeiro homônimo de nome igual que tem foto, da mais
+     * curtida à menos; nula = sem resposta (ou sem a chave).
+     */
+    public List<String> fotos(String nome) {
+        if (chave.isEmpty()) return null;
         try {
-            return lerFotosDeezer(pedir(String.format(Locale.ROOT, ENDERECO_DEEZER, codificar(nome))), nome);
+            for (ArtistaMb c : primeiros(mesmoNome(lerMusicBrainz(pedirMusicBrainz(nome, 10)), nome), CANDIDATOS)) {
+                List<String> fotos = lerFotosFanart(lerTexto(String.format(Locale.ROOT, ENDERECO_FANART, c.id, chave)));
+                if (!fotos.isEmpty()) return fotos;
+            }
+            return new ArrayList<>();
         } catch (IOException | JSONException e) {
-            semResposta(DEEZER, e);
+            semResposta(FANART, e);
             return null;
         }
     }
 
-    /** Busca livre por nome, para "Buscar artista" no Editar; vazia sem resposta. */
-    public List<Encontrado> artistasDeezer(String consulta) {
+    /** Busca livre por nome, para "Buscar artista" no Editar: os do MusicBrainz, os primeiros com a foto do fanart.tv; vazia sem resposta. */
+    public List<Encontrado> artistas(String consulta) {
+        List<Encontrado> achados = new ArrayList<>();
         try {
-            return lerArtistasDeezer(pedir(String.format(Locale.ROOT, ENDERECO_DEEZER, codificar(consulta))));
+            List<ArtistaMb> lista = lerMusicBrainz(pedirMusicBrainz(consulta, MAXIMO_RESULTADOS));
+            for (int i = 0; i < lista.size(); i++) {
+                ArtistaMb a = lista.get(i);
+                String foto = null;
+                if (i < RESULTADOS_COM_FOTO && !chave.isEmpty()) {
+                    try {
+                        foto = lerFanart(lerTexto(String.format(Locale.ROOT, ENDERECO_FANART, a.id, chave))).foto;
+                    } catch (IOException | JSONException | RuntimeException e) {
+                        // sem foto: o nome e a linha de apoio já servem
+                    }
+                }
+                achados.add(new Encontrado(a.nome, foto, detalhe(a)));
+            }
         } catch (IOException | JSONException e) {
-            semResposta(DEEZER, e);
-            return new ArrayList<>();
+            semResposta(MUSICBRAINZ, e);
         }
+        return achados;
     }
 
     /** O motivo sem o endereço: nele vai a chave. */
@@ -173,97 +221,95 @@ public final class BuscaArtista {
 
     // ---- Respostas ----
 
-    /** {@code {"artists": [{...}]}} ou {@code {"artists": null}}; nulo se o artista não veio. */
-    static Achado lerTheAudioDb(String json, String nome) throws JSONException {
-        JSONArray lista = new JSONObject(json).optJSONArray("artists");
-        if (lista == null) return null;
-        for (int i = 0; i < lista.length(); i++) {
-            JSONObject artista = lista.getJSONObject(i);
-            if (!mesmoNome(nome, texto(artista, "strArtist")) && !mesmoNome(nome, texto(artista, "strArtistAlternate"))) continue;
-            Achado achado = new Achado();
-            achado.foto = endereco(texto(artista, "strArtistThumb"));
-            achado.fundo = endereco(texto(artista, "strArtistFanart"));
-            if (achado.fundo == null) achado.fundo = endereco(texto(artista, "strArtistWideThumb"));
-            achado.pais = texto(artista, "strCountry");
-            return achado;
+    /**
+     * {@code {"artists": [{"id", "name", "score", "area": {"name"}, "disambiguation", "aliases": [...]}]}}, na
+     * ordem do MusicBrainz (do mais parecido ao menos). Ocupado, ele responde {@code {"error": "..."}}: vale como
+     * sem resposta.
+     */
+    static List<ArtistaMb> lerMusicBrainz(String json) throws JSONException, IOException {
+        JSONObject raiz = new JSONObject(json);
+        if (raiz.has("error")) throw new IOException("MusicBrainz ocupado");
+        List<ArtistaMb> lista = new ArrayList<>();
+        JSONArray artistas = raiz.optJSONArray("artists");
+        for (int i = 0; artistas != null && i < artistas.length(); i++) {
+            JSONObject a = artistas.getJSONObject(i);
+            String id = texto(a, "id");
+            String nome = texto(a, "name");
+            if (id == null || nome == null) continue;
+            JSONObject area = a.optJSONObject("area");
+            lista.add(new ArtistaMb(id, nome, area == null ? null : texto(area, "name"), texto(a, "disambiguation")));
         }
-        return null;
+        return lista;
+    }
+
+    /** Só os de nome igual ao procurado, na mesma ordem. */
+    static List<ArtistaMb> mesmoNome(List<ArtistaMb> lista, String nome) {
+        List<ArtistaMb> iguais = new ArrayList<>();
+        for (ArtistaMb a : lista) if (mesmoNome(nome, a.nome)) iguais.add(a);
+        return iguais;
+    }
+
+    private static List<ArtistaMb> primeiros(List<ArtistaMb> lista, int quantos) {
+        return lista.size() > quantos ? lista.subList(0, quantos) : lista;
     }
 
     /**
-     * {@code {"data": [{...}], "total": n}}; nulo se o artista não veio. O Deezer responde erro (cota,
-     * por exemplo) com HTTP 200 e {@code {"error": {...}}}: vale como sem resposta.
+     * {@code {"artistthumb": [{"url", "likes"}], "artistbackground": [...], "artist4kbackground": [...]}}: a foto
+     * e o fundo mais curtidos (sem o fundo comum, o 4K); {@code {}} = o fanart.tv não tem nada do artista.
+     * Erro vem como {@code {"status": "error"}}: vale como sem resposta.
      */
-    static Achado lerDeezer(String json, String nome) throws JSONException, IOException {
-        JSONArray lista = dadosDeezer(json);
-        if (lista == null) return null;
-        // Vários artistas têm o mesmo nome, e o maior nem sempre vem primeiro: fica o de mais fãs
-        JSONObject melhor = null;
-        for (int i = 0; i < lista.length(); i++) {
-            JSONObject artista = lista.getJSONObject(i);
-            if (!mesmoNome(nome, texto(artista, "name"))) continue;
-            if (melhor == null || artista.optLong("nb_fan") > melhor.optLong("nb_fan")) melhor = artista;
-        }
-        if (melhor == null) return null;
+    static Achado lerFanart(String json) throws JSONException, IOException {
+        JSONObject raiz = new JSONObject(json);
+        if ("error".equals(texto(raiz, "status"))) throw new IOException("erro do fanart.tv");
         Achado achado = new Achado();
-        achado.foto = fotoDe(melhor);
+        achado.foto = maisCurtida(raiz.optJSONArray("artistthumb"));
+        achado.fundo = maisCurtida(raiz.optJSONArray("artistbackground"));
+        if (achado.fundo == null) achado.fundo = maisCurtida(raiz.optJSONArray("artist4kbackground"));
         return achado;
     }
 
-    /**
-     * Fotos para escolher no Editar: só de nome igual e, entre os homônimos, os que têm público perto do
-     * maior; o resto da busca e os homônimos pequenos não têm nada a ver com a banda.
-     */
-    static List<String> lerFotosDeezer(String json, String nome) throws JSONException, IOException {
-        List<JSONObject> iguais = new ArrayList<>();
-        long maior = 0;
-        JSONArray lista = dadosDeezer(json);
-        for (int i = 0; lista != null && i < lista.length(); i++) {
-            JSONObject artista = lista.getJSONObject(i);
-            if (!mesmoNome(nome, texto(artista, "name"))) continue;
-            iguais.add(artista);
-            maior = Math.max(maior, artista.optLong("nb_fan"));
-        }
-        Collections.sort(iguais, (a, b) -> Long.compare(b.optLong("nb_fan"), a.optLong("nb_fan")));
-        List<String> fotos = new ArrayList<>();
-        for (JSONObject artista : iguais) {
-            String foto = fotoDe(artista);
-            if (foto != null && !fotos.contains(foto) && artista.optLong("nb_fan") * HOMONIMO_DIVISOR >= maior) fotos.add(foto);
-        }
-        return fotos;
-    }
-
-    /** Os da busca, do mais conhecido ao menos, sem repetir foto e sem quem não tem foto. */
-    static List<Encontrado> lerArtistasDeezer(String json) throws JSONException, IOException {
-        List<Encontrado> achados = new ArrayList<>();
-        List<String> fotos = new ArrayList<>();
-        JSONArray lista = dadosDeezer(json);
-        for (int i = 0; lista != null && i < lista.length(); i++) {
-            JSONObject artista = lista.getJSONObject(i);
-            String nome = texto(artista, "name");
-            String foto = fotoDe(artista);
-            if (nome == null || foto == null || fotos.contains(foto)) continue;
-            fotos.add(foto);
-            achados.add(new Encontrado(nome, foto, artista.optLong("nb_fan")));
-        }
-        Collections.sort(achados, (a, b) -> Long.compare(b.fas, a.fas));
-        return achados.size() > MAXIMO_RESULTADOS ? new ArrayList<>(achados.subList(0, MAXIMO_RESULTADOS)) : achados;
-    }
-
-    private static JSONArray dadosDeezer(String json) throws JSONException, IOException {
+    /** As fotos do artista, da mais curtida à menos. */
+    static List<String> lerFotosFanart(String json) throws JSONException, IOException {
         JSONObject raiz = new JSONObject(json);
-        if (raiz.has("error")) throw new IOException("erro do Deezer");
-        return raiz.optJSONArray("data");
+        if ("error".equals(texto(raiz, "status"))) throw new IOException("erro do fanart.tv");
+        return porCurtidas(raiz.optJSONArray("artistthumb"));
     }
 
-    private static String fotoDe(JSONObject artista) {
-        String foto = fotoDeezer(texto(artista, "picture_big"));
-        return foto != null ? foto : fotoDeezer(texto(artista, "picture_xl"));
+    private static String maisCurtida(JSONArray imagens) throws JSONException {
+        List<String> lista = porCurtidas(imagens);
+        return lista.isEmpty() ? null : lista.get(0);
     }
 
-    /** Artista sem foto no Deezer vem com o endereço de uma imagem padrão, sem o código ("/artist//"). */
-    private static String fotoDeezer(String endereco) {
-        return endereco == null || endereco.contains("/artist//") ? null : endereco(endereco);
+    private static List<String> porCurtidas(JSONArray imagens) throws JSONException {
+        List<JSONObject> validas = new ArrayList<>();
+        for (int i = 0; imagens != null && i < imagens.length(); i++) {
+            JSONObject imagem = imagens.getJSONObject(i);
+            if (endereco(texto(imagem, "url")) != null) validas.add(imagem);
+        }
+        // "likes" vem como texto ("8"); a ordem original desempata
+        Collections.sort(validas, (a, b) -> Integer.compare(curtidas(b), curtidas(a)));
+        List<String> enderecos = new ArrayList<>();
+        for (JSONObject imagem : validas) {
+            String url = texto(imagem, "url");
+            if (!enderecos.contains(url)) enderecos.add(url);
+        }
+        return enderecos;
+    }
+
+    private static int curtidas(JSONObject imagem) {
+        try {
+            return Integer.parseInt(imagem.optString("likes", "0").trim());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    /** "United Kingdom · rock band": o país e a descrição do MusicBrainz, os que houver. */
+    static String detalhe(ArtistaMb a) {
+        StringBuilder texto = new StringBuilder();
+        if (a.area != null) texto.append(a.area);
+        if (a.descricao != null) texto.append(texto.length() > 0 ? " · " : "").append(a.descricao);
+        return texto.toString();
     }
 
     /** Só https. */
@@ -297,6 +343,11 @@ public final class BuscaArtista {
         return URLEncoder.encode(nome, "UTF-8").replace("+", "%20");
     }
 
+    /** O nome como frase do MusicBrainz ("AC/DC" entre aspas: a barra não vira expressão). */
+    static String consultaMusicBrainz(String nome) {
+        return "\"" + nome.trim().replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
+    }
+
     private void esperarVez() throws IOException {
         long falta = ultimoPedido + INTERVALO_MS - SystemClock.elapsedRealtime();
         if (ultimoPedido > 0 && falta > 0) {
@@ -310,9 +361,10 @@ public final class BuscaArtista {
         ultimoPedido = SystemClock.elapsedRealtime();
     }
 
-    private String pedir(String endereco) throws IOException {
+    /** Pedido ao MusicBrainz, no passo dele (um por segundo). */
+    private String pedirMusicBrainz(String nome, int limite) throws IOException {
         esperarVez();
-        return lerTexto(endereco);
+        return lerTexto(String.format(Locale.ROOT, ENDERECO_MUSICBRAINZ, codificar(consultaMusicBrainz(nome)), limite));
     }
 
     static String lerTexto(String endereco) throws IOException {
@@ -322,7 +374,8 @@ public final class BuscaArtista {
             conexao.setConnectTimeout(15_000);
             conexao.setReadTimeout(20_000);
             conexao.setRequestProperty("User-Agent", IDENTIFICACAO);
-            // Inclui o 429 (limite de pedidos): sem resposta agora, tenta de novo mais tarde
+            conexao.setRequestProperty("Accept", "application/json");
+            // Inclui o 503 (MusicBrainz ocupado) e o 429: sem resposta agora, tenta de novo mais tarde
             if (conexao.getResponseCode() != HttpURLConnection.HTTP_OK) throw new IOException("HTTP " + conexao.getResponseCode());
             try (InputStream entrada = conexao.getInputStream()) {
                 ByteArrayOutputStream memoria = new ByteArrayOutputStream();
@@ -343,6 +396,7 @@ public final class BuscaArtista {
             conexao = (HttpURLConnection) new URL(endereco).openConnection();
             conexao.setConnectTimeout(15_000);
             conexao.setReadTimeout(30_000);
+            conexao.setRequestProperty("User-Agent", IDENTIFICACAO);
             if (conexao.getResponseCode() != HttpURLConnection.HTTP_OK) return null;
             try (InputStream entrada = conexao.getInputStream()) {
                 ImagemDoAparelho.Resultado imagem = ImagemDoAparelho.importar(pasta, entrada, conexao.getContentLength());

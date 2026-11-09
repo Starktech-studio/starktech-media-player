@@ -35,6 +35,9 @@
     <string name="st_creditos_nova">Baseado no Nova Video Player · Apache-2.0</string>
     <string name="st_avisos_terceiros">Avisos de terceiros</string>
     <string name="st_ver_todos">Ver todos</string>
+    <string name="st_avisos_dica">OK ou toque num item abre o texto completo da licença.</string>
+    <string name="st_codigo_fonte">Código-fonte: o deste app, o motor e os scripts que compilam as bibliotecas LGPL, com as mudanças aplicadas, estão em github.com/Starktech-studio/starktech-media-player. O código de cada biblioteca, na versão usada, vem do projeto original indicado nesses scripts.</string>
+    <string name="st_bibliotecas_java">AndroidX, Material, OkHttp, Okio, Retrofit, Gson, Picasso, Kotlin, kotlinx, ThreeTenABP, sshj, smbj, Sardine, Apache Commons, HttpCore, Oltu, tmdb-java, trakt-java, logback-android, Jetty, Simple XML, ObservableScrollView, JSpecify, Error Prone, Guava, JetBrains annotations e ASN-One</string>
     <string name="st_aviso_tmdb">Este produto usa a API do TMDB, mas não é endossado nem certificado pelo TMDB.</string>
     <string name="st_logo_tmdb">Logo do TMDB</string>
     <string name="st_direitos">© 2026 StarkTech Studio. Todos os direitos reservados.</string>

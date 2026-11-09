@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
-<!-- Item da barra lateral do tablet (tablet-biblioteca.dc.html): 84 dp, ícone 30 dp, texto 13 sp Inter 800. -->
+<!--
+     Item da barra lateral do tablet (tablet-biblioteca.dc.html): 84 dp, ícone 30 dp, texto 13 sp Inter 800.
+     O nome fica numa linha só: o que não cabe ("Desenhos", "TV Shows", fonte grande do aparelho) diminui até 9 sp.
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="@dimen/st_tablet_barra_item"
@@ -24,9 +27,18 @@
     <TextView
         android:id="@+id/st_item_barra_texto"
         style="@style/StarkTech.Texto.Botao"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/st_tablet_item_barra_texto_altura"
         android:layout_marginTop="7dp"
+        android:gravity="center"
+        android:includeFontPadding="false"
+        android:maxLines="1"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
         android:textColor="@color/st_cor_item_barra"
-        android:textSize="@dimen/st_tablet_texto_item_barra" />
+        android:textSize="@dimen/st_tablet_texto_item_barra"
+        app:autoSizeMaxTextSize="@dimen/st_tablet_texto_item_barra"
+        app:autoSizeMinTextSize="9sp"
+        app:autoSizeStepGranularity="0.5sp"
+        app:autoSizeTextType="uniform" />
 </LinearLayout>

@@ -45,15 +45,15 @@ public class ModeloCapaTest {
     @Test
     public void selos_pelaQualidade() {
         assertTrue(comQualidade("4K").eh4k());
-        assertFalse(comQualidade("4K").ehHdr());
+        assertFalse(comQualidade("4K").eh1080p());
         assertTrue(comQualidade("4K HDR").eh4k());
-        assertTrue(comQualidade("4K HDR").ehHdr());
-        assertTrue(comQualidade("1080p HDR").ehHdr());
+        assertTrue(comQualidade("1080p").eh1080p());
+        assertTrue(comQualidade("1080p HDR").eh1080p());
         assertFalse(comQualidade("1080p HDR").eh4k());
-        assertTrue(comQualidade("HDR10").ehHdr());
-        assertTrue(comQualidade("HLG").ehHdr());
+        assertFalse(comQualidade("720p").eh1080p());
+        assertFalse(comQualidade("HDR10").eh1080p());
         assertFalse(comQualidade("").eh4k());
-        assertFalse(comQualidade(null).ehHdr());
+        assertFalse(comQualidade(null).eh1080p());
     }
 
     @Test

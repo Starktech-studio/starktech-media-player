@@ -61,6 +61,8 @@ public final class Navegacao {
         DESENHOS(R.string.st_aba_desenhos, R.drawable.st_ic_desenhos, Preferencias.Item.NAV_DESENHOS),
         SHOWS(R.string.st_aba_shows, R.drawable.st_ic_shows, Preferencias.Item.NAV_SHOWS),
         STANDUP(R.string.st_aba_standup, R.drawable.st_ic_standup, Preferencias.Item.NAV_STANDUP),
+        /** 1.1.1: só a navegação (Artistas, Álbuns, Playlists); o motor é da 1.5. */
+        MUSICAS(R.string.st_aba_musicas, R.drawable.st_ic_musicas, Preferencias.Item.NAV_MUSICAS),
         AJUSTES(R.string.st_aba_ajustes, R.drawable.st_ic_ajustes, null);
 
         @StringRes
@@ -136,7 +138,7 @@ public final class Navegacao {
         return Aba.FILMES;
     }
 
-    /** Conteúdo de cada aba: Início, Filmes, Séries, TV Shows, Desenhos e Stand-up (F3), Shows e Ajustes (fase I). */
+    /** Conteúdo de cada aba: Início, Filmes, Séries, TV Shows, Desenhos e Stand-up (F3), Shows, Músicas (1.1.1, sem motor) e Ajustes (fase I). */
     public static Fragment conteudoDaAba(Context contexto, Aba aba) {
         switch (aba) {
             case INICIO:
@@ -153,6 +155,8 @@ public final class Navegacao {
                 return ListaFragment.novo(Tipo.SHOW);
             case STANDUP:
                 return ListaFragment.novo(Tipo.STANDUP);
+            case MUSICAS:
+                return new MusicasFragment();
             case AJUSTES:
                 return new ConfiguracoesFragment();
             default:

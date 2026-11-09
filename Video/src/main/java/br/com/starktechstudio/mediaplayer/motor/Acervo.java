@@ -106,7 +106,7 @@ public final class Acervo {
         public String chave;
         public String nome;
         public int situacao = PENDENTE;
-        /** De onde veio a foto: {@link BuscaArtista#THEAUDIODB} ou {@link BuscaArtista#DEEZER}. */
+        /** De onde veio a foto: {@link BuscaArtista#FANART} ou {@link BuscaArtista#WIKIPEDIA}; até a 1.1.0, THEAUDIODB ou DEEZER. */
         public String fonte;
         /** Imagens baixadas (caminho do arquivo); nulo = bloco de cor. */
         public String foto;

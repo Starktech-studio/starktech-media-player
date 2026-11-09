@@ -6,11 +6,11 @@
 
 | Assunto | Situação | O que falta |
 |---|---|---|
-| TMDB | Precisa de ajuste | Chave dentro do APK, cache de até 6 meses e logo aprovado (§2) |
-| Deezer | **Impede** a liberação como está | Tirar do app ou conseguir autorização (§2) |
-| TheAudioDB | Sem chave, não é usado | Só com plano pago, se for para loja (§2) |
-| Wikipédia e Commons | Quase pronto | Crédito das fotos (§2) |
-| Licenças do código | Falta | Textos em Sobre e dizer onde está o código-fonte LGPL (§3) |
+| TMDB | Precisa de ajuste | Chave dentro do APK e cache de até 6 meses (§2); logo conferido |
+| fanart.tv e MusicBrainz | Pronto (1.1.1) | Uso não comercial; crédito em Sobre (§2) |
+| Deezer e TheAudioDB | Saíram do app (1.1.1) | Nada |
+| Wikipédia e Commons | Pronto | Crédito em Sobre e na página do artista (§2) |
+| Licenças do código | Quase pronto (1.1.1) | Conferir o código-fonte LGPL no repositório (§3) |
 | Chave de assinatura | Pronta | Nada (`build.md` §7) |
 | Repositório | Público desde 09/11/2026 | Decidir a licença do código próprio (§5) |
 
@@ -21,23 +21,26 @@
 [Termos](https://www.themoviedb.org/api-terms-of-use)
 
 - **Uso:** a licença não cobre uso comercial. Cobrar pelo app ou ganhar dinheiro com ele, inclusive anúncio, pede contrato com o TMDB, que pode cobrar. App gratuito e sem anúncio fica fora dos exemplos de uso comercial, mas os termos não falam dele com todas as letras e o TMDB decide o que é comercial: **confirmar com o TMDB**.
-- **Crédito:** logo do TMDB, menos destacado que a marca do app, e aviso de que o app usa o TMDB sem ser endossado por ele. O Sobre já tem os dois; falta conferir se o `tmdb_banner.webp`, herdado do Nova, é um logo aprovado.
+- **Crédito:** logo do TMDB, menos destacado que a marca do app, e aviso de que o app usa o TMDB sem ser endossado por ele. O Sobre já tem os dois. O `tmdb_banner.webp` é o "TMDB" com a pílula em degradê, um dos logos da [página de marca do TMDB](https://www.themoviedb.org/about/logos-attribution) (conferido em 09/11/2026).
 - **Cache:** os termos limitam a 6 meses a guarda do que vem do TMDB. **O app guarda sem prazo.** Antes de liberar, buscar de novo o que passar de 6 meses (`tmdb.buscado` já tem a data).
 - **Chave:** fica fora do repositório, mas entra no APK no build (`tmdb_api_key`), e quem tem o APK consegue extraí-la. Foi pedida como uso pessoal (DADOS §7): antes de divulgar, conferir com o TMDB se ela serve para o app. Se houver abuso, gerar outra e publicar uma versão nova; quem não atualizar fica sem dados do TMDB.
 - **Outros:** ao fim da licença, parar de usar a chave e apagar o que veio do TMDB. Treinar IA com esse conteúdo é proibido sem contrato.
 
-### Deezer (capa do artista, opções de foto, busca por nome)
+### fanart.tv (foto e fundo do artista, 1.1.1)
 
-[Termos](https://developers.deezer.com/termsofuse)
+[Chave](https://fanart.tv/get-an-api-key/)
 
-- **Impede a liberação como está.** Os termos limitam o uso a fim privado, familiar e não comercial; outro uso pede aprovação prévia do Deezer, que também pode cortar o acesso sem aviso.
-- **Caminhos:** (a) pedir autorização por escrito; (b) tirar o Deezer e deixar a capa vir da Wikipédia e da imagem do usuário; (c) trocar pela TheAudioDB paga. O ponto único é `motor/BuscaArtista`.
-- **Recomendação:** (b), que não custa nada e não depende de ninguém. O texto e as fotos da Wikipédia já estão no app.
+- **Uso:** "Do not use our API for commercial use without written consent" e não usar a API dentro de outra API para terceiros. App gratuito, sem anúncio e sem venda: dentro do uso permitido. Se um dia o app gerar receita, pedir a autorização por escrito.
+- **Chave:** de projeto, fora do repositório, entra no APK no build (`st_chave_fanart`); quem tem o APK consegue extraí-la. Se houver abuso, gerar outra e publicar uma versão nova.
+- **Crédito:** no Sobre ("fotos e fundos do fanart.tv").
 
-### TheAudioDB (foto, fundo e país do artista)
+### MusicBrainz (achar o artista pelo nome)
 
-- **Hoje não é usada:** a chave não está configurada, e sem ela o app nem chama o serviço.
-- **Termos:** a chave gratuita é para desenvolvimento; publicar em loja de apps pede assinatura paga. A cópia conferida é de terceiros ([arquivo dos termos](https://tostracker.app/document/theaudiodbcom-tos)): confirmar o texto e o preço em theaudiodb.com.
+- **Uso:** dados em domínio público (CC0), sem chave. Um pedido por segundo e identificação no pedido (`BuscaArtista.IDENTIFICACAO`), que o app já segue. Crédito no Sobre.
+
+### Deezer e TheAudioDB
+
+Saíram na 1.1.1: os termos do Deezer só permitem uso privado e familiar, e a chave gratuita da TheAudioDB não vale para app distribuído. Quem tinha foto deles volta a ser buscado (banco v6); a foto antiga só troca se achar outra.
 
 ### Wikipédia e Wikimedia Commons (texto e fotos do artista)
 
@@ -56,16 +59,16 @@ Detalhe de cada biblioteca: `docs/arquitetura/licencas.md`.
 | Obrigação | Por quê | Situação |
 |---|---|---|
 | Manter `LICENSE`, `NOTICE` e cabeçalhos, com "Modificado por StarkTech Studio" | Apache-2.0 do Nova, §4 | Em dia |
-| "Nova" só no crédito | Apache-2.0, §6 (não cede a marca) | Falta tirar as imagens do Nova do código (backlog F4 #1) |
-| Textos completos das licenças em Sobre | Apache, LGPL, OFL, ISC, BSD, MIT, FTL, BSL, zlib, PNG | **Falta** |
-| Oferecer o código-fonte LGPL | FFmpeg, AudioCompress, jcifs-ng e FriBidi, que está estático no motor: inclui `native/avos` com as mudanças da StarkTech | **Em parte:** o repositório público já traz `native/avos` e os scripts de build. Falta conferir se o código do FFmpeg com os patches, do AudioCompress e do FriBidi está completo e dizer em Sobre onde ele está |
-| Confirmar dependências Java, versões dos binários e a licença do jcifs-ng | Para os avisos saírem certos | **Falta** |
+| "Nova" só no crédito | Apache-2.0, §6 (não cede a marca) | Feito (1.1.1): as imagens de marca do Nova foram trocadas pelas da StarkTech |
+| Textos completos das licenças em Sobre | Apache, LGPL, OFL, ISC, BSD, MIT, FTL, BSL, zlib, PNG, CDDL, Bouncy Castle | Feito (1.1.1): OK num aviso abre o texto (`LicencaActivity`) |
+| Oferecer o código-fonte LGPL | FFmpeg, AudioCompress, jcifs-ng e FriBidi, que está estático no motor: inclui `native/avos` com as mudanças da StarkTech | **Em parte:** o repositório público já traz `native/avos` e os scripts de build. O Sobre diz onde está (1.1.1). Falta conferir se o código do FFmpeg com os patches, do AudioCompress e do FriBidi está completo |
+| Confirmar dependências Java, versões dos binários e a licença do jcifs-ng | Para os avisos saírem certos | Dependências Java e jcifs-ng (LGPL) feitos (1.1.1, `licencas.md` §9). Falta a versão exata de cada binário pronto |
 
 ## 4. O app em si
 
-- **Acesso a todos os arquivos:** fora de loja, basta o usuário permitir. Na Google Play, essa permissão passa por análise e pode ser recusada. TV sem a tela dessa permissão fica sem legenda em arquivo (backlog F3 #1).
+- **Acesso a todos os arquivos:** fora de loja, basta o usuário permitir. Na Google Play, essa permissão passa por análise e pode ser recusada. Sem o acesso (recusado ou TV sem a tela), a legenda em arquivo vem do índice de mídia do Android (1.1.1).
 - **Atualização:** ligar a verificação ao abrir é seguro, e a instalação sempre pede a confirmação do Android. TV sem a tela de "instalar apps desconhecidos": testar, porque pode ser preciso instalar à mão.
-- **Privacidade:** o app não tem login nem coleta dados, mas chama TMDB, Deezer, Wikipédia e GitHub. Ao publicar, deixar isso escrito numa página de privacidade do site.
+- **Privacidade:** o app não tem login nem coleta dados, mas chama TMDB, MusicBrainz, fanart.tv, Wikipédia e GitHub. Ao publicar, deixar isso escrito numa página de privacidade do site.
 - **Qualidade:** lint completo e teste em aparelho limpo (F4), mais o fechamento intermitente ao abrir logo após instalar (backlog F4 #5).
 
 ## 5. Repositório
@@ -79,8 +82,7 @@ Um repositório só, público desde 09/11/2026: o código fica nele, e as versõ
 
 ## 6. Ordem sugerida
 
-1. Tirar o Deezer ou conseguir a autorização.
-2. Buscar de novo o que passar de 6 meses do TMDB e conferir o logo e a chave.
-3. Completar o Sobre e conferir o código-fonte LGPL no repositório.
-4. Lint, teste em aparelho limpo e imagens do Nova.
-5. Página de privacidade e card em `/apps` (DADOS §8).
+1. Buscar de novo o que passar de 6 meses do TMDB e confirmar a chave com o TMDB.
+2. Conferir o código-fonte LGPL no repositório.
+3. Lint e teste em aparelho limpo.
+4. Página de privacidade e card em `/apps` (DADOS §8).

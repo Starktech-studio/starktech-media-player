@@ -48,7 +48,7 @@ cd /mnt/d/Dev/starktech-media-player/Video
 
 - Lint completo (comando da seção 2 sem o `-x`): uma vez no fim da F1 (fase I) e de novo na F4 (`docs/backlog.md`).
 - Chave da API do TMDB (desde a F2): fora do repositório, na linha `starktech.tmdb.chave=` do `~/.gradle/gradle.properties` do WSL (permissão 600; o valor fica no documento do TMDB da pasta de gestão). O `MediaLib/build.gradle` (`chaveTmdb()`) a põe no APK na hora do build e nos testes que chamam o TMDB. Sem a linha, o build passa, a chave fica vazia e esses testes são pulados. Trakt e OpenSubtitles: desligados, sem chave (D5 da F2). Nunca gravar a chave no repositório, no `docs/` ou num commit.
-- Chave da TheAudioDB (capa de artista, plano 004): fora do repositório, na linha `starktech.theaudiodb.chave=` do mesmo `~/.gradle/gradle.properties`. O `Video/build.gradle` a põe no APK na hora do build (`st_chave_theaudiodb`). Sem a linha, o build passa e a capa de artista usa só o Deezer, que responde sem chave. Nunca gravar a chave no repositório, no `docs/` ou num commit.
+- Chave de projeto do fanart.tv (foto e fundo de artista, 1.1.1): fora do repositório, na linha `starktech.fanart.chave=` do mesmo `~/.gradle/gradle.properties`, com cópia em `DOCUMENTOS\FANART - STARKTECH MEDIA PLAYER.md` da gestão. O `Video/build.gradle` a põe no APK na hora do build (`st_chave_fanart`). Sem a linha, o build passa e a capa de artista vem só da Wikipédia. Nunca gravar a chave no repositório, no `docs/` ou num commit.
 
 ## 3. Saída e instalação
 
@@ -56,7 +56,7 @@ cd /mnt/d/Dev/starktech-media-player/Video
 - Pacote `br.com.starktechstudio.mediaplayer`, versão 0.1.0 (versionCode 1), desde a F1 fase A (subir a versão: §6); só pt-BR no APK (`androidResources.localeFilters` em `Video/build.gradle`).
 - Cópia de teste em `apks/` na raiz (fora do Git), com o nome `StarkTech Media Player 0.1.0 (teste).apk`; cada build de teste substitui a anterior.
 - Instalar pelo Windows: `adb install -r <apk>`. Pacote, authorities, `taskAffinity` e `sharedUserId` diferentes dos do Nova: instala ao lado do Nova (`org.courville.nova`), sem desinstalar.
-- Legenda em arquivo precisa do acesso a todos os arquivos. Aparelho com a tela desse acesso: o app pede ao abrir. TV sem ela (a TCL de teste): liberar por adb depois de instalar (vale até desinstalar): `adb shell appops set --uid br.com.starktechstudio.mediaplayer MANAGE_EXTERNAL_STORAGE allow`.
+- Legenda em arquivo: com o acesso a todos os arquivos, o app e o motor leem a pasta do vídeo. Aparelho com a tela desse acesso: o app pede ao abrir. Sem ele (recusado, ou TV sem a tela, como a TCL de teste), desde a 1.1.1 as legendas vêm do índice de mídia do Android (`motor/LegendasNoIndice`). Liberar por adb continua valendo, para usar a pasta direto: `adb shell appops set --uid br.com.starktechstudio.mediaplayer MANAGE_EXTERNAL_STORAGE allow`.
 - Desde a F2 (etapa 4) o APK não tem mais as chaves do Nova: o `MediaLib/res/values/donottranslate.xml` saiu e os valores de exemplo nos comentários e testes do MediaLib foram trocados. O APK de teste continua só nesta máquina até a F4 (assinatura e teste em aparelho limpo).
 
 ## 4. NDK
@@ -128,7 +128,7 @@ Com o arquivo no WSL, os builds de teste também saem com essa chave. A versão 
 ./gradlew -Puniversal assembleNoamazonRelease
 ```
 
-APK em `Video/build/outputs/apk/noamazon/release/`; cópia em `apks/` com o nome `StarkTech Media Player X.Y.Z.apk`. 1.0.0 = `versionCode` 2 (o 1 foi o dos APKs de teste); 1.1.0 = 3.
+APK em `Video/build/outputs/apk/noamazon/release/`; cópia em `apks/` com o nome `StarkTech Media Player X.Y.Z.apk`. 1.0.0 = `versionCode` 2 (o 1 foi o dos APKs de teste); 1.1.0 = 3; 1.1.1 = 4.
 
 Publicar uma versão:
 

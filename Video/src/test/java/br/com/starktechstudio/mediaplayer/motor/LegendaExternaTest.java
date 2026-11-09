@@ -24,6 +24,17 @@ public class LegendaExternaTest {
     public TemporaryFolder temporaria = new TemporaryFolder();
 
     @Test
+    public void nomeNoMotor_mantemONomeDoVideoOuPoeNaFrente() {
+        assertEquals("Filme.2024.por.srt", LegendaExterna.nomeNoMotor(VIDEO, "Filme.2024.por.srt"));
+        assertEquals("Filme.2024.Minha legenda.srt", LegendaExterna.nomeNoMotor(VIDEO, "Minha legenda.SRT"));
+    }
+
+    @Test
+    public void indice_caminhoNoLikeComPorcentagemESublinhadoComoLetras() {
+        assertEquals("/storage/HD/Filmes/50\\% off\\_2/", LegendasNoIndice.escapar("/storage/HD/Filmes/50% off_2/"));
+    }
+
+    @Test
     public void ehLegenda_pelaExtensao() {
         assertTrue(LegendaExterna.ehLegenda("a.srt"));
         assertTrue(LegendaExterna.ehLegenda("a.ASS"));

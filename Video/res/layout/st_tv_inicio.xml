@@ -192,13 +192,28 @@
                                 android:textSize="@dimen/st_tv_texto_corpo" />
                         </LinearLayout>
 
-                        <Button
-                            android:id="@+id/st_destaque_assistir"
-                            style="@style/StarkTech.Botao.Tv.Primario"
+                        <!-- Assistir e Detalhes (1.1.1): ← no Assistir e → no Detalhes passam o item -->
+                        <LinearLayout
                             android:layout_width="wrap_content"
-                            android:layout_height="@dimen/st_tv_botao_altura"
+                            android:layout_height="wrap_content"
                             android:layout_marginTop="10dp"
-                            android:text="@string/st_assistir" />
+                            android:orientation="horizontal">
+
+                            <Button
+                                android:id="@+id/st_destaque_assistir"
+                                style="@style/StarkTech.Botao.Tv.Primario"
+                                android:layout_width="wrap_content"
+                                android:layout_height="@dimen/st_tv_botao_altura"
+                                android:text="@string/st_assistir" />
+
+                            <Button
+                                android:id="@+id/st_destaque_detalhes"
+                                style="@style/StarkTech.Botao.Tv.Secundario"
+                                android:layout_width="wrap_content"
+                                android:layout_height="@dimen/st_tv_botao_altura"
+                                android:layout_marginStart="7dp"
+                                android:text="@string/st_detalhes" />
+                        </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
 
