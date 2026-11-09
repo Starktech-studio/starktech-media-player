@@ -1,18 +1,18 @@
 # Liberar ao público — StarkTech Media Player
 
-> O que precisa estar resolvido antes de o app sair do uso próprio e ir para qualquer pessoa. Hoje ele é de uso próprio e o código é privado. Termos conferidos em 09/11/2026: **reconferir na hora de liberar**, porque mudam sem aviso. Este texto é um levantamento técnico, não parecer jurídico.
+> O que precisa estar resolvido antes de divulgar o app para qualquer pessoa. O repositório é público desde 09/11/2026, com o código e as versões; a divulgação no site ainda não foi feita. **Com o APK numa release pública, qualquer pessoa com o link baixa o app, e os pontos abaixo já contam a partir daí.** Termos conferidos em 09/11/2026: **reconferir na hora de liberar**, porque mudam sem aviso. Este texto é um levantamento técnico, não parecer jurídico.
 
 ## 1. Situação
 
 | Assunto | Situação | O que falta |
 |---|---|---|
-| TMDB | Precisa de ajuste | Cache de até 6 meses e logo aprovado (§2) |
+| TMDB | Precisa de ajuste | Chave dentro do APK, cache de até 6 meses e logo aprovado (§2) |
 | Deezer | **Impede** a liberação como está | Tirar do app ou conseguir autorização (§2) |
 | TheAudioDB | Sem chave, não é usado | Só com plano pago, se for para loja (§2) |
 | Wikipédia e Commons | Quase pronto | Crédito das fotos (§2) |
-| Licenças do código | Falta | Textos em Sobre e código-fonte LGPL (§3) |
+| Licenças do código | Falta | Textos em Sobre e dizer onde está o código-fonte LGPL (§3) |
 | Chave de assinatura | Pronta | Nada (`build.md` §7) |
-| Repositório | Privado | Só se quiser abrir o código (§5) |
+| Repositório | Público desde 09/11/2026 | Decidir a licença do código próprio (§5) |
 
 ## 2. Serviços que o app consulta
 
@@ -23,6 +23,7 @@
 - **Uso:** a licença não cobre uso comercial. Cobrar pelo app ou ganhar dinheiro com ele, inclusive anúncio, pede contrato com o TMDB, que pode cobrar. App gratuito e sem anúncio fica fora dos exemplos de uso comercial, mas os termos não falam dele com todas as letras e o TMDB decide o que é comercial: **confirmar com o TMDB**.
 - **Crédito:** logo do TMDB, menos destacado que a marca do app, e aviso de que o app usa o TMDB sem ser endossado por ele. O Sobre já tem os dois; falta conferir se o `tmdb_banner.webp`, herdado do Nova, é um logo aprovado.
 - **Cache:** os termos limitam a 6 meses a guarda do que vem do TMDB. **O app guarda sem prazo.** Antes de liberar, buscar de novo o que passar de 6 meses (`tmdb.buscado` já tem a data).
+- **Chave:** fica fora do repositório, mas entra no APK no build (`tmdb_api_key`), e quem tem o APK consegue extraí-la. Foi pedida como uso pessoal (DADOS §7): antes de divulgar, conferir com o TMDB se ela serve para o app. Se houver abuso, gerar outra e publicar uma versão nova; quem não atualizar fica sem dados do TMDB.
 - **Outros:** ao fim da licença, parar de usar a chave e apagar o que veio do TMDB. Treinar IA com esse conteúdo é proibido sem contrato.
 
 ### Deezer (capa do artista, opções de foto, busca por nome)
@@ -46,7 +47,7 @@
 
 ### GitHub (versão nova)
 
-Só lê o `version.json` e baixa o APK publicado. Com o repositório privado, o app instalado não alcança esses arquivos: ver §5.
+Só lê o `version.json` e baixa o APK publicado, nas releases do repositório do app, sem login: ver §5.
 
 ## 3. Licenças do código
 
@@ -57,7 +58,7 @@ Detalhe de cada biblioteca: `docs/arquitetura/licencas.md`.
 | Manter `LICENSE`, `NOTICE` e cabeçalhos, com "Modificado por StarkTech Studio" | Apache-2.0 do Nova, §4 | Em dia |
 | "Nova" só no crédito | Apache-2.0, §6 (não cede a marca) | Falta tirar as imagens do Nova do código (backlog F4 #1) |
 | Textos completos das licenças em Sobre | Apache, LGPL, OFL, ISC, BSD, MIT, FTL, BSL, zlib, PNG | **Falta** |
-| Oferecer o código-fonte LGPL | FFmpeg, AudioCompress, jcifs-ng e FriBidi, que está estático no motor: inclui `native/avos` com as mudanças da StarkTech | **Falta** |
+| Oferecer o código-fonte LGPL | FFmpeg, AudioCompress, jcifs-ng e FriBidi, que está estático no motor: inclui `native/avos` com as mudanças da StarkTech | **Em parte:** o repositório público já traz `native/avos` e os scripts de build. Falta conferir se o código do FFmpeg com os patches, do AudioCompress e do FriBidi está completo e dizer em Sobre onde ele está |
 | Confirmar dependências Java, versões dos binários e a licença do jcifs-ng | Para os avisos saírem certos | **Falta** |
 
 ## 4. O app em si
@@ -69,14 +70,17 @@ Detalhe de cada biblioteca: `docs/arquitetura/licencas.md`.
 
 ## 5. Repositório
 
-- **Código privado e app público:** repositório público separado só com as versões (APK e `version.json`), sem nenhum código. É o caminho mais simples, e o app só troca o endereço (`ENDERECO_VERSION_JSON`).
-- **Abrir o código:** resolve de uma vez a oferta do código-fonte LGPL, mas expõe todo o código próprio. Antes, limpar o histórico: `DADOS - STARKTECH MEDIA PLAYER.md` e os `docs/` internos estão em commits antigos; apagar o arquivo agora não os tira de lá. Mais simples: começar um repositório novo, sem histórico.
-- **Prints do README:** as capas de filme nos prints são do TMDB. Com repositório público, manter o crédito do TMDB ou trocar por prints sem capas.
+Um repositório só, público desde 09/11/2026: o código fica nele, e as versões (APK e `version.json`), nas releases. É de lá que o app lê a versão nova (`ENDERECO_VERSION_JSON`).
+
+- **O que fica visível:** o código, os `docs/`, o `CLAUDE.md` e todo o histórico, inclusive o `DADOS - STARKTECH MEDIA PLAYER.md` em commits antigos. Apagar um arquivo agora não o tira do histórico; para isso, só reescrevendo o histórico ou começando um repositório novo.
+- **Chaves:** conferido em 09/11/2026, nos 10 commits existentes: a chave do TMDB, a senha da assinatura e o `.jks` não aparecem em nenhum. Os commits antigos ainda têm as chaves que vieram no código do Nova, retiradas na F2; não são da StarkTech.
+- **Código próprio:** os arquivos da StarkTech dizem "Todos os direitos reservados": dá para ler, mas não há licença para reutilizar. Os do Nova seguem em Apache-2.0. Decidir se o código próprio ganha uma licença aberta.
+- **Prints do README:** as capas de filme nos prints são do TMDB. O README mantém o crédito do TMDB; se ele sair, trocar por prints sem capas.
 
 ## 6. Ordem sugerida
 
 1. Tirar o Deezer ou conseguir a autorização.
-2. Buscar de novo o que passar de 6 meses do TMDB e conferir o logo.
-3. Completar o Sobre e publicar o pacote de código-fonte LGPL.
+2. Buscar de novo o que passar de 6 meses do TMDB e conferir o logo e a chave.
+3. Completar o Sobre e conferir o código-fonte LGPL no repositório.
 4. Lint, teste em aparelho limpo e imagens do Nova.
-5. Página de privacidade, repositório de versões e card em `/apps` (DADOS §8).
+5. Página de privacidade e card em `/apps` (DADOS §8).

@@ -100,7 +100,7 @@ Nenhum componente GPL encontrado entre os nativos do manifesto. libyuv e libcurl
 
 - Levantar as dependências Java (Maven/JitPack) e suas licenças; confirmar a do jcifs-ng.
 - Confirmar a versão exata de cada binário pronto de `native/prebuilt/`.
-- Pacote de código-fonte LGPL no site (FFmpeg n9.0.2 + patches + scripts de build, AudioCompress, FriBidi e o motor `native/avos` com as mudanças da StarkTech).
+- Código-fonte LGPL junto do download (FFmpeg n9.0.2 + patches + scripts de build, AudioCompress, FriBidi e o motor `native/avos` com as mudanças da StarkTech): o repositório é público desde 09/11/2026; conferir se está tudo nele e dizer em Sobre onde está.
 - Chaves do Nova (TMDB, Trakt, OpenSubtitles): fora do código desde a F2 (etapa 4). O APK usa a chave própria do TMDB, vinda de fora do repositório no build (`docs/operacional/build.md` §2); Trakt e OpenSubtitles ficam desligados. Antes de distribuir, conferir os termos de uso da API do TMDB para a chave do app.
 - Decidir TheAudioDB e Deezer (§8).
 

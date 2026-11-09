@@ -94,14 +94,14 @@ Subir a versão a cada APK novo, em `Video/build.gradle` ou no comando, sempre c
 ./gradlew -Puniversal -Pstarktech.versionCode=N -Pstarktech.versionName=X.Y.Z assembleNoamazonDebug -x lintNoamazonDebug
 ```
 
-O app compara o `versionCode` com o do `version.json` da última versão publicada (`motor/Atualizador.java`). O endereço fica só na constante `ENDERECO_VERSION_JSON`: `https://github.com/Starktech-studio/starktech-media-player-versoes/releases/latest/download/version.json`. Esse repositório é público e só tem as versões, sem código, porque o app não alcança o repositório privado. Enquanto ele não existir, o app só avisa que não deu para verificar. Valores de exemplo:
+O app compara o `versionCode` com o do `version.json` da última versão publicada (`motor/Atualizador.java`). O endereço fica só na constante `ENDERECO_VERSION_JSON`: `https://github.com/Starktech-studio/starktech-media-player/releases/latest/download/version.json`. O repositório é público desde 09/11/2026 e guarda o código e as versões. Enquanto não houver versão publicada, o app só avisa que não deu para verificar. Valores de exemplo:
 
 ```json
 {
   "versao": "0.2.0",
   "versionCode": 2,
   "novidades": ["Novidade 1", "Novidade 2"],
-  "apk": "https://github.com/Starktech-studio/starktech-media-player-versoes/releases/download/v0.2.0/StarkTech-Media-Player-0.2.0.apk"
+  "apk": "https://github.com/Starktech-studio/starktech-media-player/releases/download/v0.2.0/StarkTech-Media-Player-0.2.0.apk"
 }
 ```
 
@@ -133,5 +133,5 @@ APK em `Video/build/outputs/apk/noamazon/release/`; cópia em `apks/` com o nome
 Publicar uma versão:
 
 1. Subir `versionCode` e `versionName` (§6) e gerar o APK.
-2. No repositório `Starktech-studio/starktech-media-player-versoes` (público), criar uma release `vX.Y.Z` e anexar o APK, com nome sem espaços (`StarkTech-Media-Player-X.Y.Z.apk`), e o `version.json` apontando para ele. O da 1.0.0 está pronto em `apks/version.json`.
+2. No repositório `Starktech-studio/starktech-media-player`, criar uma release `vX.Y.Z` no commit do APK e anexar o APK, com nome sem espaços (`StarkTech-Media-Player-X.Y.Z.apk`), e o `version.json` apontando para ele. O da 1.0.0 está pronto em `apks/version.json`.
 3. O anexo tem de se chamar `version.json`, e a release, ser a mais recente: é o que o endereço do app procura.

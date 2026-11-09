@@ -146,7 +146,7 @@ Chaves (TMDB, TheAudioDB e a assinatura do APK) ficam fora do repositório. Deta
 
 ## Situação
 
-Versão 1.0.0, de uso próprio, em teste. O código é privado.
+Versão 1.0.0, de uso próprio, em teste. O código é público, e as versões do app ficam nas releases deste repositório.
 
 **Antes de liberar ao público**, há pendências de termos e licenças. A principal: os termos do Deezer limitam o uso a fim privado e familiar, então ele precisa sair do app ou ter autorização. A lista completa, com o que os termos do TMDB, da Wikipédia e das bibliotecas pedem, está em [`liberar-ao-publico.md`](docs/operacional/liberar-ao-publico.md).
 

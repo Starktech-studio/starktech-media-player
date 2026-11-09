@@ -31,4 +31,4 @@
 
 | # | Item | Origem |
 |---|---|---|
-| 1 | Criar o repositório público `starktech-media-player-versoes` e publicar a release com o APK e o `version.json` (`docs/operacional/build.md` §7). Antes de abrir ao público: `docs/operacional/liberar-ao-publico.md` | Versão 1 (09/11/2026) |
+| 1 | Publicar a release `v1.0.0` no repositório `starktech-media-player`, público desde 09/11/2026, com o APK e o `version.json` (`docs/operacional/build.md` §7). Antes de abrir ao público: `docs/operacional/liberar-ao-publico.md` | Versão 1 (09/11/2026) |

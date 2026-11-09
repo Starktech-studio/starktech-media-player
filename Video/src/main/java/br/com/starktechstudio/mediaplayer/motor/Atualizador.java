@@ -52,12 +52,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class Atualizador {
 
     /**
-     * Endereço do version.json: o único lugar do código com ele. É a última versão publicada no repositório
-     * público só de versões, sem código (o do código é privado, e o app não alcança); enquanto ele não existir,
-     * "não deu para verificar". Mudar o endereço só vale para quem instalar depois: quem já tem o app continua no antigo.
+     * Endereço do version.json: o único lugar do código com ele. É a última versão publicada no repositório do
+     * app, que é público; enquanto não houver versão publicada, "não deu para verificar". Mudar o endereço só vale
+     * para quem instalar depois: quem já tem o app continua no antigo.
      */
     private static final String ENDERECO_VERSION_JSON =
-            "https://github.com/Starktech-studio/starktech-media-player-versoes/releases/latest/download/version.json";
+            "https://github.com/Starktech-studio/starktech-media-player/releases/latest/download/version.json";
 
     private static final String LOG = "StarkTechAtualizador";
     private static final long LIMITE_RESPOSTA = 256L * 1024;
