@@ -98,6 +98,7 @@ public final class Navegacao {
             case DESENHOS: return Aba.DESENHOS;
             case SHOWS: return Aba.SHOWS;
             case STANDUP: return Aba.STANDUP;
+            case MUSICAS: return Aba.MUSICAS;
             default: return null;
         }
     }
@@ -219,6 +220,11 @@ public final class Navegacao {
     public static void abrirFaixas(Activity origem, String idTitulo, TipoFaixa tipo) {
         origem.startActivity(new Intent(origem, FaixasActivity.class).putExtra(EXTRA_ID, idTitulo)
                 .putExtra(FaixasActivity.EXTRA_TIPO, tipo.name()));
+    }
+
+    /** Legenda rápida (1.5): atraso e tamanho, sobre o player (botão Ajustar). */
+    public static void abrirAjusteLegenda(Activity origem, String idTitulo) {
+        origem.startActivity(new Intent(origem, AjusteLegendaActivity.class).putExtra(EXTRA_ID, idTitulo));
     }
 
     /** Sinopse inteira ("Ver mais" do Detalhe do tablet). */

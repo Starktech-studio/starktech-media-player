@@ -35,10 +35,27 @@ final class Nomes {
     }
 
     static boolean ehVideo(String arquivo) {
+        return temExtensao(arquivo, VIDEO);
+    }
+
+    /** Música (1.5): os formatos que o Android toca sozinho. */
+    static boolean ehAudio(String arquivo) {
+        return temExtensao(arquivo, AUDIO);
+    }
+
+    /** Imagem de capa na pasta do álbum. */
+    static boolean ehImagem(String arquivo) {
+        return temExtensao(arquivo, IMAGEM);
+    }
+
+    private static final String[] AUDIO = {"mp3", "m4a", "aac", "flac", "ogg", "oga", "opus", "wav"};
+    private static final String[] IMAGEM = {"jpg", "jpeg", "png", "webp"};
+
+    private static boolean temExtensao(String arquivo, String[] extensoes) {
         int ponto = arquivo.lastIndexOf('.');
         if (ponto < 0) return false;
         String extensao = arquivo.substring(ponto + 1).toLowerCase(Locale.ROOT);
-        for (String v : VIDEO) {
+        for (String v : extensoes) {
             if (v.equals(extensao)) return true;
         }
         return false;

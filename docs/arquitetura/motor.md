@@ -26,7 +26,7 @@
 
 ## 3. Banco do app (`starktech.db`, D2)
 
-Separado do banco do Nova (o app não usa a biblioteca nem os dados do TMDB do Nova). `BancoStarkTech`, versão 6 (F3: `video`, `tmdb`, `estado`; plano 004: colunas novas e a tabela `artista`; v6, 1.1.1: só a fila dos artistas). A migração só acrescenta, sem perder posição nem edição; a da versão 3 também preenche `edicao.nome` do que já foi editado.
+Separado do banco do Nova (o app não usa a biblioteca nem os dados do TMDB do Nova). `BancoStarkTech`, versão 7 (F3: `video`, `tmdb`, `estado`; plano 004: colunas novas e a tabela `artista`; v6, 1.1.1: só a fila dos artistas; v7, 1.5: `musica`, `playlist`, `playlist_musica` e `estado.atraso_legenda`). A migração só acrescenta, sem perder posição nem edição; a da versão 3 também preenche `edicao.nome` do que já foi editado.
 
 | Tabela | Colunas | O que guarda |
 |---|---|---|
@@ -98,3 +98,26 @@ Separado do banco do Nova (o app não usa a biblioteca nem os dados do TMDB do N
 | Legenda em arquivo | .srt, .ass, .ssa e .vtt. Quem acha e lê é o motor, ao abrir o vídeo: na pasta dele e na pasta de legendas do app (`MediaUtils.getSubsDir`), todo arquivo cujo nome começa com o do vídeo. `LegendaExterna` tira da lista o de outro vídeo ("Episódio 10.srt" em "Episódio 1.mkv") e dá o nome pelo arquivo ("Filme.por.srt" → "Português · arquivo"). Ao abrir, com legenda ligada nas Configurações, o arquivo do vídeo vem antes da faixa interna, no idioma preferido ou sem idioma no nome; desligada, só aparece na lista. "Carregar legenda": arquivo ao lado do vídeo e com o nome dele é usado como está; os outros vão, como cópia, para a pasta de legendas (até 100 arquivos, `removeLastSubs`) e valem também nas próximas vezes. `checkSubtitles` procura de novo e a faixa nova é ligada; em 10 s sem faixa, avisa e apaga a cópia. Com o acesso a todos os arquivos (`MANAGE_EXTERNAL_STORAGE`, `AcessoTodosArquivos`), pedido uma vez ao abrir o app e de novo em "Carregar legenda", o motor lê a pasta do vídeo. Sem ele (recusado, ou TV sem a tela do acesso), 1.1.1: `LegendasNoIndice` acha as legendas pelo índice de mídia do Android, que as mostra a quem lê vídeos (media_type = legenda, desde o Android 11); ao abrir o vídeo, as dele vão para a pasta de legendas do app (espera até 1,5 s; depois, `checkSubtitles`), e "Carregar legenda" lista e copia as do índice |
 | Faixas guardadas | Escolha à mão, no player ou no Detalhe, fica em `estado` e vale nas próximas vezes (`RepositorioBiblioteca.guardarFaixa`), antes das preferências. Episódio guarda também na série: outro episódio sem escolha própria usa a última; índice que não existe nele cai nas preferências. Legenda em arquivo vai pelo nome do arquivo (`arquivo:Nome.srt`), as outras pela posição |
 | Limites conhecidos | Sem o acesso a todos os arquivos, só a legenda que o índice de mídia do Android conhece: .srt e .vtt; .ass e .ssa podem não entrar no índice. HD que o Android não indexou: nenhuma |
+
+## Músicas (1.5, plano 005)
+
+| Item | Como é |
+|---|---|
+| Pasta | Tipo `Pastas.Tipo.MUSICAS`, reconhecido pelo nome (`musicas`, `musica`, `music`). Fica fora da varredura de vídeo (`Classificador.foraDosVideos`). Adicionar ou marcar uma pasta de Músicas liga a aba |
+| Permissão | `READ_MEDIA_AUDIO` (Android 13+; antes, `READ_EXTERNAL_STORAGE`), ou o acesso a todos os arquivos (`ArquivosDoAparelho.podeLerMusicas`). Pedida ao abrir a aba Músicas |
+| Varredura | `VarreduraMusicas.atualizar`, no "Atualizar biblioteca", depois do TMDB e antes das fotos de artista. Lê só a nova ou a que mudou (tamanho, data, `AcervoMusicas.LEITURA`); a que sumiu sai com a mesma proteção do HD desligado da varredura de vídeo |
+| Tags | `TagsMusica` (`MediaMetadataRetriever` do Android): título, artista, artista do álbum, álbum, faixa, disco, ano, gênero, duração e a capa gravada. Sem tag: `Artista / Álbum (Ano) / 01 - Faixa`, `Artista - Álbum / 03. Faixa`, `1-05 Faixa` (disco e faixa) e, solta, `Artista - Faixa` |
+| Capa | `CapasMusica`: a gravada na música ou a imagem da pasta (`cover`, `folder`, `front`, `album`, `capa`, `albumart`, ou a única imagem). Cópia de até 600 px em `files/musicas/capas/`, uma por pasta e álbum; a que nenhum álbum usa mais sai |
+| Álbuns | `Discografia`: com o artista do álbum na tag, o par artista e nome; sem ele, a pasta e o nome, e artistas diferentes viram "Vários artistas" (também "Various Artists" e afins na tag). Ano: o mais comum das faixas |
+| Artistas | O do álbum e o de cada faixa. Foto: a mesma dos Shows (tabela `artista`, `BuscaArtista`), na mesma fila (`RepositorioReal.buscarArtistas`) |
+| Playlists | `AcervoMusicas`: nome e músicas pelo caminho, em ordem. Música fora da biblioteca agora (HD desligado) fica na playlist e volta com o arquivo |
+| Player | `musica/Tocador`: `MediaPlayer` do Android, foco de áudio (outro app pausa ou abaixa), pausa ao tirar o fone, sessão de mídia (`MediaSessionCompat`, botões do fone, do controle e da notificação). `Fila`: ordem, aleatório (a atual na frente), repetir (nenhuma, todas, esta), tocar a seguir, pôr no fim. Abrir um vídeo pausa a música |
+| Fora da tela | `musica/ServicoMusica`: serviço em primeiro plano (`mediaPlayback`) enquanto toca, com a notificação de mídia; pausada, a notificação pode ser fechada, e fechar para. App fechado pelos recentes com a música pausada: para |
+
+## Legenda rápida e cache (1.5, plano 005)
+
+| Item | Como é |
+|---|---|
+| Atraso | `Reproducao.ajustarAtrasoLegenda` / `definirAtrasoLegenda`: `Player.setSubtitleDelay` em ms (positivo = legenda mais tarde, `native/avos/Source/avos_mp_video.c:60`), de 100 em 100 ms, até ±10 min. Guardado no título (`estado.atraso_legenda`) e aplicado ao abrir e no `onPrepared` |
+| Tamanho | `Reproducao.ajustarTamanhoLegenda`: o `TAMANHO_LEGENDA` de Configurações, um nível acima ou abaixo, para todos os vídeos |
+| Cache | `motor/Cache`: tamanho e limpeza das pastas de cache do app (a interna e as externas): `picasso-cache`, `subtitles`, `atualizacao` e restos do Nova. `files/` (miniaturas, fotos de artista, capas de música, imagens escolhidas) e o banco ficam |

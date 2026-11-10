@@ -155,6 +155,12 @@ public interface RepositorioBiblioteca {
     /** Guarda a escolha para a próxima vez, no vídeo e na série dele. */
     void guardarFaixa(String id, @Nullable String idSerie, TipoFaixa tipo, String faixa);
 
+    /** Atraso da legenda do título ou do episódio, em ms (1.5, legenda rápida); positivo = mais tarde, 0 = nenhum. */
+    int atrasoLegenda(String id);
+
+    /** Guarda o atraso da legenda do título ou do episódio (só dele: outro arquivo tem outro tempo). */
+    void guardarAtrasoLegenda(String id, int ms);
+
     /**
      * Vídeo aberto na tela que a varredura ainda não leu, ou cuja leitura falhou: lê agora (capítulos,
      * duração, faixas), fora da fila e fora da tela; avisa os ouvintes quando acabar.

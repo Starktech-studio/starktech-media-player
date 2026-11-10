@@ -68,6 +68,7 @@ public class ReproducaoTvActivity extends AppCompatActivity {
     private TextView aviso;
     private ImageButton pausar;
     private Button botaoCapitulos;
+    private Button ajustarLegenda;
     private BarraCapitulosView barra;
     private VerticalGridView lista;
     private CapituloAdapter adapter;
@@ -117,6 +118,7 @@ public class ReproducaoTvActivity extends AppCompatActivity {
         Button audio = findViewById(R.id.st_rep_audio);
         Button legendas = findViewById(R.id.st_rep_legendas);
         Button zoom = findViewById(R.id.st_rep_zoom);
+        ajustarLegenda = findViewById(R.id.st_rep_ajustar_legenda);
 
         ((TextView) findViewById(R.id.st_rep_titulo)).setText(reproducao.titulo);
         duracao.setText(PecasReproducao.tempo(reproducao.duracao));
@@ -127,6 +129,8 @@ public class ReproducaoTvActivity extends AppCompatActivity {
         Icones.noTexto(legendas, R.drawable.st_ic_legendas, icone);
         Icones.noTexto(zoom, R.drawable.st_ic_zoom, icone);
         Icones.noTexto(botaoCapitulos, R.drawable.st_ic_capitulos, icone);
+        Icones.noTexto(ajustarLegenda, R.drawable.st_ic_ajustar, icone);
+        ajustarLegenda.setOnClickListener(v -> Navegacao.abrirAjusteLegenda(this, reproducao.id));
 
         // Sem capítulos: só Pausar no centro (INTERFACE.md §4)
         boolean comCapitulos = reproducao.temCapitulos();
@@ -230,6 +234,9 @@ public class ReproducaoTvActivity extends AppCompatActivity {
         sub.setText(PecasReproducao.linhaCapitulo(this, reproducao));
         sub.setVisibility(sub.getText().length() == 0 ? View.GONE : View.VISIBLE);
         proximo.setText(PecasReproducao.textoProximo(this, reproducao));
+        // Legenda rápida (1.5): só quando o vídeo tem legenda
+        int ajustar = reproducao.temLegenda() ? View.VISIBLE : View.GONE;
+        if (ajustarLegenda.getVisibility() != ajustar) ajustarLegenda.setVisibility(ajustar);
         boolean tocando = reproducao.estaTocando();
         if (tocando != tocandoMostrado || rotuloPausar.getText().length() == 0) {
             tocandoMostrado = tocando;

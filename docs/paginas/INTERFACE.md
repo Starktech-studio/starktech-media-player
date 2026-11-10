@@ -54,7 +54,9 @@ Do plano 004, no tablet só o comum: listas de Coletânea, Artista e grupos, not
 |---|---|
 | Botões de capítulo | Avançam e voltam capítulo, nunca o título. Arquivo sem capítulos: os botões somem e fica só Pausar no centro; filme e desenho ganham marcas de 10 em 10 minutos, com os mesmos botões e a mesma lista, só no player (o Detalhe não mostra) |
 | Abas do menu | Configurações, Navegação: cada aba ligada ou desligada. De fábrica: Filmes, Séries, Desenhos e Shows; TV Shows e Stand-up, só se ligar, ou ao adicionar uma pasta com esse nome. Início e Ajustes ficam sempre. Desligar só tira do menu e dos tipos de pasta: os títulos continuam no Início e na busca |
-| Músicas | Aba com as sub-abas Artistas, Álbuns e Playlists, ainda sem motor ("Em breve"; motor na 1.5). Desligada de fábrica |
+| Músicas (1.5) | Aba com a barra "Tocando agora" e as sub-abas Artistas, Álbuns e Playlists, em grade de capas quadradas (artista com a foto redonda). Pasta do tipo Músicas (`Artista / Álbum / 01 - Faixa.mp3`; MP3, M4A, AAC, FLAC, OGG, Opus, WAV). Capa: a da música ou a imagem da pasta. Álbum e playlist com Tocar e Aleatório; segurar uma faixa: Tocar a seguir, Pôr na fila, Adicionar à playlist. Toca fora do app e com a tela desligada, com notificação e os botões do fone e do controle. Desligada de fábrica; liga ao adicionar uma pasta de Músicas |
+| Legenda rápida (1.5) | No player, botão Ajustar à esquerda quando o vídeo tem legenda: atraso de 0,1 em 0,1 s (guardado no título) e tamanho (vale para todos) |
+| Limpar o cache (1.5) | Configurações > App: apaga imagens baixadas, cópias de legenda e o APK de atualização |
 | TV Shows | Igual a Séries em tudo (`Nome / Temporada N / 01.mkv`, tela da série, TMDB de TV), em aba própria, pelo tipo da pasta |
 | Situação da atualização | No alto das páginas, só o símbolo e o nome: "Atualizando 42%", "Atualizado" ou "Não atualizado" (TMDB sem resposta). O aviso ao terminar diz só se atualizou ou não. "Não identificados" fica só na caixa de Pastas, com Revisar |
 | Tipo do conteúdo | Vem do tipo da pasta. Séries: `Nome / Temporada N / 01.mkv`. Fora do padrão: "Não identificados", corrige em Editar |

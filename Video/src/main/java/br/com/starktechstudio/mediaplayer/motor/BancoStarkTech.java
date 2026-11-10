@@ -31,11 +31,16 @@ import android.database.sqlite.SQLiteOpenHelper;
  *
  * <p>Versão 6 (1.1.1, só a fila): o Deezer e a TheAudioDB saíram; os artistas que vieram deles voltam a ser
  * buscados no fanart.tv e na Wikipédia. A imagem antiga só troca se achar outra.
+ *
+ * <p>Versão 7 (1.5, só acrescenta): {@code musica}, um arquivo de música das pastas de Músicas, com as
+ * tags e a capa ({@link AcervoMusicas}); {@code playlist} e {@code playlist_musica}, as playlists criadas no
+ * app, com as músicas pelo caminho e na ordem; {@code estado.atraso_legenda}, o atraso da legenda do título
+ * em ms (0 = nenhum).
  */
 public final class BancoStarkTech extends SQLiteOpenHelper {
 
     public static final String NOME = "starktech.db";
-    private static final int VERSAO = 6;
+    private static final int VERSAO = 7;
 
     static final String EDICAO = "edicao";
     static final String CHAVE = "chave";
@@ -54,6 +59,9 @@ public final class BancoStarkTech extends SQLiteOpenHelper {
     static final String TMDB = "tmdb";
     static final String ESTADO = "estado";
     static final String ARTISTA = "artista";
+    static final String MUSICA = "musica";
+    static final String PLAYLIST = "playlist";
+    static final String PLAYLIST_MUSICA = "playlist_musica";
 
     private static BancoStarkTech instancia;
 
@@ -74,6 +82,7 @@ public final class BancoStarkTech extends SQLiteOpenHelper {
         criarVersao3(banco);
         criarVersao4(banco);
         criarVersao5(banco);
+        criarVersao7(banco);
     }
 
     @Override
@@ -83,6 +92,39 @@ public final class BancoStarkTech extends SQLiteOpenHelper {
         if (versaoAntiga < 4) criarVersao4(banco);
         if (versaoAntiga < 5) criarVersao5(banco);
         if (versaoAntiga < 6) criarVersao6(banco);
+        if (versaoAntiga < 7) criarVersao7(banco);
+    }
+
+    /** Versão 7 (1.5): músicas, playlists e o atraso da legenda de cada título. */
+    static void criarVersao7(SQLiteDatabase banco) {
+        banco.execSQL("CREATE TABLE " + MUSICA + " ("
+                + "caminho TEXT PRIMARY KEY NOT NULL, "
+                + "pasta TEXT NOT NULL, "
+                + "titulo TEXT, "
+                + "artista TEXT, "
+                + "artista_album TEXT, "
+                + "album TEXT, "
+                + "faixa INTEGER NOT NULL DEFAULT 0, "
+                + "disco INTEGER NOT NULL DEFAULT 0, "
+                + "ano INTEGER, "
+                + "genero TEXT, "
+                + "duracao_ms INTEGER NOT NULL DEFAULT 0, "
+                + "tamanho INTEGER NOT NULL DEFAULT 0, "
+                + "modificado INTEGER NOT NULL DEFAULT 0, "
+                + "adicionado INTEGER NOT NULL, "
+                + "lido INTEGER NOT NULL DEFAULT 0, "
+                + "capa TEXT)");
+        banco.execSQL("CREATE TABLE " + PLAYLIST + " ("
+                + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                + "nome TEXT NOT NULL, "
+                + "criada INTEGER NOT NULL, "
+                + "alterada INTEGER NOT NULL)");
+        banco.execSQL("CREATE TABLE " + PLAYLIST_MUSICA + " ("
+                + "playlist INTEGER NOT NULL, "
+                + "posicao INTEGER NOT NULL, "
+                + "caminho TEXT NOT NULL, "
+                + "PRIMARY KEY (playlist, posicao))");
+        banco.execSQL("ALTER TABLE " + ESTADO + " ADD COLUMN atraso_legenda INTEGER NOT NULL DEFAULT 0");
     }
 
     /** Versão 6: quem veio do Deezer ou da TheAudioDB entra na fila de novo (fanart.tv e Wikipédia). */

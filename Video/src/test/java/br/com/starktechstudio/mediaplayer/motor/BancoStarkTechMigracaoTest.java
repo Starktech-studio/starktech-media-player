@@ -163,6 +163,24 @@ public class BancoStarkTechMigracaoTest {
     }
 
     @Test
+    public void versao7_musicasPlaylistsEAtrasoDaLegenda() {
+        BancoStarkTech banco = bancoMigrado();
+        Acervo acervo = new Acervo(banco);
+        Acervo.Estado estado = acervo.estados().get(FILME);
+        assertEquals("sem atraso depois da migração", 0, estado.atrasoLegenda);
+        assertEquals(1234, estado.posicao);
+        estado.atrasoLegenda = -1500;
+        acervo.gravarEstado(FILME, estado);
+        assertEquals(-1500, acervo.estados().get(FILME).atrasoLegenda);
+        assertEquals("a cópia leva o atraso", -1500, acervo.estados().get(FILME).copia().atrasoLegenda);
+
+        AcervoMusicas musicas = new AcervoMusicas(banco);
+        assertTrue(musicas.musicas().isEmpty());
+        long id = musicas.criarPlaylist("Nova", java.util.Collections.singletonList("/hd/Musicas/a.mp3"));
+        assertEquals(1, musicas.playlist(id).musicas.size());
+    }
+
+    @Test
     public void versao6_quemVeioDoDeezerOuDaTheAudioDbVoltaAFila() {
         BancoStarkTech banco = new BancoStarkTech(ApplicationProvider.getApplicationContext(), null);
         Acervo acervo = new Acervo(banco);

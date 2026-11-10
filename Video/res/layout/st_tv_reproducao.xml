@@ -202,14 +202,35 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <!-- "Próximo: 04 · A memória em 00:38" -->
-            <TextView
-                android:id="@+id/st_rep_proximo"
-                style="@style/StarkTech.Texto.Forte"
+            <!-- Esquerda: Ajustar a legenda (1.5, só com legenda) e "Próximo: 04 · A memória em 00:38" -->
+            <LinearLayout
                 android:layout_width="@dimen/st_tv_rep_lado_largura_zoom"
                 android:layout_height="wrap_content"
-                android:textColor="@color/st_texto_apagado"
-                android:textSize="@dimen/st_tv_texto_rep_proximo" />
+                android:gravity="start|center_vertical"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/st_rep_ajustar_legenda"
+                    style="@style/StarkTech.Botao.Tv.Secundario"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/st_tv_rep_lado_botao_altura"
+                    android:layout_marginEnd="10dp"
+                    android:minHeight="0dp"
+                    android:paddingStart="@dimen/st_tv_rep_lado_botao_padding"
+                    android:paddingEnd="@dimen/st_tv_rep_lado_botao_padding"
+                    android:text="@string/st_legenda_ajustar"
+                    android:textSize="@dimen/st_tv_texto_rep_lado_botao"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/st_rep_proximo"
+                    style="@style/StarkTech.Texto.Forte"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textColor="@color/st_texto_apagado"
+                    android:textSize="@dimen/st_tv_texto_rep_proximo" />
+            </LinearLayout>
 
             <!-- Centro: botões com nome embaixo -->
             <LinearLayout

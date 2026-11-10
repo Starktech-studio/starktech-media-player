@@ -20,6 +20,7 @@
     <string name="st_tipo_desenhos">Desenhos</string>
     <string name="st_tipo_shows">Shows</string>
     <string name="st_tipo_standup">Stand-up</string>
+    <string name="st_tipo_musicas">Músicas</string>
     <string name="st_tipo_ignorar">Ignorar</string>
     <string name="st_tipos_salvos">Tipos salvos. Atualizando a biblioteca…</string>
     <string name="st_remover">Remover</string>
@@ -44,6 +45,10 @@
     <plurals name="st_n_videos">
         <item quantity="one">%d vídeo</item>
         <item quantity="other">%d vídeos</item>
+    </plurals>
+    <plurals name="st_n_musicas">
+        <item quantity="one">%d música</item>
+        <item quantity="other">%d músicas</item>
     </plurals>
     <plurals name="st_n_series">
         <item quantity="one">%d série</item>

@@ -92,6 +92,7 @@ public class ReproducaoTabletActivity extends AppCompatActivity implements Gesto
     private TextView proximo;
     private TextView aviso;
     private TextView botaoCapitulos;
+    private TextView ajustarLegenda;
     private TextView expandir;
     private ImageButton pausar;
     private BarraCapitulosView barra;
@@ -150,6 +151,7 @@ public class ReproducaoTabletActivity extends AppCompatActivity implements Gesto
         TextView capProximo = findViewById(R.id.st_rep_cap_proximo);
         TextView audio = findViewById(R.id.st_rep_audio);
         TextView legendas = findViewById(R.id.st_rep_legendas);
+        ajustarLegenda = findViewById(R.id.st_rep_ajustar_legenda);
 
         ((TextView) findViewById(R.id.st_rep_titulo)).setText(reproducao.titulo);
         duracao.setText(PecasReproducao.tempo(reproducao.duracao));
@@ -166,6 +168,7 @@ public class ReproducaoTabletActivity extends AppCompatActivity implements Gesto
         Icones.acimaDoTexto(capProximo, R.drawable.st_ic_cap_proximo, icone, branco);
         Icones.acimaDoTexto(audio, R.drawable.st_ic_audio, icone, branco);
         Icones.acimaDoTexto(legendas, R.drawable.st_ic_legendas, icone, branco);
+        Icones.acimaDoTexto(ajustarLegenda, R.drawable.st_ic_ajustar, icone, branco);
         Icones.acimaDoTexto(botaoCapitulos, R.drawable.st_ic_capitulos, icone, branco);
         Icones.acimaDoTexto(expandir, R.drawable.st_ic_expandir, icone, branco);
 
@@ -181,6 +184,7 @@ public class ReproducaoTabletActivity extends AppCompatActivity implements Gesto
         capProximo.setOnClickListener(v -> comando(() -> reproducao.irParaProximoCapitulo()));
         audio.setOnClickListener(v -> abrirFaixas(TipoFaixa.AUDIO));
         legendas.setOnClickListener(v -> abrirFaixas(TipoFaixa.LEGENDA));
+        ajustarLegenda.setOnClickListener(v -> abrirAjusteLegenda());
         botaoCapitulos.setOnClickListener(v -> comando(this::alternarFaixa));
         expandir.setOnClickListener(v -> comando(this::entrarTelaCheia));
 
@@ -395,6 +399,9 @@ public class ReproducaoTabletActivity extends AppCompatActivity implements Gesto
         sub.setText(PecasReproducao.linhaCapitulo(this, reproducao));
         sub.setVisibility(sub.getText().length() == 0 ? View.GONE : View.VISIBLE);
         proximo.setText(PecasReproducao.textoProximo(this, reproducao));
+        // Legenda rápida (1.5): só quando o vídeo tem legenda
+        int ajustar = reproducao.temLegenda() ? View.VISIBLE : View.GONE;
+        if (ajustarLegenda.getVisibility() != ajustar) ajustarLegenda.setVisibility(ajustar);
         boolean tocando = reproducao.estaTocando();
         if (tocando != tocandoMostrado) {
             tocandoMostrado = tocando;
@@ -433,6 +440,12 @@ public class ReproducaoTabletActivity extends AppCompatActivity implements Gesto
     private void abrirFaixas(TipoFaixa tipo) {
         abrindoFaixas = true;
         Navegacao.abrirFaixas(this, reproducao.id, tipo);
+    }
+
+    /** Legenda rápida (1.5): como Áudio e Legendas, o painel por cima não manda o vídeo para a miniatura. */
+    private void abrirAjusteLegenda() {
+        abrindoFaixas = true;
+        Navegacao.abrirAjusteLegenda(this, reproducao.id);
     }
 
     /** Botão dos controles: faz o comando e recomeça a contagem para sumir. */

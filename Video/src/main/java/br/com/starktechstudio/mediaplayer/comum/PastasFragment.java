@@ -42,12 +42,13 @@ import br.com.starktechstudio.mediaplayer.dados.Modelo.Origem;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Pasta;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.TipoPasta;
 import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
+import br.com.starktechstudio.mediaplayer.dados.RepositorioMusicas;
 
 /**
  * Pastas, aberta em Configurações &gt; Biblioteca (tv-pastas.dc.html; tablet-pastas.dc.html, a mesma tela compacta): Atualizar
  * biblioteca e Adicionar pasta; pastas por origem (HD externo "conectado" / "desconectado" e
  * armazenamento interno), cada uma com "reconhecida pelo nome" ou "escolha o tipo", o caminho e a
- * contagem, e o tipo Filmes, Séries, TV Shows, Desenhos, Shows, Stand-up, os de abas ligadas em Configurações &gt; Navegação,
+ * contagem, e o tipo Filmes, Séries, TV Shows, Desenhos, Shows, Stand-up, Músicas (1.5), os de abas ligadas em Configurações &gt; Navegação,
  * ou Ignorar (marcado em verde / laranja e gravado no Salvar, que varre de novo), e Remover;
  * "Não identificados" com Revisar; painel "Como organizar". Montada no código, medidas do desenho
  * da TV ({@link Medidas}).
@@ -55,9 +56,10 @@ import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 public class PastasFragment extends Fragment {
 
     private static final TipoPasta[] TIPOS = {TipoPasta.FILMES, TipoPasta.SERIES, TipoPasta.TVSHOWS, TipoPasta.DESENHOS,
-            TipoPasta.SHOWS, TipoPasta.STANDUP, TipoPasta.IGNORAR};
+            TipoPasta.SHOWS, TipoPasta.STANDUP, TipoPasta.MUSICAS, TipoPasta.IGNORAR};
     private static final int[] NOMES_TIPOS = {R.string.st_tipo_filmes, R.string.st_tipo_series, R.string.st_tipo_tvshows,
-            R.string.st_tipo_desenhos, R.string.st_tipo_shows, R.string.st_tipo_standup, R.string.st_tipo_ignorar};
+            R.string.st_tipo_desenhos, R.string.st_tipo_shows, R.string.st_tipo_standup, R.string.st_tipo_musicas,
+            R.string.st_tipo_ignorar};
 
     private RepositorioBiblioteca repositorio;
     private boolean tv;
@@ -363,6 +365,10 @@ public class PastasFragment extends Fragment {
     }
 
     private String contagem(Pasta p) {
+        if (p.tipo == TipoPasta.MUSICAS) {
+            int musicas = RepositorioMusicas.de(requireContext()).musicasDaPasta(p.id);
+            return getResources().getQuantityString(R.plurals.st_n_musicas, musicas, musicas);
+        }
         if (p.tipo == TipoPasta.SERIES || p.tipo == TipoPasta.TVSHOWS || p.series > 0) {
             return getResources().getQuantityString(R.plurals.st_n_series, p.series, p.series) + " · "
                     + getResources().getQuantityString(R.plurals.st_n_episodios, p.episodios, p.episodios);

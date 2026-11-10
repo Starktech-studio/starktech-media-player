@@ -18,6 +18,9 @@
     <string name="st_cfg_retomar_dica">Continuar do ponto em que o vídeo parou</string>
     <string name="st_cfg_sobre">Sobre</string>
     <string name="st_cfg_sobre_dica">Versão, créditos e licenças</string>
+    <string name="st_cfg_limpar_cache">Limpar o cache</string>
+    <string name="st_cfg_limpar_cache_dica">Imagens baixadas, cópias de legenda e o APK de atualização. A biblioteca, as posições e as capas escolhidas ficam</string>
+    <string name="st_cache_limpo">Cache limpo: %1$s liberados</string>
     <string name="st_valor_original">Original do arquivo</string>
     <string name="st_valor_portugues">Português (BR)</string>
     <string name="st_valor_ingles">Inglês</string>

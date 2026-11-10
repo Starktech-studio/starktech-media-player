@@ -13,11 +13,11 @@
 
 | # | Item | Versão | Origem |
 |---|---|---|---|
-| 1 | Player: botão de configurar a legenda, do lado esquerdo, quando o vídeo tiver legenda. Configuração rápida: adiantar ou atrasar a legenda e aumentar ou diminuir o tamanho; o resto continua em Configurações | — | Gustavo, 09/11/2026 |
-| 2 | Configurações: limpar o cache | — | Gustavo, 09/11/2026 |
-| 3 | Refazer os prints do README: os de hoje ainda mostram Pastas no nav e não têm o relógio | — | Versão 1.1 (09/11/2026) |
-| 4 | Músicas, como uma biblioteca de música por streaming: artistas com os álbuns, álbuns com as faixas e playlists criadas no app. A aba e as sub-abas Artistas, Álbuns e Playlists já existem, sem motor (1.1.1); falta o motor: pasta do tipo Músicas, leitura das tags, capas e o player de áudio | 1.5 | Gustavo, 09/11/2026 |
-| 5 | Servidor próprio da StarkTech: guardar as músicas (e depois os vídeos) num servidor nosso, de onde o app baixa e toca. Só registro: o servidor ainda vai ser montado | 2.0 | Gustavo, 09/11/2026 |
+| 1 | Refazer os prints do README: os de hoje ainda mostram Pastas no nav e não têm o relógio | — | Versão 1.1 (09/11/2026) |
+| 2 | Servidor próprio da StarkTech: guardar as músicas (e depois os vídeos) num servidor nosso, de onde o app baixa e toca. Só registro: o servidor ainda vai ser montado | 2.0 | Gustavo, 09/11/2026 |
+| 3 | Músicas, depois da 1.5: busca dentro de Músicas, capa pela internet, letras, equalizador e importar playlists `.m3u` (fora do plano 005) | — | Plano 005 (09/11/2026) |
+
+A 1.5.0 (Músicas com motor, legenda rápida no player e limpar o cache) é o plano 005, publicada em 10/11/2026; falta testar na TV e no tablet.
 
 ## F4 — Empacotamento
 

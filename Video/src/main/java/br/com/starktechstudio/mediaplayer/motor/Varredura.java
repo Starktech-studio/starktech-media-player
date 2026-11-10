@@ -147,7 +147,7 @@ public final class Varredura {
         for (Acervo.Video v : antes.values()) {
             if (achados.contains(v.caminho)) continue;
             Pastas.Pasta dona = pastaDe(pastas, v.caminho);
-            boolean saiu = !cadastradas.contains(v.pasta) || dona == null || dona.tipo == Pastas.Tipo.IGNORAR;
+            boolean saiu = !cadastradas.contains(v.pasta) || dona == null || Classificador.foraDosVideos(dona);
             boolean pastaSemNenhum = conta(contas, v.pasta)[0] == 0;
             if (saiu || (!pastaSemNenhum && sumiu(v))) {
                 remover.add(v.caminho);

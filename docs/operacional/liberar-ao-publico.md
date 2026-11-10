@@ -67,6 +67,7 @@ Detalhe de cada biblioteca: `docs/arquitetura/licencas.md`.
 ## 4. O app em si
 
 - **Acesso a todos os arquivos:** fora de loja, basta o usuário permitir. Na Google Play, essa permissão passa por análise e pode ser recusada. Sem o acesso (recusado ou TV sem a tela), a legenda em arquivo vem do índice de mídia do Android (1.1.1).
+- **Músicas (1.5):** pede `READ_MEDIA_AUDIO` e usa um serviço em primeiro plano do tipo `mediaPlayback` só enquanto a música toca. Na Google Play, os dois precisam ser declarados no formulário do app; fora de loja, nada a fazer.
 - **Atualização:** ligar a verificação ao abrir é seguro, e a instalação sempre pede a confirmação do Android. TV sem a tela de "instalar apps desconhecidos": testar, porque pode ser preciso instalar à mão.
 - **Privacidade:** o app não tem login nem coleta dados, mas chama TMDB, MusicBrainz, fanart.tv, Wikipédia e GitHub. Ao publicar, deixar isso escrito numa página de privacidade do site.
 - **Qualidade:** lint completo e teste em aparelho limpo (F4), mais o fechamento intermitente ao abrir logo após instalar (backlog F4 #5).

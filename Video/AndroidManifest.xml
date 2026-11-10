@@ -60,6 +60,8 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29"/>
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <!-- StarkTech 1.5: pastas de Músicas -->
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
     <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -204,6 +206,35 @@
             android:name="br.com.starktechstudio.mediaplayer.comum.LicencaActivity"
             android:exported="false"
             android:theme="@style/Theme.StarkTech" />
+
+        <!-- Músicas (1.5): álbum, artista e playlist; Tocando agora (abre também pela notificação); painéis -->
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.comum.ColecaoMusicaActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech" />
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.comum.TocandoAgoraActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.StarkTech" />
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.comum.MenuMusicaActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech.Menu" />
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.comum.NomePlaylistActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech.Menu"
+            android:windowSoftInputMode="adjustResize|stateVisible" />
+        <service
+            android:name="br.com.starktechstudio.mediaplayer.musica.ServicoMusica"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+        <!-- Legenda rápida (1.5): atraso e tamanho, sobre o player -->
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.comum.AjusteLegendaActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech.Menu" />
         <activity
             android:name="br.com.starktechstudio.mediaplayer.comum.InformacoesUsoActivity"
             android:exported="false"

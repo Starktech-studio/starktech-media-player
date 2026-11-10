@@ -37,7 +37,7 @@ public final class Modelo {
     public enum Tipo { FILME, SERIE, DESENHO, SHOW, STANDUP }
 
     /** Tipo escolhido para uma pasta; NENHUM = "escolha o tipo". */
-    public enum TipoPasta { FILMES, SERIES, TVSHOWS, DESENHOS, SHOWS, STANDUP, IGNORAR, NENHUM }
+    public enum TipoPasta { FILMES, SERIES, TVSHOWS, DESENHOS, SHOWS, STANDUP, MUSICAS, IGNORAR, NENHUM }
 
     /** Origem de uma pasta. */
     public enum Origem { HD_EXTERNO, INTERNO }

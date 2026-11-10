@@ -38,6 +38,21 @@
     <string name="st_legenda_sem_acesso">Sem o acesso a todos os arquivos, o app não vê as legendas.</string>
     <string name="st_legenda_sem_tela_de_acesso">Este aparelho não tem a tela do acesso a todos os arquivos. Sem ele, o app não vê as legendas.</string>
     <string name="st_legenda_pelo_indice">Sem o acesso a todos os arquivos: aparecem as legendas que o Android mostra ao app.</string>
+
+    <!-- Legenda rápida (1.5): botão à esquerda do player e o painel -->
+    <string name="st_legenda_ajustar">Ajustar</string>
+    <string name="st_legenda_ajustar_titulo">Ajustar legenda</string>
+    <string name="st_legenda_ajustar_dica">O atraso fica neste vídeo; o tamanho vale para todos.</string>
+    <string name="st_legenda_atraso">Atraso</string>
+    <string name="st_legenda_tamanho">Tamanho</string>
+    <string name="st_legenda_adiantar">Adiantar a legenda</string>
+    <string name="st_legenda_atrasar">Atrasar a legenda</string>
+    <string name="st_legenda_menor">Legenda menor</string>
+    <string name="st_legenda_maior">Legenda maior</string>
+    <string name="st_legenda_sem_atraso">Sem atraso</string>
+    <string name="st_legenda_mais_tarde">%1$s mais tarde</string>
+    <string name="st_legenda_mais_cedo">%1$s mais cedo</string>
+    <string name="st_legenda_zerar">Zerar o atraso</string>
     <string name="st_expandir">Expandir</string>
     <string name="st_volume">Volume %1$d%%</string>
 </resources>

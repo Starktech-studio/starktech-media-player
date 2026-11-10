@@ -1,6 +1,6 @@
 # StarkTech Media Player
 
-Player e biblioteca de mídia para **Android TV e tablet**, gratuito e em português. Lê o HD ou o armazenamento do aparelho, organiza filmes, séries, desenhos, shows e stand-up com capa, sinopse, capítulos e dados técnicos, e toca MKV e MP4 até 4K.
+Player e biblioteca de mídia para **Android TV e tablet**, gratuito e em português. Lê o HD ou o armazenamento do aparelho, organiza filmes, séries, desenhos, shows e stand-up com capa, sinopse, capítulos e dados técnicos, e toca MKV e MP4 até 4K. Também toca a sua coleção de músicas, por artista, álbum e playlist.
 
 Sem login e sem conta: a biblioteca fica no aparelho. O mesmo APK roda na TV, no tablet e no celular.
 
@@ -8,7 +8,7 @@ Sem login e sem conta: a biblioteca fica no aparelho. O mesmo APK roda na TV, no
 
 | | |
 |---|---|
-| **Versão** | 1.1.1 |
+| **Versão** | 1.5.0 |
 | **Pacote** | `br.com.starktechstudio.mediaplayer` |
 | **Android** | 6.0 ou mais novo |
 | **Tamanho do APK** | cerca de 110 MB (um APK só, para qualquer processador) |
@@ -61,6 +61,13 @@ Na TV. Prints feitos no emulador, com vídeos de teste gerados só para isso (po
 - **Trocar a foto:** opções do artista certo, do fanart.tv e da Wikipédia, ou uma imagem sua.
 - **Juntar pastas:** "Queen + Adam Lambert" pode entrar em "Queen" pelo Editar, sem mexer nos arquivos. Restaurar original desfaz.
 
+### Músicas
+
+- **Pasta de Músicas:** artistas (com foto), álbuns (com a capa da música ou da pasta) e playlists criadas no app.
+- **Tocando agora:** aleatório, repetir e fila; tocar a seguir e pôr na fila.
+- **Fora do app:** a música continua com a tela desligada, com notificação e os botões do fone e do controle.
+- **Formatos:** MP3, M4A, AAC, FLAC, OGG, Opus e WAV.
+
 ### Player
 
 - **Motor próprio:** FFmpeg, com H.264, H.265, AV1, VP9 e outros, e áudio direto para o receiver (Dolby e DTS).
@@ -69,6 +76,7 @@ Na TV. Prints feitos no emulador, com vídeos de teste gerados só para isso (po
 - **Áudio e legendas:** a escolha fica guardada por título e, em série, vale para os outros episódios.
 - **Legenda em arquivo:** `.srt`, `.ass`, `.ssa` e `.vtt`. Com o mesmo nome do vídeo, entra sozinha; "Carregar legenda" escolhe outra na hora.
 - **Forma da legenda:** tamanho, fonte, cor, contorno, sombra, fundo e posição.
+- **Ajustar legenda:** no player, atrasar ou adiantar de 0,1 em 0,1 s (fica guardado no vídeo) e mudar o tamanho.
 - **Zoom, taxa de atualização da TV e próximo episódio automático.**
 - **Controle da TV:** Voltar recolhe a barra; com ela recolhida, avisa e, na segunda vez, sai do vídeo.
 
@@ -80,7 +88,7 @@ Na TV. Prints feitos no emulador, com vídeos de teste gerados só para isso (po
 ## Instalar
 
 1. Baixe o APK e abra no aparelho. O Android pede para permitir a instalação fora da loja.
-2. Ao abrir o app, permita a leitura dos vídeos e o acesso a todos os arquivos, usado para enxergar as legendas em arquivo.
+2. Ao abrir o app, permita a leitura dos vídeos e o acesso a todos os arquivos, usado para enxergar as legendas em arquivo. Na aba Músicas, permita a leitura das músicas.
 3. Em **Configurações > Biblioteca > Pastas da biblioteca**, adicione as pastas dos seus vídeos.
 
 Organização sugerida:
@@ -91,6 +99,7 @@ Séries/Nome da série/Temporada 1/01.mkv
 Desenhos/Nome do desenho (2019).mkv
 Shows/Artista - Show (2019).mkv
 Stand-up/Nome do especial (2021).mkv
+Músicas/Artista/Álbum (1975)/01 - Faixa.mp3
 ```
 
 **Sem o acesso a todos os arquivos** (recusado, ou TV sem essa tela): a legenda em arquivo vem do índice de mídia do Android (`.srt` e `.vtt` com certeza; `.ass` e `.ssa` podem ficar de fora). Para liberar o acesso por um computador, depois de instalar:
@@ -101,7 +110,7 @@ adb shell appops set --uid br.com.starktechstudio.mediaplayer MANAGE_EXTERNAL_ST
 
 ## Atualização
 
-Em **Configurações → App**: Atualizar automaticamente, Versão instalada e Versão disponível, com o aviso de que está na última versão ou de que há uma nova. Com o automático ligado, o app também avisa ao abrir. A atualização mantém os dados, e o Android sempre pede a sua confirmação.
+Em **Configurações → App**: Atualizar automaticamente, Versão instalada e Versão disponível, com o aviso de que está na última versão ou de que há uma nova. Com o automático ligado, o app também avisa ao abrir. A atualização mantém os dados, e o Android sempre pede a sua confirmação. Em **Configurações → App → Limpar o cache**, o app apaga as imagens baixadas, as cópias de legenda e o APK de atualização, sem mexer na biblioteca.
 
 ## Para desenvolver
 
@@ -146,7 +155,7 @@ Chaves (TMDB, fanart.tv e a assinatura do APK) ficam fora do repositório. Detal
 
 ## Situação
 
-Versão 1.1.1, de uso próprio, em teste. O código é público, e as versões do app ficam nas releases deste repositório.
+Versão 1.5.0, de uso próprio, em teste. O código é público, e as versões do app ficam nas releases deste repositório.
 
 **Antes de liberar ao público**, há pendências de termos e licenças. A principal: confirmar com o TMDB o uso da chave e o prazo de 6 meses dos dados guardados. A lista completa, com o que os termos do TMDB, da Wikipédia e das bibliotecas pedem, está em [`liberar-ao-publico.md`](docs/operacional/liberar-ao-publico.md).
 

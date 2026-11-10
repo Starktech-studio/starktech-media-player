@@ -48,6 +48,7 @@ import br.com.starktechstudio.mediaplayer.motor.CapitulosDoArquivo;
 import br.com.starktechstudio.mediaplayer.motor.Faixas;
 import br.com.starktechstudio.mediaplayer.motor.LegendaExterna;
 import br.com.starktechstudio.mediaplayer.motor.LegendasNoIndice;
+import br.com.starktechstudio.mediaplayer.musica.Tocador;
 
 /**
  * Reprodução de verdade (F3): o motor do Nova ({@link Player}, com o {@link SurfaceController} e as
@@ -111,6 +112,9 @@ public final class Reproducao implements Player.Listener {
     private static final int FIM_SEGUNDOS = 5;
     /** Sem ida manual: quanto a sessão precisa andar para a posição guardada dar lugar a uma menor. */
     private static final int ANDOU_SEGUNDOS = 60;
+    /** Legenda rápida (1.5): passo do atraso e o máximo para cada lado. */
+    public static final int ATRASO_PASSO_MS = 100;
+    static final int ATRASO_MAXIMO_MS = 600_000;
 
     /** Reprodução na tela (o painel de faixas manda a escolha para ela). */
     @Nullable
@@ -172,6 +176,8 @@ public final class Reproducao implements Player.Listener {
     @Nullable
     private File legendaPedida;
     private Set<String> legendasDeAntes = new HashSet<>();
+    /** Atraso da legenda deste título (ms; positivo = mais tarde), guardado nele. */
+    private int atrasoLegendaMs;
 
     /** O motor não virou faixa (arquivo que ele não entende): avisa e apaga a cópia. */
     private final Runnable desistirDaLegenda = new Runnable() {
@@ -281,10 +287,14 @@ public final class Reproducao implements Player.Listener {
                 aplicarPosicaoDaLegenda();
             }
         });
+        // Música tocando (1.5) para quando o vídeo abre
+        Tocador.pausarSeTocando();
         player = new Player(tela, tela.getWindow(), superficie, false);
         player.setListener(this);
-        // Antes de abrir: a primeira legenda já sai na forma escolhida
+        // Antes de abrir: a primeira legenda já sai na forma escolhida, com o atraso guardado do título
         aplicarEstiloDaLegenda();
+        atrasoLegendaMs = repositorio.atrasoLegenda(id);
+        if (atrasoLegendaMs != 0) player.setSubtitleDelay(atrasoLegendaMs);
         trazerLegendasDoIndice();
         player.setVideoURI(Uri.fromFile(new File(caminho)), null);
         // Depois de abrir: setVideoURI apaga a posição pedida antes (começava sempre do zero)
@@ -819,6 +829,42 @@ public final class Reproducao implements Player.Listener {
         legendas.setVerticalOffset(distanciaDaBase(posicao, alturaVideo));
     }
 
+    // ---- Legenda rápida (1.5): atraso por título e tamanho, no painel Ajustar ----
+
+    /** O vídeo tem alguma legenda (dentro dele ou em arquivo): o botão Ajustar aparece. */
+    public boolean temLegenda() {
+        VideoMetadata meta = faixasDoArquivo;
+        return meta != null && meta.getSubtitleTrackNb() > 0;
+    }
+
+    public int atrasoLegendaMs() {
+        return atrasoLegendaMs;
+    }
+
+    /** Soma {@code passoMs} ao atraso (negativo adianta), dentro de ±{@link #ATRASO_MAXIMO_MS}; vale na hora e fica no título. */
+    public void ajustarAtrasoLegenda(int passoMs) {
+        definirAtrasoLegenda(atrasoLegendaMs + passoMs);
+    }
+
+    public void definirAtrasoLegenda(int ms) {
+        atrasoLegendaMs = limitarAtraso(ms);
+        if (player != null) player.setSubtitleDelay(atrasoLegendaMs);
+        repositorio.guardarAtrasoLegenda(id, atrasoLegendaMs);
+        avisar();
+    }
+
+    static int limitarAtraso(int ms) {
+        return Math.max(-ATRASO_MAXIMO_MS, Math.min(ATRASO_MAXIMO_MS, ms));
+    }
+
+    /** Tamanho da legenda (o de Configurações, para todos os vídeos), um nível acima ou abaixo. */
+    public void ajustarTamanhoLegenda(int passo) {
+        int atual = Preferencias.indice(contexto, Preferencias.Item.TAMANHO_LEGENDA);
+        Preferencias.escolher(contexto, Preferencias.Item.TAMANHO_LEGENDA, atual + passo);
+        aplicarEstiloDaLegenda();
+        avisar();
+    }
+
     /** Escala do tamanho na legenda ASS: o mesmo aumento da legenda de texto. */
     static float escalaDaLegenda(int tamanho) {
         return LEGENDA_TAMANHO_PT[tamanho] / LEGENDA_TAMANHO_MEDIO_PT;
@@ -872,6 +918,8 @@ public final class Reproducao implements Player.Listener {
             else usarCapitulos(doPlayer);
         }
         aplicarPreferencias();
+        // O atraso vale depois de aberto (antes, o motor só guarda para a próxima abertura)
+        if (atrasoLegendaMs != 0) player.setSubtitleDelay(atrasoLegendaMs);
         if (rodando && querTocando && !terminou) player.start(PlayerController.STATE_NORMAL);
         avisar();
     }

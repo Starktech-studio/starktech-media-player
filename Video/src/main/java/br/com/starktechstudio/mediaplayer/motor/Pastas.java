@@ -16,13 +16,14 @@ import java.util.Map;
 
 /**
  * Pastas da biblioteca e o tipo de cada uma (F2, etapa 3), no {@link BancoStarkTech}: Filmes,
- * Séries, TV Shows (como Séries, em aba própria), Desenhos, Shows, Stand-up (F3) ou Ignorar. Ao adicionar, o tipo vem do nome da pasta (D4) — sem diferenciar
+ * Séries, TV Shows (como Séries, em aba própria), Desenhos, Shows, Stand-up (F3), Músicas (1.5) ou Ignorar. Ao adicionar, o tipo vem do nome da pasta (D4) — sem diferenciar
  * maiúscula, minúscula e acento — ou fica em branco ("escolha o tipo"); o usuário pode trocar.
- * Um arquivo pertence à pasta cadastrada mais próxima acima dele.
+ * Um arquivo pertence à pasta cadastrada mais próxima acima dele. Pasta de Músicas fica fora da
+ * varredura de vídeo ({@link Classificador}) e é lida pela {@link VarreduraMusicas}.
  */
 public final class Pastas {
 
-    public enum Tipo { FILMES, SERIES, TVSHOWS, DESENHOS, SHOWS, STANDUP, IGNORAR }
+    public enum Tipo { FILMES, SERIES, TVSHOWS, DESENHOS, SHOWS, STANDUP, MUSICAS, IGNORAR }
 
     public enum Origem { HD_EXTERNO, INTERNO }
 
@@ -57,6 +58,14 @@ public final class Pastas {
                 "cartoons", "cartoon", "animation", "animations"}) NOMES.put(nome, Tipo.DESENHOS);
         for (String nome : new String[]{"shows", "show", "concerts", "concertos"}) NOMES.put(nome, Tipo.SHOWS);
         for (String nome : new String[]{"stand-up", "standup", "stand up", "stand-ups", "standups"}) NOMES.put(nome, Tipo.STANDUP);
+        for (String nome : new String[]{"musicas", "musica", "music", "musics"}) NOMES.put(nome, Tipo.MUSICAS);
+    }
+
+    /** Pastas de Músicas cadastradas (1.5), na ordem em que foram adicionadas. */
+    public synchronized List<Pasta> deMusicas() {
+        List<Pasta> lista = new ArrayList<>();
+        for (Pasta p : carregar().values()) if (p.tipo == Tipo.MUSICAS) lista.add(p);
+        return lista;
     }
 
     private static Pastas instancia;

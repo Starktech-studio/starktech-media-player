@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.text.format.Formatter;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -43,6 +44,7 @@ import br.com.starktechstudio.mediaplayer.comum.Navegacao.Aba;
 import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 import br.com.starktechstudio.mediaplayer.motor.ArquivosDoAparelho;
 import br.com.starktechstudio.mediaplayer.motor.Atualizador;
+import br.com.starktechstudio.mediaplayer.motor.Cache;
 
 /**
  * Configurações (D16, sem desenho; no padrão de Pastas), salvas no aparelho ({@link Preferencias}).
@@ -99,6 +101,9 @@ public class ConfiguracoesFragment extends Fragment {
     private boolean tv;
     private View pastaImagens;
     private TextView valorPastaImagens;
+    /** Tamanho do cache, ao lado de Limpar o cache (1.5). */
+    @Nullable
+    private TextView valorCache;
     private final List<Secao> secoes = new ArrayList<>();
     /** Índice em {@link #secoes}; -1 = a lista de seções. */
     private int secaoAberta = -1;
@@ -314,6 +319,43 @@ public class ConfiguracoesFragment extends Fragment {
         opcaoValor(secao, R.drawable.st_ic_atualizar, R.string.st_cfg_atualizar_app, R.string.st_cfg_atualizar_app_dica,
                 Preferencias.Item.ATUALIZAR_APP);
         opcao(secao, R.string.st_cfg_versao, this::versao);
+        opcao(secao, R.string.st_cfg_limpar_cache, this::limparCache);
+    }
+
+    /** Limpar o cache (1.5): o tamanho ao lado; OK ou toque apaga só o temporário ({@link Cache}) e diz quanto liberou. */
+    private void limparCache(LinearLayout corpo) {
+        Context contexto = corpo.getContext();
+        View linha = acao(corpo, R.drawable.st_ic_lixeira, R.string.st_cfg_limpar_cache, R.string.st_cfg_limpar_cache_dica, this::apagarCache);
+        valorCache = Textos.novo(contexto, "", R.font.st_inter_extrabold, 18, R.color.st_texto);
+        valorCache.setSingleLine(true);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.setMarginStart(Medidas.px(contexto, 22));
+        ((LinearLayout) linha).addView(valorCache, lp);
+        medirCache();
+    }
+
+    private void medirCache() {
+        TextView alvo = valorCache;
+        if (alvo == null) return;
+        Context app = alvo.getContext().getApplicationContext();
+        new Thread(() -> {
+            long tamanho = Cache.tamanho(app);
+            alvo.post(() -> alvo.setText(Formatter.formatShortFileSize(app, tamanho)));
+        }, "StarkTechCache").start();
+    }
+
+    private void apagarCache() {
+        TextView alvo = valorCache;
+        if (alvo == null) return;
+        Context app = alvo.getContext().getApplicationContext();
+        new Thread(() -> {
+            long liberado = Cache.limpar(app);
+            alvo.post(() -> {
+                Toast.makeText(app, app.getString(R.string.st_cache_limpo, Formatter.formatShortFileSize(app, liberado)),
+                        Toast.LENGTH_SHORT).show();
+                medirCache();
+            });
+        }, "StarkTechCache").start();
     }
 
     private void definirBiblioteca() {

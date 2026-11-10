@@ -133,6 +133,8 @@ public final class Acervo {
         /** Faixa de áudio e legenda escolhidas à mão ("a1", "l2", "l-1", "arquivo:Nome.srt"); nula = as preferências. */
         public String faixaAudio;
         public String faixaLegenda;
+        /** Atraso da legenda em ms (1.5, ajuste rápido do player); positivo = mais tarde, 0 = nenhum. */
+        public int atrasoLegenda;
 
         public Estado copia() {
             Estado e = new Estado();
@@ -144,6 +146,7 @@ public final class Acervo {
             e.nota = nota;
             e.faixaAudio = faixaAudio;
             e.faixaLegenda = faixaLegenda;
+            e.atrasoLegenda = atrasoLegenda;
             return e;
         }
     }
@@ -425,6 +428,7 @@ public final class Acervo {
                 e.nota = c.isNull(iNota) ? null : Integer.valueOf(c.getInt(iNota));
                 e.faixaAudio = texto(c, "faixa_audio");
                 e.faixaLegenda = texto(c, "faixa_legenda");
+                e.atrasoLegenda = inteiro(c, "atraso_legenda");
                 mapa.put(texto(c, "chave"), e);
             }
         }
@@ -443,6 +447,7 @@ public final class Acervo {
         else l.put("nota", e.nota);
         l.put("faixa_audio", e.faixaAudio);
         l.put("faixa_legenda", e.faixaLegenda);
+        l.put("atraso_legenda", e.atrasoLegenda);
         banco.getWritableDatabase().insertWithOnConflict(BancoStarkTech.ESTADO, null, l, SQLiteDatabase.CONFLICT_REPLACE);
     }
 

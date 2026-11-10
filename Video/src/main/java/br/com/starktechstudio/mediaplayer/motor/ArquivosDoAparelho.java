@@ -54,6 +54,18 @@ public final class ArquivosDoAparelho {
         return ContextCompat.checkSelfPermission(contexto, permissaoDeVideos()) == PackageManager.PERMISSION_GRANTED;
     }
 
+    /** Permissão para ler as músicas do aparelho (1.5, pastas de Músicas). */
+    public static String permissaoDeMusicas() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                ? Manifest.permission.READ_MEDIA_AUDIO : Manifest.permission.READ_EXTERNAL_STORAGE;
+    }
+
+    /** Com o acesso a todos os arquivos, a pasta inteira é legível sem a permissão de músicas. */
+    public static boolean podeLerMusicas(Context contexto) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && android.os.Environment.isExternalStorageManager()) return true;
+        return ContextCompat.checkSelfPermission(contexto, permissaoDeMusicas()) == PackageManager.PERMISSION_GRANTED;
+    }
+
     /** Permissão para ler as imagens do aparelho (Editar: capa e fundo do aparelho). */
     public static String permissaoDeImagens() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU

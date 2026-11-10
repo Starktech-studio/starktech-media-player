@@ -128,7 +128,7 @@ Com o arquivo no WSL, os builds de teste também saem com essa chave. A versão 
 ./gradlew -Puniversal assembleNoamazonRelease
 ```
 
-APK em `Video/build/outputs/apk/noamazon/release/`; cópia em `apks/` com o nome `StarkTech Media Player X.Y.Z.apk`. 1.0.0 = `versionCode` 2 (o 1 foi o dos APKs de teste); 1.1.0 = 3; 1.1.1 = 4.
+APK em `Video/build/outputs/apk/noamazon/release/`; cópia em `apks/` com o nome `StarkTech Media Player X.Y.Z.apk`. 1.0.0 = `versionCode` 2 (o 1 foi o dos APKs de teste); 1.1.0 = 3; 1.1.1 = 4; 1.5.0 = 5.
 
 Publicar uma versão:
 

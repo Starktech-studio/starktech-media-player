@@ -71,6 +71,7 @@ import br.com.starktechstudio.mediaplayer.motor.Faixas;
 import br.com.starktechstudio.mediaplayer.motor.ImagemDoAparelho;
 import br.com.starktechstudio.mediaplayer.motor.Pastas;
 import br.com.starktechstudio.mediaplayer.motor.Varredura;
+import br.com.starktechstudio.mediaplayer.motor.VarreduraMusicas;
 import br.com.starktechstudio.mediaplayer.motor.WikipediaArtista;
 
 /**
@@ -1049,6 +1050,21 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         if (idSerie != null) gravarFaixa(idSerie, tipo, faixa);
     }
 
+    @Override
+    public int atrasoLegenda(String id) {
+        return estado(id).atrasoLegenda;
+    }
+
+    /** Sem avisar as telas: nada do que elas mostram muda. */
+    @Override
+    public void guardarAtrasoLegenda(String id, int ms) {
+        Acervo.Estado e = estado(id).copia();
+        if (e.atrasoLegenda == ms) return;
+        e.atrasoLegenda = ms;
+        estados.put(id, e);
+        acervo.gravarEstado(id, e);
+    }
+
     /** Sem avisar as telas: nada do que elas mostram muda. */
     private void gravarFaixa(String chave, TipoFaixa tipo, String faixa) {
         Acervo.Estado e = estado(chave).copia();
@@ -1476,8 +1492,11 @@ public final class RepositorioReal implements RepositorioBiblioteca {
                 : tipo == TipoPasta.TVSHOWS ? Pastas.Tipo.TVSHOWS
                 : tipo == TipoPasta.DESENHOS ? Pastas.Tipo.DESENHOS
                 : tipo == TipoPasta.SHOWS ? Pastas.Tipo.SHOWS : tipo == TipoPasta.STANDUP ? Pastas.Tipo.STANDUP
+                : tipo == TipoPasta.MUSICAS ? Pastas.Tipo.MUSICAS
                 : tipo == TipoPasta.IGNORAR ? Pastas.Tipo.IGNORAR : null;
         pastas.definirTipo(idPasta, novo);
+        // Pasta marcada como Músicas: a aba passa a aparecer (desligada de fábrica)
+        if (novo == Pastas.Tipo.MUSICAS) Preferencias.escolher(app, Preferencias.Item.NAV_MUSICAS, 0);
         atualizarBiblioteca();
     }
 
@@ -1487,6 +1506,7 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         // Pasta reconhecida pelo nome como TV Shows ou Stand-up: a aba, desligada de fábrica, passa a aparecer
         if (nova.tipo == Pastas.Tipo.TVSHOWS) Preferencias.escolher(app, Preferencias.Item.NAV_TVSHOWS, 0);
         if (nova.tipo == Pastas.Tipo.STANDUP) Preferencias.escolher(app, Preferencias.Item.NAV_STANDUP, 0);
+        if (nova.tipo == Pastas.Tipo.MUSICAS) Preferencias.escolher(app, Preferencias.Item.NAV_MUSICAS, 0);
         atualizarBiblioteca();
     }
 
@@ -1506,6 +1526,7 @@ public final class RepositorioReal implements RepositorioBiblioteca {
             case DESENHOS: return TipoPasta.DESENHOS;
             case SHOWS: return TipoPasta.SHOWS;
             case STANDUP: return TipoPasta.STANDUP;
+            case MUSICAS: return TipoPasta.MUSICAS;
             default: return TipoPasta.IGNORAR;
         }
     }
@@ -1601,6 +1622,12 @@ public final class RepositorioReal implements RepositorioBiblioteca {
                     if (tudo) buscarTudo = false;
                     reconstruirENotificar();
                     fecharResultado();
+                    // Músicas (1.5): depois do TMDB e antes das fotos de artista, que também são as delas
+                    if (ArquivosDoAparelho.podeLerMusicas(app)) {
+                        RepositorioMusicas musicas = RepositorioMusicas.de(app);
+                        if (VarreduraMusicas.atualizar(app, musicas::recarregar)) deNovo = true;
+                        musicas.recarregar();
+                    }
                     pedirArtistas(tudo);
                     andar(1, 0, 0);
                     if (pode) Varredura.lerDadosTecnicos(app, this::reconstruirENotificar,
@@ -1850,10 +1877,15 @@ public final class RepositorioReal implements RepositorioBiblioteca {
             Map<String, Acervo.Artista> conhecidos = acervo.artistas();
             Set<String> vistos = new HashSet<>();
             int feitos = 0;
+            // Artistas dos Shows e, da 1.5 em diante, os das Músicas: a mesma foto vale nas duas abas
+            List<String> nomes = new ArrayList<>();
             for (Acervo.Video v : acervo.videos()) {
                 if (v.tipo != Classificador.Tipo.SHOW || !temTexto(v.artista) || !new File(v.pasta).isDirectory()) continue;
                 // Pasta juntada a outro artista no Editar: quem precisa de capa é ele
-                String nome = artistaFinal(v.artista);
+                nomes.add(artistaFinal(v.artista));
+            }
+            nomes.addAll(RepositorioMusicas.de(app).artistasParaFoto());
+            for (String nome : nomes) {
                 String chave = Acervo.chaveArtista(nome);
                 if (!vistos.add(chave)) continue;
                 Acervo.Artista antes = conhecidos.get(chave);
@@ -2054,7 +2086,8 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         return juntar(" · ", partes.toArray(new String[0]));
     }
 
-    private static int corDe(String id) {
+    /** Bloco de cor pelo id (também o das capas de Músicas). */
+    static int corDe(String id) {
         return CORES[Math.abs(id.hashCode() % CORES.length)];
     }
 

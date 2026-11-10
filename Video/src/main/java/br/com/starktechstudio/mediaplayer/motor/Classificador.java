@@ -151,7 +151,7 @@ public final class Classificador {
     /** Classifica o vídeo dentro da pasta; nulo se fica de fora (pasta Ignorar ou não é vídeo). */
     public static Item classificar(String caminhoArquivo, Pastas.Pasta pasta) {
         String nomeArquivo = new File(caminhoArquivo).getName();
-        if (!Nomes.ehVideo(nomeArquivo) || pasta.tipo == Pastas.Tipo.IGNORAR) return null;
+        if (!Nomes.ehVideo(nomeArquivo) || foraDosVideos(pasta)) return null;
         if (pasta.tipo == null) return Item.naoIdentificado(caminhoArquivo, Motivo.PASTA_SEM_TIPO);
         String relativo = caminhoArquivo.substring(pasta.caminho.length() + 1);
         String[] partes = relativo.split("/");
@@ -335,10 +335,15 @@ public final class Classificador {
         for (Pastas.Pasta p : pastas) cadastradas.add(p.caminho);
         List<Item> itens = new ArrayList<>();
         for (Pastas.Pasta pasta : pastas) {
-            if (pasta.tipo == Pastas.Tipo.IGNORAR) continue;
+            if (foraDosVideos(pasta)) continue;
             percorrer(new File(pasta.caminho), pasta, cadastradas, new HashSet<>(), 0, itens);
         }
         return itens;
+    }
+
+    /** Ignorar e Músicas (1.5: lida pela {@link VarreduraMusicas}) ficam fora da biblioteca de vídeo. */
+    static boolean foraDosVideos(Pastas.Pasta pasta) {
+        return pasta.tipo == Pastas.Tipo.IGNORAR || pasta.tipo == Pastas.Tipo.MUSICAS;
     }
 
     private static void percorrer(File dir, Pastas.Pasta pasta, Set<String> cadastradas, Set<String> vistas,
