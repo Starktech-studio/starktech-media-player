@@ -367,7 +367,10 @@ public class PastasFragment extends Fragment {
     private String contagem(Pasta p) {
         if (p.tipo == TipoPasta.MUSICAS) {
             int musicas = RepositorioMusicas.de(requireContext()).musicasDaPasta(p.id);
-            return getResources().getQuantityString(R.plurals.st_n_musicas, musicas, musicas);
+            String texto = getResources().getQuantityString(R.plurals.st_n_musicas, musicas, musicas);
+            // 1.5.1: os vídeos da pasta de Músicas também
+            if (p.videos > 0) texto += " · " + getResources().getQuantityString(R.plurals.st_n_videos, p.videos, p.videos);
+            return texto;
         }
         if (p.tipo == TipoPasta.SERIES || p.tipo == TipoPasta.TVSHOWS || p.series > 0) {
             return getResources().getQuantityString(R.plurals.st_n_series, p.series, p.series) + " · "
@@ -524,6 +527,8 @@ public class PastasFragment extends Fragment {
         exemplo(painel, Aba.DESENHOS, R.string.st_tipo_desenhos, R.string.st_exemplo_desenho, espaco);
         exemplo(painel, Aba.SHOWS, R.string.st_tipo_shows, R.string.st_exemplo_show, espaco);
         exemplo(painel, Aba.STANDUP, R.string.st_tipo_standup, R.string.st_exemplo_standup, espaco);
+        // Músicas (1.5.1): áudio e vídeo pelo arquivo; a sequência pelo número
+        exemplo(painel, Aba.MUSICAS, R.string.st_tipo_musicas, R.string.st_exemplo_musica, espaco);
         TextView fim = Textos.novo(contexto, getString(R.string.st_como_organizar_fim), R.font.st_inter_semibold, 16, R.color.st_texto_apagado);
         fim.setLineSpacing(0f, 1.24f);
         adicionar(painel, fim, espaco);

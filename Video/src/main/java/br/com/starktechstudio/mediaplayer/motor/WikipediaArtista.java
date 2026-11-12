@@ -58,6 +58,54 @@ public final class WikipediaArtista {
         return lerArtigo(BuscaArtista.lerTexto(String.format(Locale.ROOT, ENDERECO_BUSCA, idioma, BuscaArtista.codificar(nome))), nome);
     }
 
+    /** O artigo fala de um álbum (1.5.1). */
+    private static final Pattern DE_ALBUM = Pattern.compile("(?iu)\\b([aá]lbum|album|ep|dvd|ao vivo|colet[aâ]nea"
+            + "|trilha sonora|disco|live album|compilation|soundtrack)\\b");
+
+    /**
+     * O artigo do álbum em português (1.5.1); nulo se não há. Vale só o de nome igual ao do álbum ("Nome" ou
+     * "Nome (álbum de Artista)") que fala de álbum e cita o artista: nome de álbum se repete muito ("Ao Vivo").
+     */
+    public Artigo album(String nomeAlbum, @androidx.annotation.Nullable String artista) throws IOException, JSONException {
+        String busca = artista == null ? nomeAlbum + " álbum" : nomeAlbum + " " + artista;
+        return lerAlbum(BuscaArtista.lerTexto(String.format(Locale.ROOT, ENDERECO_BUSCA, "pt", BuscaArtista.codificar(busca))),
+                nomeAlbum, artista);
+    }
+
+    static Artigo lerAlbum(String json, String album, @androidx.annotation.Nullable String artista) throws JSONException {
+        JSONObject consulta = new JSONObject(json).optJSONObject("query");
+        JSONArray paginas = consulta == null ? null : consulta.optJSONArray("pages");
+        if (paginas == null) return null;
+        List<JSONObject> ordem = new ArrayList<>();
+        for (int i = 0; i < paginas.length(); i++) ordem.add(paginas.getJSONObject(i));
+        Collections.sort(ordem, (a, b) -> Integer.compare(a.optInt("index"), b.optInt("index")));
+        // "Henrique e Juliano" na pasta e "Henrique & Juliano" no artigo (ou o contrário) são o mesmo artista
+        List<String> doArtista = new ArrayList<>();
+        if (artista != null) {
+            for (String grafia : new String[]{artista, artista.replace("&", " e "), artista.replaceAll("(?iu)\\s+e\\s+", " & ")}) {
+                String letras = BuscaArtista.soLetras(grafia);
+                if (!letras.isEmpty() && !doArtista.contains(letras)) doArtista.add(letras);
+            }
+        }
+        for (JSONObject pagina : ordem) {
+            String titulo = pagina.optString("title", "");
+            if (!BuscaArtista.mesmoNome(album, titulo.replaceAll("\\s*\\(.*\\)\\s*$", ""))) continue;
+            String resumo = pagina.isNull("description") ? "" : pagina.optString("description", "").trim();
+            String texto = pagina.isNull("extract") ? "" : pagina.optString("extract", "").trim();
+            if (texto.isEmpty() || resumo.toLowerCase(Locale.ROOT).contains("desambigua")) continue;
+            String comeco = texto.substring(0, Math.min(COMECO_DO_TEXTO * 2, texto.length()));
+            if (!DE_ALBUM.matcher(titulo + " " + resumo + " " + comeco).find()) continue;
+            if (!doArtista.isEmpty()) {
+                String letras = BuscaArtista.soLetras(titulo + " " + resumo + " " + comeco);
+                boolean cita = false;
+                for (String grafia : doArtista) cita |= letras.contains(grafia);
+                if (!cita) continue;
+            }
+            return new Artigo(titulo, resumo.isEmpty() ? null : maiuscula(resumo), texto);
+        }
+        return null;
+    }
+
     /** Endereços das fotos, sem repetir; o que não responder fica de fora. */
     public List<String> fotos(String nome) {
         List<String> fotos = new ArrayList<>();

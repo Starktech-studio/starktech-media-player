@@ -15,6 +15,7 @@ import android.os.SystemClock;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import com.archos.mediacenter.video.R;
@@ -61,6 +62,7 @@ import br.com.starktechstudio.mediaplayer.dados.Modelo.TipoFaixa;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.TipoPasta;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Titulo;
 import br.com.starktechstudio.mediaplayer.motor.Acervo;
+import br.com.starktechstudio.mediaplayer.motor.AcervoMusicas;
 import br.com.starktechstudio.mediaplayer.motor.ArquivosDoAparelho;
 import br.com.starktechstudio.mediaplayer.motor.BuscaArtista;
 import br.com.starktechstudio.mediaplayer.motor.BuscaTmdb;
@@ -140,6 +142,8 @@ public final class RepositorioReal implements RepositorioBiblioteca {
     /** Dados do resultado escolhido no Editar (por título), ainda não salvos: o Salvar usa sem buscar de novo. */
     private final Map<String, Acervo.Tmdb> previas = new ConcurrentHashMap<>();
     private volatile Retrato retrato;
+    /** Conta os retratos montados ({@link #versao}). */
+    private volatile int versao;
     private boolean emAndamento;
     private volatile boolean repetir;
     /** Atualizar biblioteca: tenta de novo também o que o TMDB não achou ou veio sem capa. */
@@ -244,6 +248,7 @@ public final class RepositorioReal implements RepositorioBiblioteca {
                 case DESENHO:
                 case SHOW:
                 case STANDUP:
+                case CLIPE:
                     r.titulos.put(v.caminho, tituloDoVideo(r, v));
                     break;
                 case EPISODIO: {
@@ -276,10 +281,12 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         t.naoIdentificado = v.tipo == Classificador.Tipo.NAO_IDENTIFICADO;
         t.tipo = v.tipo == Classificador.Tipo.FILME ? Tipo.FILME : v.tipo == Classificador.Tipo.SHOW ? Tipo.SHOW
                 : v.tipo == Classificador.Tipo.STANDUP ? Tipo.STANDUP
-                : v.tipo == Classificador.Tipo.DESENHO ? Tipo.DESENHO : null;
+                : v.tipo == Classificador.Tipo.DESENHO ? Tipo.DESENHO
+                : v.tipo == Classificador.Tipo.CLIPE ? Tipo.CLIPE : null;
         String nomeArquivo = semExtensao(new File(v.caminho).getName());
+        // Vídeo de música (1.5.1): o título sem o artista (a tela dele já diz quem é)
         String doArquivo = v.titulo == null ? nomeArquivo
-                : v.artista != null ? v.artista + " - " + v.titulo : v.titulo;
+                : v.artista != null && v.tipo != Classificador.Tipo.CLIPE ? v.artista + " - " + v.titulo : v.titulo;
         t.titulo = dados != null && temTexto(dados.titulo) ? dados.titulo : doArquivo;
         t.tituloOriginal = dados != null && dados.tituloOriginal != null ? dados.tituloOriginal : doArquivo;
         t.ano = dados != null && dados.ano != null ? dados.ano : v.ano == null ? "" : String.valueOf(v.ano);
@@ -479,13 +486,74 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         return e;
     }
 
+    /** Os títulos das abas, do Início e da busca; os vídeos de música (1.5.1, D4 do plano 006) ficam só em Músicas. */
     private List<Titulo> todos(Retrato r) {
         List<Titulo> lista = new ArrayList<>();
         for (Titulo base : r.titulos.values()) {
+            if (base.tipo == Tipo.CLIPE) continue;
             Titulo t = comEstado(r, base);
             if (!t.naoIdentificado && t.tipo != null) lista.add(t);
         }
         return lista;
+    }
+
+    // =====================================================================
+    // Vídeos de música (1.5.1): só para Músicas e o player
+    // =====================================================================
+
+    /** Os vídeos de música com o HD ligado, com a posição e o assistido. */
+    public List<Titulo> clipes() {
+        Retrato r = retrato;
+        List<Titulo> lista = new ArrayList<>();
+        for (Titulo base : r.titulos.values()) {
+            if (base.tipo == Tipo.CLIPE) lista.add(comEstado(r, base));
+        }
+        return lista;
+    }
+
+    /** O número do vídeo de música na sequência (0 = sem número). */
+    public int numeroDoClipe(String id) {
+        Acervo.Video v = retrato.videos.get(id);
+        return v == null ? 0 : v.episodio;
+    }
+
+    /**
+     * O vídeo que vem depois na sequência (D3 do plano 006): o seguinte do mesmo álbum em vídeo ou, sem álbum,
+     * dos vídeos soltos do artista; nulo no último.
+     */
+    @Override
+    @Nullable
+    public String proximoClipe(String id) {
+        Retrato r = retrato;
+        Acervo.Video atual = r.videos.get(id);
+        if (atual == null || atual.tipo != Classificador.Tipo.CLIPE) return null;
+        List<Acervo.Video> mesma = new ArrayList<>();
+        for (Acervo.Video v : r.videos.values()) {
+            if (v.tipo != Classificador.Tipo.CLIPE) continue;
+            if (!normalizar(v.artista).equals(normalizar(atual.artista))) continue;
+            if (!normalizar(v.grupo).equals(normalizar(atual.grupo))) continue;
+            mesma.add(v);
+        }
+        Collections.sort(mesma, (a, b) -> {
+            if (a.episodio != b.episodio) return Integer.compare(a.episodio == 0 ? Integer.MAX_VALUE : a.episodio,
+                    b.episodio == 0 ? Integer.MAX_VALUE : b.episodio);
+            int nome = normalizar(a.titulo).compareTo(normalizar(b.titulo));
+            return nome != 0 ? nome : a.caminho.compareTo(b.caminho);
+        });
+        for (int i = 0; i < mesma.size() - 1; i++) {
+            if (mesma.get(i).caminho.equals(id)) return mesma.get(i + 1).caminho;
+        }
+        return null;
+    }
+
+    /** Qualidade e formato do vídeo ("1080p · H.264"), para o selo de Músicas. */
+    @Nullable
+    public String formatoDoClipe(String id) {
+        Acervo.Video v = retrato.videos.get(id);
+        if (v == null) return null;
+        String qualidade = qualidade(v);
+        String codec = v.infoVideo == null ? "" : v.infoVideo.split(" · ")[0].trim();
+        return juntar(" · ", qualidade, codec);
     }
 
     // =====================================================================
@@ -1822,6 +1890,9 @@ public final class RepositorioReal implements RepositorioBiblioteca {
                 }
                 return true;
             }
+            case CLIPE:
+                // Vídeo de música (1.5.1): sem TMDB; a capa é o quadro do vídeo ou a imagem da pasta
+                return false;
             default: {
                 // Não identificado com tipo e título editados à mão: busca como filme / show
                 String tipo = edicao.get(Edicoes.Campo.TIPO);
@@ -1884,7 +1955,8 @@ public final class RepositorioReal implements RepositorioBiblioteca {
                 // Pasta juntada a outro artista no Editar: quem precisa de capa é ele
                 nomes.add(artistaFinal(v.artista));
             }
-            nomes.addAll(RepositorioMusicas.de(app).artistasParaFoto());
+            RepositorioMusicas musicas = RepositorioMusicas.de(app);
+            nomes.addAll(musicas.artistasParaFoto());
             for (String nome : nomes) {
                 String chave = Acervo.chaveArtista(nome);
                 if (!vistos.add(chave)) continue;
@@ -1908,9 +1980,50 @@ public final class RepositorioReal implements RepositorioBiblioteca {
                 if (novo.situacao == Acervo.ERRO) break;
             }
             if (feitos % 5 != 0) reconstruirENotificar();
+            buscarTextosDeAlbum(musicas, tudo);
         } catch (RuntimeException e) {
             Log.w(LOG, "artista: não deu para buscar", e);
         }
+    }
+
+    /**
+     * Texto dos álbuns de Músicas (1.5.1), da Wikipédia em português, depois das fotos de artista, um por
+     * vez. Não achado não busca de novo (só com "Atualizar agora"); erro de rede encerra a rodada e tenta
+     * depois.
+     */
+    private void buscarTextosDeAlbum(RepositorioMusicas musicas, boolean tudo) {
+        AcervoMusicas acervoMusicas = AcervoMusicas.de(app);
+        Map<String, AcervoMusicas.TextoAlbum> feitos = acervoMusicas.textosDeAlbum();
+        WikipediaArtista wikipedia = null;
+        int buscados = 0;
+        long agora = System.currentTimeMillis();
+        for (String[] album : musicas.albunsParaTexto()) {
+            AcervoMusicas.TextoAlbum antes = feitos.get(album[0]);
+            boolean precisa = antes == null || antes.situacao == Acervo.PENDENTE
+                    || (antes.situacao == Acervo.ERRO && agora - antes.buscado > NOVA_TENTATIVA_MS)
+                    || (tudo && antes.situacao == Acervo.NAO_ACHADO);
+            if (!precisa) continue;
+            if (wikipedia == null) wikipedia = new WikipediaArtista();
+            AcervoMusicas.TextoAlbum novo = new AcervoMusicas.TextoAlbum();
+            novo.chave = album[0];
+            novo.buscado = System.currentTimeMillis();
+            boolean semRede = false;
+            try {
+                WikipediaArtista.Artigo artigo = wikipedia.album(album[1], album[2]);
+                novo.situacao = artigo == null ? Acervo.NAO_ACHADO : Acervo.ACHADO;
+                if (artigo != null) {
+                    novo.resumo = artigo.resumo;
+                    novo.descricao = artigo.texto;
+                }
+            } catch (IOException | JSONException e) {
+                novo.situacao = Acervo.ERRO;
+                semRede = true;
+            }
+            acervoMusicas.gravarTextoDeAlbum(novo);
+            if (++buscados % 5 == 0) musicas.recarregarTextos();
+            if (semRede) break;
+        }
+        if (buscados % 5 != 0) musicas.recarregarTextos();
     }
 
     private static boolean precisaArtista(Acervo.Artista a, boolean tudo) {
@@ -1943,7 +2056,13 @@ public final class RepositorioReal implements RepositorioBiblioteca {
     private void reconstruir() {
         synchronized (montagem) {
             retrato = montar();
+            versao++;
         }
+    }
+
+    /** Muda a cada retrato novo da biblioteca (Músicas refaz os vídeos dela só quando muda). */
+    int versao() {
+        return versao;
     }
 
     private void reconstruirENotificar() {

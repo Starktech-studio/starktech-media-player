@@ -132,6 +132,43 @@ public final class AcervoMusicas {
         }
     }
 
+    // ---- Texto dos álbuns (1.5.1, banco v8) ----
+
+    /** O texto da Wikipédia de um álbum; {@link #situacao} como no {@link Acervo} (pendente, achado, não achado, erro). */
+    public static final class TextoAlbum {
+        public String chave;
+        public int situacao = Acervo.PENDENTE;
+        public String resumo;
+        public String descricao;
+        public long buscado;
+    }
+
+    public synchronized java.util.Map<String, TextoAlbum> textosDeAlbum() {
+        java.util.Map<String, TextoAlbum> mapa = new java.util.HashMap<>();
+        try (Cursor c = banco.getReadableDatabase().query(BancoStarkTech.ALBUM, null, null, null, null, null, null)) {
+            while (c.moveToNext()) {
+                TextoAlbum t = new TextoAlbum();
+                t.chave = texto(c, "chave");
+                t.situacao = inteiro(c, "situacao");
+                t.resumo = texto(c, "resumo");
+                t.descricao = texto(c, "descricao");
+                t.buscado = longo(c, "buscado");
+                mapa.put(t.chave, t);
+            }
+        }
+        return mapa;
+    }
+
+    public synchronized void gravarTextoDeAlbum(TextoAlbum t) {
+        ContentValues l = new ContentValues();
+        l.put("chave", t.chave);
+        l.put("situacao", t.situacao);
+        l.put("resumo", t.resumo);
+        l.put("descricao", t.descricao);
+        l.put("buscado", t.buscado);
+        banco.getWritableDatabase().insertWithOnConflict(BancoStarkTech.ALBUM, null, l, SQLiteDatabase.CONFLICT_REPLACE);
+    }
+
     // ---- Playlists ----
 
     /** Em ordem de criação, cada uma com as músicas na ordem dela. */

@@ -155,6 +155,10 @@ public interface RepositorioBiblioteca {
     /** Guarda a escolha para a próxima vez, no vídeo e na série dele. */
     void guardarFaixa(String id, @Nullable String idSerie, TipoFaixa tipo, String faixa);
 
+    /** Vídeo de música (1.5.1): o seguinte da sequência (álbum em vídeo ou vídeos do artista); nulo no último ou se não é vídeo de música. */
+    @Nullable
+    String proximoClipe(String id);
+
     /** Atraso da legenda do título ou do episódio, em ms (1.5, legenda rápida); positivo = mais tarde, 0 = nenhum. */
     int atrasoLegenda(String id);
 

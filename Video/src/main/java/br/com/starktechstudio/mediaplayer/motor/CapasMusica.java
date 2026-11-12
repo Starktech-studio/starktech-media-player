@@ -88,7 +88,7 @@ public final class CapasMusica {
 
     /** A imagem da pasta: a de nome preferido ou, sem ela, a única imagem que houver. */
     @Nullable
-    static File imagemDaPasta(File pastaDoAlbum) {
+    public static File imagemDaPasta(File pastaDoAlbum) {
         File[] itens = pastaDoAlbum.listFiles();
         if (itens == null) return null;
         List<File> imagens = new ArrayList<>();

@@ -333,8 +333,10 @@ public final class BuscaArtista {
         return !x.isEmpty() && x.equals(soLetras(b));
     }
 
+    /** 1.5.1: o "e" das duplas também vale "&" ("Henrique e Juliano" = "Henrique & Juliano"). */
     static String soLetras(String nome) {
-        return Nomes.normalizar(nome).replace("&", " and ").replaceAll("^the\\s+", "").replaceAll("[^\\p{L}\\p{N}]", "");
+        return Nomes.normalizar(nome).replace("&", " and ").replaceAll("\\s+e\\s+", " and ").replaceAll("^the\\s+", "")
+                .replaceAll("[^\\p{L}\\p{N}]", "");
     }
 
     // ---- Rede ----

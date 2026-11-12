@@ -40,6 +40,8 @@ final class TopoSecaoTv {
             pilulas[i].setOnClickListener(v -> Navegacao.abrirAba(atividade, aba));
             pilulas[i].setOnFocusChangeListener((v, temFoco) -> atualizar());
         }
+        // 1.5.1: a mesma ordem da tela principal (Início primeiro, as outras em ordem alfabética)
+        Navegacao.ordenarPilulas(atividade, ABAS, pilulas);
     }
 
     /**

@@ -74,11 +74,25 @@
             android:text="@string/st_buscar_acao" />
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/st_tmdb_resultados"
+    <!-- 1.5.1: lista grande (Buscar artista) rola; o botão em foco, Anterior ou Próxima, fica à vista -->
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fadeScrollbars="true"
+        android:fillViewport="false"
+        android:focusable="false"
+        android:overScrollMode="never"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/st_tmdb_resultados"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp" />
+    </ScrollView>
 
     <TextView
         android:id="@+id/st_tmdb_ajuda"

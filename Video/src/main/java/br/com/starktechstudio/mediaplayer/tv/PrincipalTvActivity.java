@@ -103,6 +103,8 @@ public class PrincipalTvActivity extends AppCompatActivity {
             });
             pilulas[i].setOnClickListener(v -> selecionarAba(indice));
         }
+        // 1.5.1: Início primeiro e as outras em ordem alfabética
+        Navegacao.ordenarPilulas(this, ABAS, pilulas);
         mostrarAbasLigadas();
         findViewById(R.id.st_botao_buscar).setOnClickListener(v -> Navegacao.abrirBusca(this));
         findViewById(R.id.st_botao_configuracoes).setOnClickListener(v -> Navegacao.abrirConfiguracoes(this));

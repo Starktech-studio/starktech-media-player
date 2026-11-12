@@ -73,6 +73,7 @@
     <string name="st_exemplo_desenho" translatable="false">Nome do desenho (2019).mkv</string>
     <string name="st_exemplo_show" translatable="false">Artista - Show (2019).mkv</string>
     <string name="st_exemplo_standup" translatable="false">Nome do especial (2021).mkv</string>
+    <string name="st_exemplo_musica" translatable="false">Artista / Álbum (2019) / 01 - Música.mp3\nArtista / Ao Vivo (2019) / 01 - Música.mp4\nArtista / Vídeos / 01 - Música.mp4</string>
     <string name="st_como_organizar_fim">O que não se encaixar vai para "Não identificados" e pode ser corrigido em Editar.</string>
 
     <!-- Adicionar pasta (D15): navegador de pastas próprio, com as pastas do aparelho (F3) -->

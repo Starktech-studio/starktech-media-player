@@ -29,8 +29,10 @@ import br.com.starktechstudio.mediaplayer.dados.ModeloMusicas.Album;
 import br.com.starktechstudio.mediaplayer.dados.ModeloMusicas.Artista;
 import br.com.starktechstudio.mediaplayer.dados.ModeloMusicas.Musica;
 import br.com.starktechstudio.mediaplayer.dados.ModeloMusicas.Playlist;
+import br.com.starktechstudio.mediaplayer.dados.Modelo.Titulo;
 import br.com.starktechstudio.mediaplayer.motor.Acervo;
 import br.com.starktechstudio.mediaplayer.motor.AcervoMusicas;
+import br.com.starktechstudio.mediaplayer.motor.CapasMusica;
 import br.com.starktechstudio.mediaplayer.motor.Discografia;
 import br.com.starktechstudio.mediaplayer.motor.Pastas;
 
@@ -39,6 +41,11 @@ import br.com.starktechstudio.mediaplayer.motor.Pastas;
  * {@link br.com.starktechstudio.mediaplayer.motor.VarreduraMusicas}, e as playlists. Fotos de artista:
  * as mesmas dos Shows (tabela {@code artista}). As telas ouvem as mudanças ({@link #ouvir}) e também as da
  * biblioteca, que avisam quando uma foto chega.
+ *
+ * <p>1.5.1 (plano 006): os vídeos da pasta de Músicas (os títulos {@code CLIPE} da biblioteca de vídeo) entram
+ * como álbuns em vídeo (pela subpasta) e como os vídeos soltos de cada artista; o artista conta músicas e
+ * vídeos. O texto da Wikipédia dos álbuns (banco v8) e o do artista vão para as telas. Músicas e vídeos do HD
+ * desligado ficam de fora até ligar.
  */
 public final class RepositorioMusicas {
 
@@ -59,10 +66,21 @@ public final class RepositorioMusicas {
     /** Playlists gravadas fora da tela. */
     private final ExecutorService gravacao = Executors.newSingleThreadExecutor(r -> new Thread(r, "StarkTechPlaylists"));
     private volatile Retrato retrato;
+    /** As músicas do banco (lidas de novo só em {@link #recarregar}) e o texto dos álbuns. */
+    private volatile List<AcervoMusicas.Musica> audio;
+    private volatile Map<String, AcervoMusicas.TextoAlbum> textos;
 
     /** O que as telas leem, montado de uma vez. */
     private static final class Retrato {
+        /** A versão da biblioteca de vídeo de que vieram os vídeos ({@link RepositorioReal#versao}). */
+        int versaoVideos;
         final Map<String, Musica> musicas = new HashMap<>();
+        /** 1.5.1: álbuns em vídeo e os vídeos soltos de cada artista. */
+        final List<Album> colecoesDeVideo = new ArrayList<>();
+        final Map<String, Album> soltosDoArtista = new HashMap<>();
+        final Map<String, Integer> videosDoArtista = new HashMap<>();
+        final Map<String, Set<String>> formatosDoArtista = new HashMap<>();
+        final Map<String, String> qualidadeDoArtista = new HashMap<>();
         final List<Album> albuns = new ArrayList<>();
         final Map<String, Album> albunsPorId = new HashMap<>();
         /** Artista → álbuns dele (o do álbum ou de alguma faixa) e as faixas dele. */
@@ -105,15 +123,30 @@ public final class RepositorioMusicas {
 
     /** Lê de novo do banco (depois da varredura ou de mudar uma playlist) e avisa as telas. */
     public void recarregar() {
-        retrato = montar();
+        audio = acervo.musicas();
+        textos = acervo.textosDeAlbum();
+        synchronized (this) {
+            retrato = montar();
+        }
         notificar();
     }
 
+    /** O texto de um álbum chegou da Wikipédia (1.5.1). */
+    public void recarregarTextos() {
+        textos = acervo.textosDeAlbum();
+        synchronized (this) {
+            retrato = montar();
+        }
+        notificar();
+    }
+
+    /** Refaz quando a biblioteca de vídeo mudou (vídeos de música novos, quadros, HD ligado ou desligado). */
     private Retrato atual() {
         Retrato r = retrato;
-        if (r == null) {
+        int versao = RepositorioReal.instancia(app).versao();
+        if (r == null || r.versaoVideos != versao) {
             synchronized (this) {
-                if (retrato == null) retrato = montar();
+                if (retrato == null || retrato.versaoVideos != versao) retrato = montar();
                 r = retrato;
             }
         }
@@ -122,7 +155,22 @@ public final class RepositorioMusicas {
 
     private Retrato montar() {
         Retrato r = new Retrato();
-        List<AcervoMusicas.Musica> todas = acervo.musicas();
+        RepositorioReal real = RepositorioReal.instancia(app);
+        r.versaoVideos = real.versao();
+        if (audio == null) audio = acervo.musicas();
+        if (textos == null) textos = acervo.textosDeAlbum();
+        Map<String, AcervoMusicas.TextoAlbum> txt = textos;
+        // HD desligado: as músicas dele somem até ligar (como os vídeos)
+        Map<String, Boolean> montada = new HashMap<>();
+        List<AcervoMusicas.Musica> todas = new ArrayList<>();
+        for (AcervoMusicas.Musica m : audio) {
+            Boolean ok = montada.get(m.pasta);
+            if (ok == null) {
+                ok = new File(m.pasta).isDirectory();
+                montada.put(m.pasta, ok);
+            }
+            if (ok) todas.add(m);
+        }
         Collator ordem = collator();
         for (AcervoMusicas.Musica m : todas) {
             Integer n = r.porPasta.get(m.pasta);
@@ -138,6 +186,8 @@ public final class RepositorioMusicas {
             a.ano = d.ano;
             a.capa = existe(d.capa);
             a.cor = RepositorioReal.corDe(a.id);
+            a.formato = formatos(d.musicas);
+            aplicarTexto(a, txt);
             for (AcervoMusicas.Musica m : d.musicas) {
                 Musica musica = musica(m, a);
                 a.musicas.add(musica);
@@ -148,6 +198,13 @@ public final class RepositorioMusicas {
                     String chave = Acervo.chaveArtista(nomeArtista);
                     adicionar(r.musicasDoArtista, chave, musica);
                     if (!r.nomeDoArtista.containsKey(chave)) r.nomeDoArtista.put(chave, nomeArtista);
+                    Set<String> deles = r.formatosDoArtista.get(chave);
+                    if (deles == null) {
+                        deles = new java.util.TreeSet<>();
+                        r.formatosDoArtista.put(chave, deles);
+                    }
+                    String formato = formatoDoArquivo(m.caminho);
+                    if (formato != null) deles.add(formato);
                     List<Album> dele = r.albunsDoArtista.get(chave);
                     if (dele == null || !dele.contains(a)) adicionar(r.albunsDoArtista, chave, a);
                 }
@@ -163,14 +220,125 @@ public final class RepositorioMusicas {
             int ano = Integer.compare(x.ano == null ? 0 : x.ano, y.ano == null ? 0 : y.ano);
             return ano != 0 ? ano : ordem.compare(x.nome, y.nome);
         });
+        montarVideos(r, real, txt, ordem);
         for (List<Album> dele : r.albunsDoArtista.values()) {
             Collections.sort(dele, (x, y) -> {
                 int ano = Integer.compare(x.ano == null ? 0 : x.ano, y.ano == null ? 0 : y.ano);
-                return ano != 0 ? ano : comparar(ordem, x.nome, y.nome);
+                if (ano != 0) return ano;
+                int nome = comparar(ordem, x.nome, y.nome);
+                return nome != 0 ? nome : Boolean.compare(x.video, y.video);
             });
         }
         r.playlists.addAll(acervo.playlists());
         return r;
+    }
+
+    /**
+     * Vídeos da pasta de Músicas (1.5.1): pelo artista e pela subpasta. Com subpasta, um álbum em vídeo; sem,
+     * os vídeos soltos do artista. Em cada um, a ordem do número do arquivo e, sem ele, do nome. Capa: a imagem
+     * da pasta ou o quadro do primeiro vídeo.
+     */
+    private void montarVideos(Retrato r, RepositorioReal real, Map<String, AcervoMusicas.TextoAlbum> txt, Collator ordem) {
+        Map<String, Album> porColecao = new LinkedHashMap<>();
+        for (Titulo t : real.clipes()) {
+            String nomeArtista = t.artista;
+            String chaveArtista = nomeArtista == null ? null : Acervo.chaveArtista(nomeArtista);
+            String id = t.grupo != null ? "albumvideo:" + normalizar(nomeArtista) + "|" + normalizar(t.grupo)
+                    : "videos:" + (chaveArtista == null ? "" : chaveArtista);
+            Album a = porColecao.get(id);
+            if (a == null) {
+                a = new Album();
+                a.id = id;
+                a.nome = t.grupo;
+                a.artista = nomeArtista;
+                a.idArtista = chaveArtista;
+                a.video = true;
+                a.soltos = t.grupo == null;
+                a.ano = numero(t.ano);
+                a.cor = RepositorioReal.corDe(id);
+                porColecao.put(id, a);
+            }
+            Musica v = new Musica();
+            v.id = t.id;
+            v.titulo = t.titulo;
+            v.artista = nomeArtista;
+            v.album = t.grupo;
+            v.idAlbum = id;
+            v.faixa = real.numeroDoClipe(t.id);
+            v.duracaoMs = t.duracaoSegundos * 1000L;
+            v.capa = t.quadro;
+            v.cor = a.cor;
+            v.video = true;
+            a.musicas.add(v);
+        }
+        for (Album a : porColecao.values()) {
+            Collections.sort(a.musicas, (x, y) -> {
+                if (x.faixa != y.faixa) return Integer.compare(x.faixa == 0 ? Integer.MAX_VALUE : x.faixa, y.faixa == 0 ? Integer.MAX_VALUE : y.faixa);
+                int nome = normalizar(x.titulo).compareTo(normalizar(y.titulo));
+                return nome != 0 ? nome : x.id.compareTo(y.id);
+            });
+            Musica primeiro = a.musicas.get(0);
+            File pasta = new File(primeiro.id).getParentFile();
+            File imagem = pasta == null || a.soltos ? null : CapasMusica.imagemDaPasta(pasta);
+            a.capa = imagem != null && imagem.canRead() ? imagem.getAbsolutePath() : primeiro.capa;
+            a.formato = real.formatoDoClipe(primeiro.id);
+            if (!a.soltos) aplicarTexto(a, txt);
+            r.colecoesDeVideo.add(a);
+            r.albunsPorId.put(a.id, a);
+            if (a.idArtista == null) continue;
+            if (!r.nomeDoArtista.containsKey(a.idArtista)) r.nomeDoArtista.put(a.idArtista, a.artista);
+            Integer conta = r.videosDoArtista.get(a.idArtista);
+            r.videosDoArtista.put(a.idArtista, (conta == null ? 0 : conta) + a.musicas.size());
+            if (!r.qualidadeDoArtista.containsKey(a.idArtista) && a.formato != null && !a.formato.isEmpty()) {
+                r.qualidadeDoArtista.put(a.idArtista, a.formato.split(" · ")[0]);
+            }
+            if (a.soltos) r.soltosDoArtista.put(a.idArtista, a);
+            else adicionar(r.albunsDoArtista, a.idArtista, a);
+        }
+        // Artista, álbuns em vídeo por ano e nome, e os vídeos soltos depois dos álbuns dele
+        Collections.sort(r.colecoesDeVideo, (x, y) -> {
+            int artista = comparar(ordem, x.artista, y.artista);
+            if (artista != 0) return artista;
+            if (x.soltos != y.soltos) return x.soltos ? 1 : -1;
+            int ano = Integer.compare(x.ano == null ? 0 : x.ano, y.ano == null ? 0 : y.ano);
+            return ano != 0 ? ano : comparar(ordem, x.nome, y.nome);
+        });
+    }
+
+    private static void aplicarTexto(Album a, Map<String, AcervoMusicas.TextoAlbum> txt) {
+        AcervoMusicas.TextoAlbum t = txt == null ? null : txt.get(a.id);
+        if (t == null || t.situacao != Acervo.ACHADO) return;
+        a.resumo = t.resumo;
+        a.descricao = t.descricao;
+    }
+
+    /** "MP3" ou "FLAC · MP3": as extensões das faixas, sem repetir. */
+    @Nullable
+    private static String formatos(List<AcervoMusicas.Musica> musicas) {
+        Set<String> deles = new java.util.TreeSet<>();
+        for (AcervoMusicas.Musica m : musicas) {
+            String f = formatoDoArquivo(m.caminho);
+            if (f != null) deles.add(f);
+        }
+        return deles.isEmpty() ? null : android.text.TextUtils.join(" · ", deles);
+    }
+
+    @Nullable
+    static String formatoDoArquivo(String caminho) {
+        int ponto = caminho.lastIndexOf('.');
+        if (ponto < 0 || ponto == caminho.length() - 1) return null;
+        String extensao = caminho.substring(ponto + 1).toUpperCase(Locale.ROOT);
+        return "OGA".equals(extensao) ? "OGG" : extensao;
+    }
+
+    @Nullable
+    private static Integer numero(@Nullable String texto) {
+        if (texto == null || texto.trim().isEmpty()) return null;
+        try {
+            return Integer.valueOf(texto.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private static Musica musica(AcervoMusicas.Musica m, Album a) {
@@ -203,8 +371,10 @@ public final class RepositorioMusicas {
         return !Pastas.de(app).deMusicas().isEmpty();
     }
 
+    /** Sem músicas e sem vídeos de música. */
     public boolean vazio() {
-        return atual().musicas.isEmpty();
+        Retrato r = atual();
+        return r.musicas.isEmpty() && r.colecoesDeVideo.isEmpty();
     }
 
     public int musicasDaPasta(String pasta) {
@@ -217,9 +387,7 @@ public final class RepositorioMusicas {
         Retrato r = atual();
         Map<String, Acervo.Artista> fotos = Acervo.de(app).artistas();
         List<Artista> lista = new ArrayList<>();
-        for (Map.Entry<String, List<Musica>> item : r.musicasDoArtista.entrySet()) {
-            lista.add(artista(r, fotos, item.getKey()));
-        }
+        for (String chave : r.nomeDoArtista.keySet()) lista.add(artista(r, fotos, chave));
         Collator ordem = collator();
         Collections.sort(lista, (x, y) -> comparar(ordem, x.nome, y.nome));
         return lista;
@@ -228,7 +396,7 @@ public final class RepositorioMusicas {
     @Nullable
     public Artista artista(String id) {
         Retrato r = atual();
-        if (!r.musicasDoArtista.containsKey(id)) return null;
+        if (!r.nomeDoArtista.containsKey(id)) return null;
         return artista(r, Acervo.de(app).artistas(), id);
     }
 
@@ -238,12 +406,43 @@ public final class RepositorioMusicas {
         a.nome = r.nomeDoArtista.get(chave);
         Acervo.Artista foto = fotos.get(chave);
         a.foto = foto == null ? null : existe(foto.foto);
+        if (foto != null) {
+            a.resumo = foto.resumo;
+            a.descricao = foto.descricao;
+        }
         a.cor = RepositorioReal.corDe(chave);
         List<Album> albuns = r.albunsDoArtista.get(chave);
         a.albuns = albuns == null ? 0 : albuns.size();
         List<Musica> musicas = r.musicasDoArtista.get(chave);
         a.musicas = musicas == null ? 0 : musicas.size();
+        Integer videos = r.videosDoArtista.get(chave);
+        a.videos = videos == null ? 0 : videos;
+        Set<String> formatos = r.formatosDoArtista.get(chave);
+        a.formatoMusicas = formatos == null || formatos.isEmpty() ? null : android.text.TextUtils.join(" · ", formatos);
+        a.formatoVideos = r.qualidadeDoArtista.get(chave);
         return a;
+    }
+
+    /** Os vídeos do artista sem álbum (1.5.1); nulo se não tem. */
+    @Nullable
+    public Album videosSoltos(String idArtista) {
+        return atual().soltosDoArtista.get(idArtista);
+    }
+
+    /** A sub-aba Vídeos (1.5.1): os álbuns em vídeo e os vídeos soltos de cada artista. */
+    public List<Album> colecoesDeVideo() {
+        return Collections.unmodifiableList(atual().colecoesDeVideo);
+    }
+
+    /** Álbuns (de áudio e em vídeo) com nome, para buscar o texto na Wikipédia: {chave, nome, artista ou nulo}. */
+    public List<String[]> albunsParaTexto() {
+        Retrato r = atual();
+        List<String[]> lista = new ArrayList<>();
+        for (Album a : r.albunsPorId.values()) {
+            if (a.nome == null || a.soltos) continue;
+            lista.add(new String[]{a.id, a.nome, a.artista});
+        }
+        return lista;
     }
 
     /** Nomes dos artistas que precisam de foto (a fila dos Shows busca também estes). */

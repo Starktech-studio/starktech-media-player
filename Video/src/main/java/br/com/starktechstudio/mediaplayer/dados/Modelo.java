@@ -34,7 +34,8 @@ public final class Modelo {
     }
 
     /** Tipo do conteúdo: vem do tipo da pasta (INTERFACE.md §4). */
-    public enum Tipo { FILME, SERIE, DESENHO, SHOW, STANDUP }
+    /** CLIPE (1.5.1): vídeo da pasta de Músicas; só em Músicas e no player. */
+    public enum Tipo { FILME, SERIE, DESENHO, SHOW, STANDUP, CLIPE }
 
     /** Tipo escolhido para uma pasta; NENHUM = "escolha o tipo". */
     public enum TipoPasta { FILMES, SERIES, TVSHOWS, DESENHOS, SHOWS, STANDUP, MUSICAS, IGNORAR, NENHUM }

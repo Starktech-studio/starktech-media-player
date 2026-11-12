@@ -144,6 +144,63 @@ public final class TagsMusica {
         if (tags.disco == 0) tags.disco = discoDoNome;
     }
 
+    /** Pastas dos vídeos soltos do artista (1.5.1): "Vídeos", "Clipes"; o vídeo dentro delas não tem álbum. */
+    private static final String[] PASTAS_DE_VIDEOS = {"videos", "video", "clipes", "clipe", "clips", "clip",
+            "videoclipes", "videoclipe", "video clipes", "video clipe", "music videos"};
+
+    static boolean ehPastaDeVideos(String nome) {
+        String normal = Nomes.normalizar(nome);
+        for (String p : PASTAS_DE_VIDEOS) if (p.equals(normal)) return true;
+        return false;
+    }
+
+    /**
+     * Vídeo dentro da pasta de Músicas (1.5.1, D1 do plano 006), só pelo nome: o artista é a 1ª pasta;
+     * a pasta de cima do arquivo, se não for a do artista nem "Vídeos", é o álbum em vídeo ("Ao Vivo (2019)",
+     * com o ano); o número no começo do arquivo é a ordem. Solto na raiz: "Artista - Título". Dentro da pasta
+     * do artista, "Artista - Título" perde o artista repetido.
+     */
+    static Tags clipe(String relativo) {
+        String[] partes = relativo.split("/");
+        String arquivo = Nomes.semExtensao(partes[partes.length - 1]);
+        Tags t = new Tags();
+        String nome = Nomes.limpar(arquivo);
+        Matcher faixa = FAIXA_NO_NOME.matcher(nome);
+        if (faixa.matches() && !ehAno(faixa.group(1))) {
+            t.faixa = Integer.parseInt(faixa.group(1));
+            nome = faixa.group(2).trim();
+        }
+        String artista = partes.length >= 2 ? Nomes.limpar(partes[0]) : null;
+        String album = partes.length >= 3 ? Nomes.limpar(partes[partes.length - 2]) : null;
+        if (album != null && ehPastaDeVideos(album)) album = null;
+        if (album != null) {
+            Matcher depois = ANO_DEPOIS_DO_ALBUM.matcher(album);
+            Matcher antes = ANO_ANTES_DO_ALBUM.matcher(album);
+            if (depois.matches() && !depois.group(1).trim().isEmpty()) {
+                t.ano = Integer.valueOf(depois.group(2));
+                album = depois.group(1).trim();
+            } else if (antes.matches()) {
+                t.ano = Integer.valueOf(antes.group(1));
+                album = antes.group(2).trim();
+            }
+        }
+        int traco = nome.indexOf(" - ");
+        if (traco > 0) {
+            String antes = nome.substring(0, traco).trim();
+            String depois = nome.substring(traco + 3).trim();
+            if (artista == null) {
+                artista = antes;
+                nome = depois;
+            } else if (Nomes.normalizar(antes).equals(Nomes.normalizar(artista)) && !depois.isEmpty()) {
+                nome = depois;
+            }
+        }
+        t.artista = artista;
+        t.album = album;
+        t.titulo = nome.isEmpty() ? arquivo : nome;
+        return t;
+    }
+
     /** "3/12" → 3; "03" → 3; nulo ou sem número → 0. */
     static int numero(@Nullable String texto) {
         if (texto == null) return 0;

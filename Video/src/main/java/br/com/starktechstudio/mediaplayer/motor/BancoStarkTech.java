@@ -36,11 +36,14 @@ import android.database.sqlite.SQLiteOpenHelper;
  * tags e a capa ({@link AcervoMusicas}); {@code playlist} e {@code playlist_musica}, as playlists criadas no
  * app, com as músicas pelo caminho e na ordem; {@code estado.atraso_legenda}, o atraso da legenda do título
  * em ms (0 = nenhum).
+ *
+ * <p>Versão 8 (1.5.1, só acrescenta): {@code album}, o texto da Wikipédia de cada álbum de Músicas (resumo,
+ * descrição, situação e quando buscou), pela chave do álbum.
  */
 public final class BancoStarkTech extends SQLiteOpenHelper {
 
     public static final String NOME = "starktech.db";
-    private static final int VERSAO = 7;
+    private static final int VERSAO = 8;
 
     static final String EDICAO = "edicao";
     static final String CHAVE = "chave";
@@ -62,6 +65,7 @@ public final class BancoStarkTech extends SQLiteOpenHelper {
     static final String MUSICA = "musica";
     static final String PLAYLIST = "playlist";
     static final String PLAYLIST_MUSICA = "playlist_musica";
+    static final String ALBUM = "album";
 
     private static BancoStarkTech instancia;
 
@@ -83,6 +87,7 @@ public final class BancoStarkTech extends SQLiteOpenHelper {
         criarVersao4(banco);
         criarVersao5(banco);
         criarVersao7(banco);
+        criarVersao8(banco);
     }
 
     @Override
@@ -93,6 +98,17 @@ public final class BancoStarkTech extends SQLiteOpenHelper {
         if (versaoAntiga < 5) criarVersao5(banco);
         if (versaoAntiga < 6) criarVersao6(banco);
         if (versaoAntiga < 7) criarVersao7(banco);
+        if (versaoAntiga < 8) criarVersao8(banco);
+    }
+
+    /** Versão 8 (1.5.1): o texto da Wikipédia dos álbuns de Músicas. */
+    static void criarVersao8(SQLiteDatabase banco) {
+        banco.execSQL("CREATE TABLE " + ALBUM + " ("
+                + "chave TEXT PRIMARY KEY NOT NULL, "
+                + "situacao INTEGER NOT NULL, "
+                + "resumo TEXT, "
+                + "descricao TEXT, "
+                + "buscado INTEGER NOT NULL)");
     }
 
     /** Versão 7 (1.5): músicas, playlists e o atraso da legenda de cada título. */

@@ -8,7 +8,7 @@ Sem login e sem conta: a biblioteca fica no aparelho. O mesmo APK roda na TV, no
 
 | | |
 |---|---|
-| **Versão** | 1.5.0 |
+| **Versão** | 1.5.1 |
 | **Pacote** | `br.com.starktechstudio.mediaplayer` |
 | **Android** | 6.0 ou mais novo |
 | **Tamanho do APK** | cerca de 110 MB (um APK só, para qualquer processador) |
@@ -67,6 +67,8 @@ Na TV. Prints feitos no emulador, com vídeos de teste gerados só para isso (po
 - **Tocando agora:** aleatório, repetir e fila; tocar a seguir e pôr na fila.
 - **Fora do app:** a música continua com a tela desligada, com notificação e os botões do fone e do controle.
 - **Formatos:** MP3, M4A, AAC, FLAC, OGG, Opus e WAV.
+- **Vídeos de música:** na pasta do artista, em sequência pelo número do nome; álbum em vídeo numa pasta só com vídeos. Tocam no player de vídeo, um atrás do outro.
+- **Artista e álbum:** descrição da Wikipédia e selos do formato ("Músicas · MP3", "Vídeos · 1080p").
 
 ### Player
 
@@ -100,6 +102,8 @@ Desenhos/Nome do desenho (2019).mkv
 Shows/Artista - Show (2019).mkv
 Stand-up/Nome do especial (2021).mkv
 Músicas/Artista/Álbum (1975)/01 - Faixa.mp3
+Músicas/Artista/Vídeos/01 - Música.mp4
+Músicas/Artista/Ao Vivo (2019)/01 - Música.mp4
 ```
 
 **Sem o acesso a todos os arquivos** (recusado, ou TV sem essa tela): a legenda em arquivo vem do índice de mídia do Android (`.srt` e `.vtt` com certeza; `.ass` e `.ssa` podem ficar de fora). Para liberar o acesso por um computador, depois de instalar:
@@ -155,7 +159,7 @@ Chaves (TMDB, fanart.tv e a assinatura do APK) ficam fora do repositório. Detal
 
 ## Situação
 
-Versão 1.5.0, de uso próprio, em teste. O código é público, e as versões do app ficam nas releases deste repositório.
+Versão 1.5.1, de uso próprio, em teste. O código é público, e as versões do app ficam nas releases deste repositório.
 
 **Antes de liberar ao público**, há pendências de termos e licenças. A principal: confirmar com o TMDB o uso da chave e o prazo de 6 meses dos dados guardados. A lista completa, com o que os termos do TMDB, da Wikipédia e das bibliotecas pedem, está em [`liberar-ao-publico.md`](docs/operacional/liberar-ao-publico.md).
 

@@ -39,9 +39,10 @@ public class PrincipalTabletActivity extends AppCompatActivity implements Navega
 
     private static final String ESTADO_ABA = "aba";
 
-    private static final Aba[] ABAS = Aba.values();
+    /** Início, as abas em ordem alfabética e Ajustes (1.5.1, {@link Navegacao#emOrdem}); montada no onCreate. */
+    private Aba[] abas = Aba.values();
 
-    private final View[] itens = new View[ABAS.length];
+    private final View[] itens = new View[Aba.values().length];
     private View topoInicio;
     private View topoMarca;
     private View seloHd;
@@ -71,15 +72,17 @@ public class PrincipalTabletActivity extends AppCompatActivity implements Navega
         BordasSistema.aplicar(barra, false, true, false, true);
         BordasSistema.aplicar(findViewById(R.id.st_coluna_conteudo), false, true, false, false);
         LayoutInflater inflater = LayoutInflater.from(this);
-        for (int i = 0; i < ABAS.length; i++) {
+        // 1.5.1: Início primeiro (em destaque), as outras em ordem alfabética e Ajustes no fim
+        abas = Navegacao.emOrdem(this, Aba.values());
+        for (int i = 0; i < abas.length; i++) {
             final int indice = i;
             View item = inflater.inflate(R.layout.st_tablet_item_barra, barra, false);
             ImageView icone = item.findViewById(R.id.st_item_barra_icone);
             TextView texto = item.findViewById(R.id.st_item_barra_texto);
-            icone.setImageResource(ABAS[i].icone);
-            texto.setText(ABAS[i].nome);
+            icone.setImageResource(abas[i].icone);
+            texto.setText(abas[i].nome);
             // Início em destaque: ícone e texto em amarelo, parado ou ativo
-            if (ABAS[i] == Aba.INICIO) {
+            if (abas[i] == Aba.INICIO) {
                 int amarelo = ContextCompat.getColor(this, R.color.st_amarelo_marca);
                 ImageViewCompat.setImageTintList(icone, ColorStateList.valueOf(amarelo));
                 texto.setTextColor(amarelo);
@@ -93,7 +96,7 @@ public class PrincipalTabletActivity extends AppCompatActivity implements Navega
 
         Aba pedida = Navegacao.abaDoIntent(getIntent());
         int inicial = savedInstanceState != null ? savedInstanceState.getInt(ESTADO_ABA, 0)
-                : pedida == null ? 0 : pedida.ordinal();
+                : pedida == null ? 0 : indiceDe(pedida);
         boolean restaurado = savedInstanceState != null
                 && getSupportFragmentManager().findFragmentById(R.id.st_conteudo) != null;
         if (restaurado) marcarItem(inicial);
@@ -118,7 +121,7 @@ public class PrincipalTabletActivity extends AppCompatActivity implements Navega
         super.onNewIntent(intent);
         setIntent(intent);
         Aba aba = Navegacao.abaDoIntent(intent);
-        if (aba != null) selecionarAba(aba.ordinal());
+        if (aba != null) selecionarAba(indiceDe(aba));
     }
 
     @Override
@@ -151,12 +154,18 @@ public class PrincipalTabletActivity extends AppCompatActivity implements Navega
         mostrarAbasLigadas();
     }
 
+    /** Posição da aba na barra ({@link #abas}); 0 (Início) se não estiver. */
+    private int indiceDe(Aba aba) {
+        for (int i = 0; i < abas.length; i++) if (abas[i] == aba) return i;
+        return 0;
+    }
+
     /** Só as abas ligadas em Configurações &gt; Navegação; a aba aberta que foi desligada volta ao Início. */
     private void mostrarAbasLigadas() {
-        for (int i = 0; i < ABAS.length; i++) {
-            itens[i].setVisibility(Preferencias.abaLigada(this, ABAS[i]) ? View.VISIBLE : View.GONE);
+        for (int i = 0; i < abas.length; i++) {
+            itens[i].setVisibility(Preferencias.abaLigada(this, abas[i]) ? View.VISIBLE : View.GONE);
         }
-        if (abaAtiva >= 0 && itens[abaAtiva].getVisibility() != View.VISIBLE) selecionarAba(Aba.INICIO.ordinal());
+        if (abaAtiva >= 0 && itens[abaAtiva].getVisibility() != View.VISIBLE) selecionarAba(indiceDe(Aba.INICIO));
     }
 
     private void selecionarAba(int indice) {
@@ -164,7 +173,7 @@ public class PrincipalTabletActivity extends AppCompatActivity implements Navega
         marcarItem(indice);
         getSupportFragmentManager().beginTransaction()
                 .setReorderingAllowed(true)
-                .replace(R.id.st_conteudo, Navegacao.conteudoDaAba(this, ABAS[indice]))
+                .replace(R.id.st_conteudo, Navegacao.conteudoDaAba(this, abas[indice]))
                 .commitNow();
     }
 
@@ -172,7 +181,7 @@ public class PrincipalTabletActivity extends AppCompatActivity implements Navega
         abaAtiva = indice;
         for (int i = 0; i < itens.length; i++) itens[i].setSelected(i == indice);
         // Marca e selo do HD só no Início (nas outras abas o desenho começa pelo título); o relógio fica em todas
-        boolean inicio = ABAS[indice] == Aba.INICIO;
+        boolean inicio = abas[indice] == Aba.INICIO;
         topoMarca.setVisibility(inicio ? View.VISIBLE : View.GONE);
         seloHd.setVisibility(inicio ? View.VISIBLE : View.GONE);
         topoInicio.setPaddingRelative(topoInicio.getPaddingStart(),

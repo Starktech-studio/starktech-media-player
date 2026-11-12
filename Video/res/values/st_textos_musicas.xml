@@ -6,6 +6,18 @@
     <string name="st_musicas_artistas">Artistas</string>
     <string name="st_musicas_albuns">Álbuns</string>
     <string name="st_musicas_playlists">Playlists</string>
+    <string name="st_musicas_videos">Vídeos</string>
+
+    <!-- Vídeos em Músicas (1.5.1) -->
+    <string name="st_musicas_videos_de">Vídeos de %1$s</string>
+    <string name="st_musicas_assistir">Assistir</string>
+    <string name="st_musicas_album_em_video">Álbum em vídeo</string>
+    <string name="st_musicas_selo_album">Álbum</string>
+    <string name="st_musicas_selo_album_video">Álbum em vídeo</string>
+    <string name="st_musicas_selo_musicas">Músicas</string>
+    <string name="st_musicas_selo_videos">Vídeos</string>
+    <string name="st_musicas_selo_playlist">Playlist</string>
+    <string name="st_musicas_sem_videos">Nenhum vídeo nas pastas de Músicas ainda. Ponha os vídeos na pasta do artista (Músicas/Artista/Vídeos/01 - Música.mp4) ou numa pasta de álbum em vídeo (Músicas/Artista/Ao Vivo (2019)/01 - Música.mp4).</string>
 
     <!-- Avisos da aba -->
     <string name="st_musicas_sem_pasta">Nenhuma pasta de Músicas ainda. Em Configurações &gt; Biblioteca &gt; Pastas da biblioteca, adicione a pasta das suas músicas e marque o tipo Músicas.</string>

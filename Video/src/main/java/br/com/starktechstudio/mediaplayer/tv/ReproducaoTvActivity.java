@@ -322,6 +322,11 @@ public class ReproducaoTvActivity extends AppCompatActivity {
      * fecha o player, sem outra cópia; não estando, ela abre e o player fecha.
      */
     private void sair() {
+        // Vídeo de música (1.5.1): volta para a tela de Músicas de onde veio (artista ou álbum)
+        if (reproducao.ehClipe()) {
+            finish();
+            return;
+        }
         boolean episodio = reproducao.idSerie != null;
         startActivity(new Intent(this, episodio ? SerieTvActivity.class : DetalheTvActivity.class)
                 .putExtra(Navegacao.EXTRA_ID, episodio ? reproducao.idSerie : reproducao.id)

@@ -103,6 +103,7 @@ public class BuscaArtistaTest {
         assertTrue(BuscaArtista.mesmoNome("Simon & Garfunkel", "Simon and Garfunkel"));
         assertTrue(BuscaArtista.mesmoNome("Beyoncé", "BEYONCE"));
         assertTrue(BuscaArtista.mesmoNome("Guns N' Roses", "Guns N Roses"));
+        assertTrue("dupla: \"e\" vale \"&\" (1.5.1)", BuscaArtista.mesmoNome("Henrique e Juliano", "Henrique & Juliano"));
     }
 
     @Test

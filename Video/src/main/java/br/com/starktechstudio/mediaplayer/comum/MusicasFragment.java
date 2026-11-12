@@ -37,7 +37,7 @@ import br.com.starktechstudio.mediaplayer.motor.ArquivosDoAparelho;
 import br.com.starktechstudio.mediaplayer.musica.Tocador;
 
 /**
- * Aba Músicas (1.5): sub-abas Artistas, Álbuns e Playlists, cada uma numa grade de capas quadradas (a
+ * Aba Músicas (1.5): sub-abas Artistas, Álbuns, Playlists e Vídeos (1.5.1), cada uma numa grade de capas quadradas (a
  * foto do artista, redonda), a barra "Tocando agora" quando há música na fila e o aviso quando falta a
  * pasta de Músicas, a permissão ou as músicas. Na TV, a sub-aba em foco é a mostrada. OK ou toque abre;
  * segurar toca (o álbum, todas do artista ou a playlist). Desligada de fábrica: aparece no menu depois de
@@ -49,7 +49,10 @@ public class MusicasFragment extends Fragment {
     private static final int ARTISTAS = 0;
     private static final int ALBUNS = 1;
     private static final int PLAYLISTS = 2;
-    private static final int[] NOMES = {R.string.st_musicas_artistas, R.string.st_musicas_albuns, R.string.st_musicas_playlists};
+    /** 1.5.1: álbuns em vídeo e os vídeos soltos de cada artista. */
+    private static final int VIDEOS = 3;
+    private static final int[] NOMES = {R.string.st_musicas_artistas, R.string.st_musicas_albuns, R.string.st_musicas_playlists,
+            R.string.st_musicas_videos};
     private static final int COLUNAS_TV = 6;
 
     private boolean tv;
@@ -247,6 +250,9 @@ public class MusicasFragment extends Fragment {
             if (lista.size() == 1) textoAviso = getString(R.string.st_musicas_sem_playlists);
         } else if (repositorio.vazio()) {
             textoAviso = getString(R.string.st_musicas_vazia);
+        } else if (ativa == VIDEOS) {
+            lista = videos(repositorio);
+            if (lista.isEmpty()) textoAviso = getString(R.string.st_musicas_sem_videos);
         } else if (ativa == ARTISTAS) {
             lista = artistas(repositorio);
         } else {
@@ -279,6 +285,28 @@ public class MusicasFragment extends Fragment {
                     R.drawable.st_ic_disco, false,
                     () -> TelasMusica.abrirAlbum(requireActivity(), a.id),
                     () -> Tocador.de(requireContext()).tocar(a.musicas, 0, false)));
+        }
+        return lista;
+    }
+
+    /**
+     * Sub-aba Vídeos (1.5.1): uma capa por álbum em vídeo e uma "Vídeos de" por artista com vídeos soltos;
+     * OK abre a lista, segurar assiste do primeiro (o player segue a sequência).
+     */
+    private List<CapaMusicaAdapter.Capa> videos(RepositorioMusicas repositorio) {
+        List<CapaMusicaAdapter.Capa> lista = new ArrayList<>();
+        for (Album a : repositorio.colecoesDeVideo()) {
+            String artista = PecasMusica.artista(requireContext(), a.artista);
+            String nome = a.soltos ? getString(R.string.st_musicas_videos_de, artista) : PecasMusica.album(requireContext(), a.nome);
+            String linha = a.soltos ? getResources().getQuantityString(R.plurals.st_n_videos, a.musicas.size(), a.musicas.size())
+                    : artista + (a.ano == null ? "" : " · " + a.ano);
+            String primeiro = a.musicas.get(0).id;
+            lista.add(new CapaMusicaAdapter.Capa(a.id, nome, linha, a.capa, a.cor, R.drawable.st_ic_assistir, false,
+                    () -> {
+                        if (a.soltos) TelasMusica.abrirVideos(requireActivity(), a.id);
+                        else TelasMusica.abrirAlbum(requireActivity(), a.id);
+                    },
+                    () -> Navegacao.abrirReproducao(requireActivity(), primeiro, Navegacao.DE_ONDE_PAROU)));
         }
         return lista;
     }

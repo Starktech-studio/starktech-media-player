@@ -26,7 +26,7 @@
 
 ## 3. Banco do app (`starktech.db`, D2)
 
-Separado do banco do Nova (o app não usa a biblioteca nem os dados do TMDB do Nova). `BancoStarkTech`, versão 7 (F3: `video`, `tmdb`, `estado`; plano 004: colunas novas e a tabela `artista`; v6, 1.1.1: só a fila dos artistas; v7, 1.5: `musica`, `playlist`, `playlist_musica` e `estado.atraso_legenda`). A migração só acrescenta, sem perder posição nem edição; a da versão 3 também preenche `edicao.nome` do que já foi editado.
+Separado do banco do Nova (o app não usa a biblioteca nem os dados do TMDB do Nova). `BancoStarkTech`, versão 8 (F3: `video`, `tmdb`, `estado`; plano 004: colunas novas e a tabela `artista`; v6, 1.1.1: só a fila dos artistas; v7, 1.5: `musica`, `playlist`, `playlist_musica` e `estado.atraso_legenda`; v8, 1.5.1: `album`, o texto da Wikipédia dos álbuns). A migração só acrescenta, sem perder posição nem edição; a da versão 3 também preenche `edicao.nome` do que já foi editado.
 
 | Tabela | Colunas | O que guarda |
 |---|---|---|
@@ -121,3 +121,16 @@ Separado do banco do Nova (o app não usa a biblioteca nem os dados do TMDB do N
 | Atraso | `Reproducao.ajustarAtrasoLegenda` / `definirAtrasoLegenda`: `Player.setSubtitleDelay` em ms (positivo = legenda mais tarde, `native/avos/Source/avos_mp_video.c:60`), de 100 em 100 ms, até ±10 min. Guardado no título (`estado.atraso_legenda`) e aplicado ao abrir e no `onPrepared` |
 | Tamanho | `Reproducao.ajustarTamanhoLegenda`: o `TAMANHO_LEGENDA` de Configurações, um nível acima ou abaixo, para todos os vídeos |
 | Cache | `motor/Cache`: tamanho e limpeza das pastas de cache do app (a interna e as externas): `picasso-cache`, `subtitles`, `atualizacao` e restos do Nova. `files/` (miniaturas, fotos de artista, capas de música, imagens escolhidas) e o banco ficam |
+
+## Vídeos em Músicas (1.5.1, plano 006)
+
+| Item | Como é |
+|---|---|
+| Tipo | `Classificador.Tipo.CLIPE` / `Modelo.Tipo.CLIPE`: o vídeo da pasta de Músicas entra na biblioteca de vídeo (leitura técnica, quadro, posição, faixas e atraso da legenda como num show); o áudio continua na `VarreduraMusicas` |
+| Nome | `TagsMusica.clipe`: artista = 1ª pasta; álbum em vídeo = a pasta de cima do arquivo (`video.grupo`, com o ano de "(2019)"), menos `Vídeos`, `Videos`, `Clipes` e afins, que são os vídeos soltos; ordem = o número do arquivo (`video.episodio`); "Artista - Título" perde o artista repetido. Solto na raiz: "Artista - Título" |
+| Fora | Sem TMDB (`buscarDoVideo`), fora do Início, das abas e da busca (`RepositorioReal.todos`); `titulo(id)` acha, para o player |
+| Sequência | `RepositorioReal.proximoClipe`: o seguinte do mesmo artista e álbum (ou dos soltos), pelo número e, sem ele, pelo nome. `Reproducao` abre o seguinte no fim, sempre (D3) |
+| Em Músicas | `RepositorioMusicas` junta os vídeos (`RepositorioReal.clipes`) por artista e álbum; refaz quando a biblioteca de vídeo muda (`RepositorioReal.versao`). Capa do álbum em vídeo: a imagem da pasta (se legível) ou o quadro do 1º vídeo. Formato: a qualidade e o codec do 1º vídeo (`formatoDoClipe`); das músicas, as extensões |
+| Texto do álbum | `WikipediaArtista.album`: artigo em português de nome igual ao do álbum, que fala de álbum e cita o artista ("e" e "&" valem o mesmo). Buscado na fila das fotos de artista (`RepositorioReal.buscarTextosDeAlbum`), banco v8; não achado só busca de novo com "Atualizar agora" |
+| Nome de dupla | `BuscaArtista.soLetras`: " e " vale "&" ("Henrique e Juliano" = "Henrique & Juliano"), para a foto e o texto do artista |
+| HD desligado | Músicas e vídeos da pasta desmontada somem de Músicas até ligar |

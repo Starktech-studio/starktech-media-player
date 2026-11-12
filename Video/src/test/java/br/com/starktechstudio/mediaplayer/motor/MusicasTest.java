@@ -53,12 +53,65 @@ public class MusicasTest {
     }
 
     @Test
-    public void pastaDeMusicas_ficaForaDaVarreduraDeVideo() throws IOException {
+    public void pastaDeMusicas_videoViraClipe_audioFicaComAVarreduraDeMusicas() throws IOException {
         File musicas = temporaria.newFolder("hd", "Musicas");
-        assertTrue(new File(musicas, "clipe.mp4").createNewFile());
+        File artista = new File(musicas, "Henrique e Juliano");
+        File videos = new File(artista, "Vídeos");
+        File aoVivo = new File(artista, "Ao Vivo em Brasília (2019)");
+        assertTrue(videos.mkdirs());
+        assertTrue(aoVivo.mkdirs());
+        assertTrue(new File(videos, "02 - Outra.mp4").createNewFile());
+        assertTrue(new File(aoVivo, "01 - Abertura.mkv").createNewFile());
+        assertTrue(new File(aoVivo, "faixa.mp3").createNewFile());
         Pastas.Pasta pasta = new Pastas.Pasta(musicas.getAbsolutePath(), Pastas.Origem.HD_EXTERNO, Pastas.Tipo.MUSICAS, false);
-        assertTrue(Classificador.varrer(Collections.singletonList(pasta)).isEmpty());
-        assertNull(Classificador.classificar(new File(musicas, "clipe.mp4").getAbsolutePath(), pasta));
+        List<Classificador.Item> itens = Classificador.varrer(Collections.singletonList(pasta));
+        assertEquals("só os vídeos; o mp3 é da VarreduraMusicas", 2, itens.size());
+        for (Classificador.Item item : itens) {
+            assertEquals(Classificador.Tipo.CLIPE, item.tipo);
+            assertEquals("Henrique e Juliano", item.artista);
+        }
+        Classificador.Item doAlbum = Classificador.classificar(new File(aoVivo, "01 - Abertura.mkv").getAbsolutePath(), pasta);
+        assertEquals("Ao Vivo em Brasília", doAlbum.grupo);
+        assertEquals(Integer.valueOf(2019), doAlbum.ano);
+        assertEquals(1, doAlbum.episodio);
+        assertEquals("Abertura", doAlbum.titulo);
+        Classificador.Item solto = Classificador.classificar(new File(videos, "02 - Outra.mp4").getAbsolutePath(), pasta);
+        assertNull("pasta Vídeos: sem álbum", solto.grupo);
+        assertEquals(2, solto.episodio);
+        assertNull(Classificador.classificar(new File(aoVivo, "faixa.mp3").getAbsolutePath(), pasta));
+    }
+
+    @Test
+    public void clipe_peloNome() {
+        TagsMusica.Tags naPasta = TagsMusica.clipe("Coldplay/Yellow.mp4");
+        assertEquals("Coldplay", naPasta.artista);
+        assertNull(naPasta.album);
+        assertEquals("Yellow", naPasta.titulo);
+        TagsMusica.Tags repetido = TagsMusica.clipe("Coldplay/Clipes/03 - Coldplay - Fix You.mp4");
+        assertNull(repetido.album);
+        assertEquals(3, repetido.faixa);
+        assertEquals("o artista repetido no nome sai", "Fix You", repetido.titulo);
+        TagsMusica.Tags naRaiz = TagsMusica.clipe("Legião Urbana - Tempo Perdido.mkv");
+        assertEquals("Legião Urbana", naRaiz.artista);
+        assertEquals("Tempo Perdido", naRaiz.titulo);
+        assertTrue(TagsMusica.ehPastaDeVideos("Vídeos"));
+        assertTrue(TagsMusica.ehPastaDeVideos("clipes"));
+        assertFalse(TagsMusica.ehPastaDeVideos("Ao Vivo"));
+    }
+
+    @Test
+    public void textoDoAlbum_naWikipedia_soODoAlbumEDoArtista() throws Exception {
+        String json = "{\"query\":{\"pages\":["
+                + "{\"index\":1,\"title\":\"Manifesto Musical\",\"description\":\"filme de 2015\",\"extract\":\"Um filme brasileiro.\"},"
+                + "{\"index\":2,\"title\":\"Manifesto Musical (álbum)\",\"description\":\"álbum de Henrique & Juliano\","
+                + "\"extract\":\"Manifesto Musical é o álbum ao vivo da dupla Henrique & Juliano.\"},"
+                + "{\"index\":3,\"title\":\"Outro\",\"description\":\"álbum\",\"extract\":\"Texto.\"}]}}";
+        WikipediaArtista.Artigo artigo = WikipediaArtista.lerAlbum(json, "Manifesto Musical", "Henrique & Juliano");
+        assertEquals("Manifesto Musical (álbum)", artigo.titulo);
+        assertTrue(artigo.texto.startsWith("Manifesto Musical é o álbum"));
+        assertNull("de outro artista: fica sem texto", WikipediaArtista.lerAlbum(json, "Manifesto Musical", "Zé Neto"));
+        assertEquals("\"e\" na pasta e \"&\" no artigo", "Manifesto Musical (álbum)",
+                WikipediaArtista.lerAlbum(json, "Manifesto Musical", "Henrique e Juliano").titulo);
     }
 
     // ---- Nome do arquivo e das pastas ----

@@ -178,6 +178,8 @@ public final class Reproducao implements Player.Listener {
     private Set<String> legendasDeAntes = new HashSet<>();
     /** Atraso da legenda deste título (ms; positivo = mais tarde), guardado nele. */
     private int atrasoLegendaMs;
+    /** Vídeo de música (1.5.1). */
+    private boolean clipe;
 
     /** O motor não virou faixa (arquivo que ele não entende): avisa e apaga a cópia. */
     private final Runnable desistirDaLegenda = new Runnable() {
@@ -255,7 +257,17 @@ public final class Reproducao implements Player.Listener {
         // A duração daqui pode ser a do TMDB ou nenhuma: quem confere o fim do vídeo é o onPrepared
         else inicio = retomar ? parou : 0;
         boolean usaMarcas = t != null && (t.tipo == Tipo.FILME || t.tipo == Tipo.DESENHO);
-        return new Reproducao(contexto, repositorio, id, idSerie, nome, linha, caminho, duracao, inicio, parou, capitulos, usaMarcas);
+        // Vídeo de música (1.5.1): o artista embaixo do título e, no fim, o seguinte da sequência
+        boolean clipe = t != null && t.tipo == Tipo.CLIPE;
+        if (clipe && t.artista != null) linha = t.artista;
+        Reproducao r = new Reproducao(contexto, repositorio, id, idSerie, nome, linha, caminho, duracao, inicio, parou, capitulos, usaMarcas);
+        r.clipe = clipe;
+        return r;
+    }
+
+    /** Vídeo da pasta de Músicas (1.5.1): Voltar volta para Músicas e o fim abre o seguinte. */
+    public boolean ehClipe() {
+        return clipe;
     }
 
     /** A reprodução na tela, se for do título {@code id}. */
@@ -934,9 +946,13 @@ public final class Reproducao implements Player.Listener {
         if (seguinte != null && aoPassarEpisodio != null) aoPassarEpisodio.passar(seguinte);
     }
 
-    /** O episódio que vem depois deste, com "Próximo episódio automático" ligado; senão, null. */
+    /**
+     * O episódio que vem depois deste, com "Próximo episódio automático" ligado; o vídeo de música seguinte
+     * (1.5.1), sempre (D3 do plano 006); senão, null.
+     */
     @Nullable
     private String episodioAutomatico() {
+        if (clipe) return repositorio.proximoClipe(id);
         if (idSerie == null || !Preferencias.proximoEpisodioAutomatico(contexto)) return null;
         Episodio seguinte = episodioSeguinte(repositorio.temporadas(idSerie), id);
         return seguinte == null ? null : seguinte.id;

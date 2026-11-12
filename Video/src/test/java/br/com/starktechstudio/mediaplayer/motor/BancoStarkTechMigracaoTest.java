@@ -178,6 +178,19 @@ public class BancoStarkTechMigracaoTest {
         assertTrue(musicas.musicas().isEmpty());
         long id = musicas.criarPlaylist("Nova", java.util.Collections.singletonList("/hd/Musicas/a.mp3"));
         assertEquals(1, musicas.playlist(id).musicas.size());
+
+        // Versão 8 (1.5.1): o texto dos álbuns
+        assertTrue(musicas.textosDeAlbum().isEmpty());
+        AcervoMusicas.TextoAlbum texto = new AcervoMusicas.TextoAlbum();
+        texto.chave = "album:queen|opera";
+        texto.situacao = Acervo.ACHADO;
+        texto.resumo = "Álbum de Queen";
+        texto.descricao = "Texto.";
+        texto.buscado = 5;
+        musicas.gravarTextoDeAlbum(texto);
+        AcervoMusicas.TextoAlbum lido = musicas.textosDeAlbum().get("album:queen|opera");
+        assertEquals("Álbum de Queen", lido.resumo);
+        assertEquals(Acervo.ACHADO, lido.situacao);
     }
 
     @Test

@@ -5,6 +5,8 @@ package br.com.starktechstudio.mediaplayer.comum;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.annotation.DrawableRes;
 import androidx.annotation.Nullable;
@@ -13,7 +15,11 @@ import androidx.fragment.app.Fragment;
 
 import com.archos.mediacenter.video.R;
 
+import java.text.Collator;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
 
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Tipo;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.TipoFaixa;
@@ -87,6 +93,48 @@ public final class Navegacao {
     }
 
     private Navegacao() {}
+
+    /**
+     * Ordem do nav da TV e da barra lateral do tablet (1.5.1): Início primeiro (o destaque), as abas de
+     * conteúdo em ordem alfabética do nome (sem acento nem maiúscula) e Ajustes, no tablet, por último.
+     */
+    public static Aba[] emOrdem(Context contexto, Aba[] abas) {
+        List<Aba> meio = new ArrayList<>();
+        List<Aba> ordem = new ArrayList<>();
+        boolean temInicio = false;
+        boolean temAjustes = false;
+        for (Aba a : abas) {
+            if (a == Aba.INICIO) temInicio = true;
+            else if (a == Aba.AJUSTES) temAjustes = true;
+            else meio.add(a);
+        }
+        Collator alfabetica = Collator.getInstance(Locale.forLanguageTag("pt-BR"));
+        alfabetica.setStrength(Collator.PRIMARY);
+        Collections.sort(meio, (x, y) -> alfabetica.compare(contexto.getString(x.nome), contexto.getString(y.nome)));
+        if (temInicio) ordem.add(Aba.INICIO);
+        ordem.addAll(meio);
+        if (temAjustes) ordem.add(Aba.AJUSTES);
+        return ordem.toArray(new Aba[0]);
+    }
+
+    /** Põe as pílulas (as da TV, todas no mesmo pai) na ordem de {@link #emOrdem}: só muda o lugar delas na tela. */
+    public static void ordenarPilulas(Context contexto, Aba[] abas, View[] pilulas) {
+        if (pilulas.length == 0 || !(pilulas[0].getParent() instanceof ViewGroup)) return;
+        ViewGroup pai = (ViewGroup) pilulas[0].getParent();
+        List<Integer> lugares = new ArrayList<>();
+        for (View p : pilulas) {
+            if (p.getParent() != pai) return;
+            lugares.add(pai.indexOfChild(p));
+        }
+        Collections.sort(lugares);
+        Aba[] ordem = emOrdem(contexto, abas);
+        for (View p : pilulas) pai.removeView(p);
+        for (int i = 0; i < ordem.length; i++) {
+            for (int j = 0; j < abas.length; j++) {
+                if (abas[j] == ordem[i]) pai.addView(pilulas[j], lugares.get(i));
+            }
+        }
+    }
 
     /** A aba do tipo de pasta; Ignorar e "sem tipo": null. */
     @Nullable

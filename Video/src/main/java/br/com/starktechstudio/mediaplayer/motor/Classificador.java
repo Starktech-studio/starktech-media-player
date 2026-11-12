@@ -37,7 +37,8 @@ import java.util.regex.Pattern;
  */
 public final class Classificador {
 
-    public enum Tipo { FILME, EPISODIO, DESENHO, SHOW, STANDUP, NAO_IDENTIFICADO }
+    /** CLIPE (1.5.1): vídeo dentro da pasta de Músicas, com artista, álbum em vídeo ({@code grupo}) e ordem ({@code episodio}). */
+    public enum Tipo { FILME, EPISODIO, DESENHO, SHOW, STANDUP, CLIPE, NAO_IDENTIFICADO }
 
     public enum Motivo {
         /** A pasta ainda não tem tipo ("escolha o tipo"). */
@@ -102,6 +103,11 @@ public final class Classificador {
             return new Item(Tipo.SHOW, caminho, titulo, ano, null, 0, 0, artista, grupo, null);
         }
 
+        /** Vídeo de música (1.5.1): {@code grupo} = álbum em vídeo (nulo = vídeo solto do artista); {@code numero} = a ordem. */
+        static Item clipe(String caminho, String artista, String titulo, Integer ano, String grupo, int numero) {
+            return new Item(Tipo.CLIPE, caminho, titulo, ano, null, 0, numero, artista, grupo, null);
+        }
+
         static Item episodio(String caminho, String serie, Integer ano, int temporada, int episodio, String titulo) {
             return new Item(Tipo.EPISODIO, caminho, titulo, ano, serie, temporada, episodio, null, null, null);
         }
@@ -160,6 +166,11 @@ public final class Classificador {
             case DESENHOS: return Item.desenho(filme(caminhoArquivo, partes));
             case STANDUP: return Item.standup(filme(caminhoArquivo, partes));
             case SHOWS: return show(caminhoArquivo, partes);
+            // Músicas (1.5.1): o vídeo é do artista; o áudio fica com a VarreduraMusicas
+            case MUSICAS: {
+                TagsMusica.Tags t = TagsMusica.clipe(relativo);
+                return Item.clipe(caminhoArquivo, t.artista, t.titulo, t.ano, t.album, t.faixa);
+            }
             // Séries e TV Shows: temporadas e episódios; a aba sai do tipo da pasta
             default: return episodio(caminhoArquivo, partes);
         }
@@ -341,9 +352,12 @@ public final class Classificador {
         return itens;
     }
 
-    /** Ignorar e Músicas (1.5: lida pela {@link VarreduraMusicas}) ficam fora da biblioteca de vídeo. */
+    /**
+     * Ignorar fica fora da biblioteca de vídeo. Músicas (1.5.1): o vídeo dela entra, como {@link Tipo#CLIPE};
+     * o áudio é da {@link VarreduraMusicas}.
+     */
     static boolean foraDosVideos(Pastas.Pasta pasta) {
-        return pasta.tipo == Pastas.Tipo.IGNORAR || pasta.tipo == Pastas.Tipo.MUSICAS;
+        return pasta.tipo == Pastas.Tipo.IGNORAR;
     }
 
     private static void percorrer(File dir, Pastas.Pasta pasta, Set<String> cadastradas, Set<String> vistas,

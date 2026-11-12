@@ -3,6 +3,8 @@
 package br.com.starktechstudio.mediaplayer.comum;
 
 import android.os.Bundle;
+import android.text.Layout;
+import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,7 +16,6 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.leanback.widget.VerticalGridView;
-import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -32,11 +33,14 @@ import br.com.starktechstudio.mediaplayer.dados.RepositorioMusicas;
 import br.com.starktechstudio.mediaplayer.musica.Tocador;
 
 /**
- * Álbum, artista e playlist (1.5), no padrão do Detalhe: Voltar, capa (a foto redonda do artista), nome, a
- * linha de dados e os botões; embaixo, as faixas (álbum, playlist) ou os álbuns (artista). Álbum: Tocar,
- * Aleatório e Adicionar à playlist. Artista: Tocar tudo e Aleatório. Playlist: Tocar, Aleatório, Renomear e
- * Apagar. OK ou toque numa faixa toca a partir dela; segurar abre o menu da música. A barra "Tocando agora"
- * fica embaixo.
+ * Álbum, artista, playlist e os vídeos de um artista (1.5 e 1.5.1), no padrão do Detalhe: Voltar, capa (a
+ * foto redonda do artista), nome, a linha de dados, os selos ("ÁLBUM · MP3", "MÚSICAS · MP3", "VÍDEOS ·
+ * 1080p"), a descrição da Wikipédia com "Ver mais" e os botões; embaixo, as faixas (álbum, playlist, vídeos)
+ * ou as seções do artista (Álbuns, de áudio e em vídeo, e Vídeos). Álbum: Tocar, Aleatório, Adicionar à
+ * playlist. Álbum em vídeo e vídeos do artista: Assistir, que abre o player de vídeo e segue a sequência.
+ * Artista: Tocar tudo e Aleatório. Playlist: Tocar, Aleatório, Renomear e Apagar. OK ou toque numa faixa toca
+ * a partir dela (vídeo: abre o player); segurar uma música abre o menu dela. A barra "Tocando agora" fica
+ * embaixo.
  */
 public class ColecaoMusicaActivity extends AppCompatActivity {
 
@@ -45,6 +49,8 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
     static final int ALBUM = 0;
     static final int ARTISTA = 1;
     static final int PLAYLIST = 2;
+    /** 1.5.1: os vídeos soltos do artista (o id é o da coleção, {@link RepositorioMusicas#album}). */
+    static final int VIDEOS = 3;
     /** Álbuns do artista por linha na TV. */
     private static final int COLUNAS_TV = 6;
 
@@ -57,13 +63,15 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
     private RecyclerView lista;
     private TextView aviso;
     private LinhasMusicaAdapter faixas;
-    private CapaMusicaAdapter albuns;
+    private SecoesArtistaAdapter secoes;
     private BarraTocando barra;
-    /** O que a tela mostra agora, para tocar (faixas do álbum, da playlist ou do artista). */
+    /** O que a tela mostra agora, para tocar (faixas do álbum, da playlist ou do artista; os vídeos). */
     private List<Musica> musicas = new ArrayList<>();
     private boolean focoInicial = true;
     @Nullable
     private String assinaturaDoTopo;
+    @Nullable
+    private String assinaturaDasSecoes;
     private final Runnable aoMudar = this::mostrar;
     private final Runnable aoTocar = this::marcarTocando;
 
@@ -86,7 +94,8 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
         pagina.setPadding(lateral, Medidas.px(this, 36), lateral, Medidas.px(this, 28));
         if (!tv) BordasSistema.aplicar(pagina, true, true, true, true);
 
-        int rotulo = tipo == ARTISTA ? R.string.st_musicas_artistas : tipo == PLAYLIST ? R.string.st_musicas_playlists : R.string.st_musicas_albuns;
+        int rotulo = tipo == ARTISTA ? R.string.st_musicas_artistas : tipo == PLAYLIST ? R.string.st_musicas_playlists
+                : tipo == VIDEOS ? R.string.st_musicas_videos : R.string.st_musicas_albuns;
         pagina.addView(PecasMusica.topo(this, getString(rotulo)));
         cabecalho = new LinearLayout(this);
         cabecalho.setOrientation(LinearLayout.HORIZONTAL);
@@ -105,7 +114,14 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
         LinearLayout.LayoutParams lpLista = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f);
         lpLista.topMargin = Medidas.px(this, 18);
         pagina.addView(lista, lpLista);
-        if (tipo == ARTISTA) montarGrade();
+        if (tv) {
+            VerticalGridView grade = (VerticalGridView) lista;
+            grade.setNumColumns(1);
+            grade.setVerticalSpacing(Medidas.px(this, 4));
+        } else {
+            lista.setLayoutManager(new LinearLayoutManager(this));
+        }
+        if (tipo == ARTISTA) montarSecoes();
         else montarFaixas();
 
         barra = new BarraTocando(this);
@@ -118,54 +134,39 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
     }
 
     private void montarFaixas() {
-        faixas = new LinhasMusicaAdapter(tipo == ALBUM, tipo == PLAYLIST,
-                posicao -> Tocador.de(this).tocar(musicas, posicao, false),
-                posicao -> MenuMusicaActivity.abrirMusica(this, faixas.musica(posicao).id, tipo == PLAYLIST ? idPlaylist : -1, posicao));
-        if (tv) {
-            VerticalGridView grade = (VerticalGridView) lista;
-            grade.setNumColumns(1);
-            grade.setVerticalSpacing(Medidas.px(this, 4));
-        } else {
-            lista.setLayoutManager(new LinearLayoutManager(this));
-        }
+        faixas = new LinhasMusicaAdapter(tipo == ALBUM || tipo == VIDEOS, tipo == PLAYLIST, this::tocarDaLista, posicao -> {
+            Musica m = faixas.musica(posicao);
+            // Vídeo não tem o menu da música (fila e playlist são do áudio)
+            if (!m.video) MenuMusicaActivity.abrirMusica(this, m.id, tipo == PLAYLIST ? idPlaylist : -1, posicao);
+        });
         lista.setAdapter(faixas);
     }
 
-    private void montarGrade() {
-        albuns = new CapaMusicaAdapter(tv);
+    /** Música: toca a partir dela; vídeo (1.5.1): abre o player de vídeo nele, que segue a sequência. */
+    private void tocarDaLista(int posicao) {
+        Musica m = musicas.get(posicao);
+        if (m.video) Navegacao.abrirReproducao(this, m.id, Navegacao.DE_ONDE_PAROU);
+        else Tocador.de(this).tocar(musicas, posicao, false);
+    }
+
+    /** Artista (1.5.1): seções Álbuns e Vídeos; as colunas saem da largura, como na grade da aba. */
+    private void montarSecoes() {
+        secoes = new SecoesArtistaAdapter(tv, v -> Navegacao.abrirReproducao(this, v.id, Navegacao.DE_ONDE_PAROU));
         int espaco = getResources().getDimensionPixelSize(tv ? R.dimen.st_tv_capa_espaco : R.dimen.st_tablet_capa_espaco);
         if (tv) {
-            VerticalGridView grade = (VerticalGridView) lista;
             int largura = getResources().getDisplayMetrics().widthPixels
                     - 2 * getResources().getDimensionPixelSize(R.dimen.st_tv_margem_lateral) - lista.getPaddingStart() - lista.getPaddingEnd();
-            int lado = (largura - espaco * (COLUNAS_TV - 1)) / COLUNAS_TV;
-            albuns.definirLado(lado);
-            grade.setNumColumns(COLUNAS_TV);
-            grade.setColumnWidth(lado);
-            grade.setHorizontalSpacing(espaco);
-            grade.setVerticalSpacing(getResources().getDimensionPixelSize(R.dimen.st_tv_lista_espaco_vertical));
+            secoes.definirGrade(COLUNAS_TV, (largura - espaco * (COLUNAS_TV - 1)) / COLUNAS_TV, espaco);
         } else {
             int capa = getResources().getDimensionPixelSize(R.dimen.st_tablet_capa_largura);
-            GridLayoutManager gerente = new GridLayoutManager(this, 4);
-            lista.setLayoutManager(gerente);
-            lista.addItemDecoration(new RecyclerView.ItemDecoration() {
-                @Override
-                public void getItemOffsets(@androidx.annotation.NonNull android.graphics.Rect saida, @androidx.annotation.NonNull View item,
-                                           @androidx.annotation.NonNull RecyclerView pai, @androidx.annotation.NonNull RecyclerView.State estado) {
-                    saida.set(0, 0, 0, espaco);
-                }
-            });
             lista.addOnLayoutChangeListener((v, esq, topo, dir, base, esqAntes, topoAntes, dirAntes, baseAntes) -> {
                 if (dir - esq == dirAntes - esqAntes) return;
                 int util = dir - esq - v.getPaddingStart() - v.getPaddingEnd();
                 int colunas = LinhasDeCapas.colunas(util, capa, espaco);
-                v.post(() -> {
-                    gerente.setSpanCount(colunas);
-                    albuns.definirLado(util / colunas - espaco);
-                });
+                v.post(() -> secoes.definirGrade(colunas, (util - espaco * (colunas - 1)) / colunas, espaco));
             });
         }
-        lista.setAdapter(albuns);
+        lista.setAdapter(secoes);
     }
 
     @Override
@@ -195,6 +196,9 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
             case PLAYLIST:
                 mostrarPlaylist();
                 break;
+            case VIDEOS:
+                mostrarVideos();
+                break;
             default:
                 mostrarAlbum();
                 break;
@@ -216,20 +220,57 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
         }
         musicas = new ArrayList<>(a.musicas);
         String linha = juntar(PecasMusica.artistaDoAlbum(this, a), a.ano == null ? null : String.valueOf(a.ano),
-                getResources().getQuantityString(R.plurals.st_n_musicas, a.musicas.size(), a.musicas.size()),
+                getResources().getQuantityString(a.video ? R.plurals.st_n_videos : R.plurals.st_n_musicas, a.musicas.size(), a.musicas.size()),
                 a.duracaoMs() > 0 ? PecasMusica.duracaoLonga(a.duracaoMs()) : null);
         List<Button> botoes = new ArrayList<>();
-        botoes.add(botaoTocar(R.string.st_musicas_tocar, false));
-        botoes.add(botaoTocar(R.string.st_musicas_aleatorio, true));
-        Button playlist = PecasMusica.botao(this, R.string.st_musicas_adicionar_playlist, R.drawable.st_ic_playlist_nova, false);
-        playlist.setOnClickListener(v -> MenuMusicaActivity.abrirEscolherPlaylist(this, ids(musicas)));
-        botoes.add(playlist);
+        if (a.video) {
+            botoes.add(botaoAssistir());
+        } else {
+            botoes.add(botaoTocar(R.string.st_musicas_tocar, false));
+            botoes.add(botaoTocar(R.string.st_musicas_aleatorio, true));
+            Button playlist = PecasMusica.botao(this, R.string.st_musicas_adicionar_playlist, R.drawable.st_ic_playlist_nova, false);
+            playlist.setOnClickListener(v -> MenuMusicaActivity.abrirEscolherPlaylist(this, ids(musicas)));
+            botoes.add(playlist);
+        }
         if (a.idArtista != null && repositorio.artista(a.idArtista) != null) {
             Button artista = PecasMusica.botao(this, R.string.st_musicas_ir_artista, R.drawable.st_ic_shows, false);
             artista.setOnClickListener(v -> TelasMusica.abrirArtista(this, a.idArtista));
             botoes.add(artista);
         }
-        cabecalho(PecasMusica.album(this, a.nome), linha, a.capa, a.cor, R.drawable.st_ic_disco, false, botoes);
+        List<String> selos = new ArrayList<>();
+        selos.add(getString(a.video ? R.string.st_musicas_selo_album_video : R.string.st_musicas_selo_album));
+        if (a.formato != null) selos.add(a.formato);
+        cabecalho(PecasMusica.album(this, a.nome), linha, selos, texto(a.resumo, a.descricao), a.capa, a.cor,
+                a.video ? R.drawable.st_ic_assistir : R.drawable.st_ic_disco, false, botoes);
+        faixas.atualizar(musicas);
+        aviso.setVisibility(View.GONE);
+    }
+
+    /** Os vídeos do artista sem álbum (1.5.1); o id é o da coleção ("videos:" e o artista). */
+    private void mostrarVideos() {
+        Album a = id == null ? null : repositorio.album(id);
+        Artista dono = a == null || a.idArtista == null ? null : repositorio.artista(a.idArtista);
+        if (a == null) {
+            finish();
+            return;
+        }
+        musicas = new ArrayList<>(a.musicas);
+        String nomeArtista = PecasMusica.artista(this, a.artista);
+        String linha = juntar(getResources().getQuantityString(R.plurals.st_n_videos, a.musicas.size(), a.musicas.size()),
+                a.duracaoMs() > 0 ? PecasMusica.duracaoLonga(a.duracaoMs()) : null);
+        List<Button> botoes = new ArrayList<>();
+        botoes.add(botaoAssistir());
+        if (dono != null) {
+            Button artista = PecasMusica.botao(this, R.string.st_musicas_ir_artista, R.drawable.st_ic_shows, false);
+            artista.setOnClickListener(v -> TelasMusica.abrirArtista(this, dono.id));
+            botoes.add(artista);
+        }
+        List<String> selos = new ArrayList<>();
+        selos.add(getString(R.string.st_musicas_selo_videos));
+        if (a.formato != null) selos.add(a.formato);
+        String imagem = dono != null && dono.foto != null ? dono.foto : a.capa;
+        cabecalho(getString(R.string.st_musicas_videos_de, nomeArtista), linha, selos, null, imagem,
+                dono != null ? dono.cor : a.cor, R.drawable.st_ic_shows, dono != null && dono.foto != null, botoes);
         faixas.atualizar(musicas);
         aviso.setVisibility(View.GONE);
     }
@@ -241,22 +282,49 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
             return;
         }
         musicas = repositorio.musicasDoArtista(a.id);
-        String linha = juntar(getResources().getQuantityString(R.plurals.st_n_albuns, a.albuns, a.albuns),
-                getResources().getQuantityString(R.plurals.st_n_musicas, a.musicas, a.musicas));
+        String linha = juntar(a.albuns > 0 ? getResources().getQuantityString(R.plurals.st_n_albuns, a.albuns, a.albuns) : null,
+                a.musicas > 0 ? getResources().getQuantityString(R.plurals.st_n_musicas, a.musicas, a.musicas) : null,
+                a.videos > 0 ? getResources().getQuantityString(R.plurals.st_n_videos, a.videos, a.videos) : null);
         List<Button> botoes = new ArrayList<>();
-        botoes.add(botaoTocar(R.string.st_musicas_tocar_tudo, false));
-        botoes.add(botaoTocar(R.string.st_musicas_aleatorio, true));
-        cabecalho(PecasMusica.artista(this, a.nome), linha, a.foto, a.cor, R.drawable.st_ic_shows, true, botoes);
+        if (!musicas.isEmpty()) {
+            botoes.add(botaoTocar(R.string.st_musicas_tocar_tudo, false));
+            botoes.add(botaoTocar(R.string.st_musicas_aleatorio, true));
+        }
+        Album soltos = repositorio.videosSoltos(a.id);
+        if (musicas.isEmpty() && soltos != null) {
+            Button assistir = PecasMusica.botao(this, R.string.st_musicas_assistir, R.drawable.st_ic_assistir, true);
+            assistir.setOnClickListener(v -> Navegacao.abrirReproducao(this, soltos.musicas.get(0).id, Navegacao.DE_ONDE_PAROU));
+            botoes.add(assistir);
+        }
+        List<String> selos = new ArrayList<>();
+        if (a.musicas > 0) selos.add(juntar(getString(R.string.st_musicas_selo_musicas), a.formatoMusicas));
+        if (a.videos > 0) selos.add(juntar(getString(R.string.st_musicas_selo_videos), a.formatoVideos));
+        cabecalho(PecasMusica.artista(this, a.nome), linha, selos, texto(a.resumo, a.descricao), a.foto, a.cor,
+                R.drawable.st_ic_shows, true, botoes);
+
         List<CapaMusicaAdapter.Capa> capas = new ArrayList<>();
         for (Album album : repositorio.albunsDoArtista(a.id)) {
-            capas.add(new CapaMusicaAdapter.Capa(album.id, PecasMusica.album(this, album.nome),
-                    album.ano == null ? getResources().getQuantityString(R.plurals.st_n_musicas, album.musicas.size(), album.musicas.size())
-                            : String.valueOf(album.ano),
-                    album.capa, album.cor, R.drawable.st_ic_disco, false,
+            String sub = album.video ? juntar(getString(R.string.st_musicas_album_em_video), album.ano == null ? null : String.valueOf(album.ano))
+                    : album.ano == null ? getResources().getQuantityString(R.plurals.st_n_musicas, album.musicas.size(), album.musicas.size())
+                    : String.valueOf(album.ano);
+            capas.add(new CapaMusicaAdapter.Capa(album.id, PecasMusica.album(this, album.nome), sub,
+                    album.capa, album.cor, album.video ? R.drawable.st_ic_assistir : R.drawable.st_ic_disco, false,
                     () -> TelasMusica.abrirAlbum(this, album.id),
-                    () -> Tocador.de(this).tocar(album.musicas, 0, false)));
+                    album.video ? () -> Navegacao.abrirReproducao(this, album.musicas.get(0).id, Navegacao.DE_ONDE_PAROU)
+                            : () -> Tocador.de(this).tocar(album.musicas, 0, false)));
         }
-        albuns.atualizar(capas);
+        List<Musica> videos = soltos == null ? new ArrayList<>() : soltos.musicas;
+        // Só refaz as seções se mudaram (a biblioteca avisa muito durante a atualização)
+        StringBuilder assinatura = new StringBuilder();
+        for (CapaMusicaAdapter.Capa c : capas) assinatura.append(c.id).append('|').append(c.linha).append('|').append(c.imagem).append(';');
+        for (Musica v : videos) assinatura.append(v.id).append('|').append(v.titulo).append(';');
+        if (!assinatura.toString().equals(assinaturaDasSecoes)) {
+            assinaturaDasSecoes = assinatura.toString();
+            secoes.limpar();
+            secoes.secaoDeCapas(getString(R.string.st_musicas_albuns), capas);
+            secoes.secaoDeVideos(getString(R.string.st_musicas_videos), videos);
+            secoes.montar();
+        }
         aviso.setVisibility(View.GONE);
     }
 
@@ -284,7 +352,9 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
         Button apagar = PecasMusica.botao(this, R.string.st_musicas_apagar, R.drawable.st_ic_lixeira, false);
         apagar.setOnClickListener(v -> MenuMusicaActivity.abrirApagar(this, p.id));
         botoes.add(apagar);
-        cabecalho(p.nome, linha, p.capa, p.cor, R.drawable.st_ic_fila, false, botoes);
+        List<String> selos = new ArrayList<>();
+        selos.add(getString(R.string.st_musicas_selo_playlist));
+        cabecalho(p.nome, linha, selos, null, p.capa, p.cor, R.drawable.st_ic_fila, false, botoes);
         faixas.atualizar(musicas);
         aviso.setText(R.string.st_musicas_playlist_vazia);
         aviso.setVisibility(musicas.isEmpty() ? View.VISIBLE : View.GONE);
@@ -299,10 +369,34 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
         return botao;
     }
 
-    /** Capa (a foto redonda do artista), nome, linha de dados e os botões, com o foco no primeiro (TV). */
-    private void cabecalho(String nome, String linha, @Nullable String imagem, int cor, int icone, boolean redonda, List<Button> botoes) {
+    /** Vídeos (1.5.1): do primeiro, no player de vídeo; ele segue a sequência sozinho. */
+    private Button botaoAssistir() {
+        Button botao = PecasMusica.botao(this, R.string.st_musicas_assistir, R.drawable.st_ic_assistir, true);
+        botao.setOnClickListener(v -> {
+            if (!musicas.isEmpty()) Navegacao.abrirReproducao(this, musicas.get(0).id, Navegacao.DE_ONDE_PAROU);
+        });
+        return botao;
+    }
+
+    /** O resumo ("Banda brasileira de sertanejo") e o texto da Wikipédia, juntos; nulo se não tem. */
+    @Nullable
+    private static String texto(@Nullable String resumo, @Nullable String descricao) {
+        boolean temResumo = resumo != null && !resumo.isEmpty();
+        boolean temDescricao = descricao != null && !descricao.isEmpty();
+        if (!temResumo && !temDescricao) return null;
+        if (!temDescricao) return resumo;
+        return temResumo ? resumo + ". " + descricao : descricao;
+    }
+
+    /**
+     * Capa (a foto redonda do artista), nome, linha de dados, os selos, a descrição (3 linhas e "Ver mais")
+     * e os botões, com o foco no primeiro (TV).
+     */
+    private void cabecalho(String nome, String linha, List<String> selos, @Nullable String descricao, @Nullable String imagem,
+                           int cor, int icone, boolean redonda, List<Button> botoes) {
         // A biblioteca avisa muitas vezes durante a atualização: só refaz o topo se mudou
-        StringBuilder assinatura = new StringBuilder(nome).append('|').append(linha).append('|').append(imagem);
+        StringBuilder assinatura = new StringBuilder(nome).append('|').append(linha).append('|').append(imagem)
+                .append('|').append(selos).append('|').append(descricao);
         for (Button b : botoes) assinatura.append('|').append(b.getText());
         if (assinatura.toString().equals(assinaturaDoTopo)) return;
         assinaturaDoTopo = assinatura.toString();
@@ -317,10 +411,38 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
         TextView titulo = Textos.novo(this, nome, R.font.st_inter_black, tv ? 52 : 46, R.color.st_texto);
         titulo.setLetterSpacing(-0.02f);
         titulo.setMaxLines(2);
-        titulo.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        titulo.setEllipsize(TextUtils.TruncateAt.END);
         textos.addView(titulo);
         textos.addView(PecasMusica.linha(this, linha, R.font.st_inter_semibold, 21, R.color.st_texto_secundario),
                 PecasMusica.comTopo(Medidas.px(this, 12)));
+        if (!selos.isEmpty()) {
+            LinearLayout chips = new LinearLayout(this);
+            chips.setOrientation(LinearLayout.HORIZONTAL);
+            List<Boolean> azuis = new ArrayList<>();
+            for (int i = 0; i < selos.size(); i++) azuis.add(i == 0);
+            PecasDetalhe.chips(chips, selos, azuis, tv);
+            textos.addView(chips, PecasMusica.comTopo(Medidas.px(this, 14)));
+        }
+        Button verMais = null;
+        if (descricao != null) {
+            TextView texto = Textos.novo(this, descricao, R.font.st_inter_medium, 19, R.color.st_texto_secundario);
+            texto.setMaxLines(3);
+            texto.setEllipsize(TextUtils.TruncateAt.END);
+            texto.setLineSpacing(0f, 1.2f);
+            textos.addView(texto, PecasMusica.comTopo(Medidas.px(this, 16)));
+            Button mais = PecasMusica.botao(this, R.string.st_ver_mais, 0, false);
+            mais.setVisibility(View.GONE);
+            mais.setOnClickListener(v -> Navegacao.abrirSinopse(this, nome, descricao));
+            textos.addView(mais, PecasMusica.comTopo(Medidas.px(this, 10)));
+            verMais = mais;
+            // As linhas só existem depois de medir: "Ver mais" só se o texto não coube
+            texto.post(() -> {
+                Layout linhas = texto.getLayout();
+                int ultima = linhas == null ? -1 : linhas.getLineCount() - 1;
+                boolean cortou = ultima >= 0 && (linhas.getEllipsisCount(ultima) > 0 || linhas.getLineEnd(ultima) < texto.getText().length());
+                mais.setVisibility(cortou ? View.VISIBLE : View.GONE);
+            });
+        }
         LinearLayout fila = new LinearLayout(this);
         fila.setOrientation(LinearLayout.HORIZONTAL);
         for (int i = 0; i < botoes.size(); i++) {
@@ -329,7 +451,7 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
             if (i > 0) lp.setMarginStart(Medidas.px(this, 14));
             fila.addView(b, lp);
         }
-        textos.addView(fila, PecasMusica.comTopo(Medidas.px(this, 26)));
+        textos.addView(fila, PecasMusica.comTopo(Medidas.px(this, verMais != null ? 20 : 26)));
         LinearLayout.LayoutParams lpTextos = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         lpTextos.setMarginStart(Medidas.px(this, 40));
         cabecalho.addView(textos, lpTextos);

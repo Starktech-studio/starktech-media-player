@@ -22,6 +22,13 @@ public final class TelasMusica {
                 .putExtra(Navegacao.EXTRA_ID, idArtista));
     }
 
+    /** Os vídeos do artista sem álbum (1.5.1), pelo id da coleção. */
+    public static void abrirVideos(Activity origem, String idColecao) {
+        origem.startActivity(new Intent(origem, ColecaoMusicaActivity.class)
+                .putExtra(ColecaoMusicaActivity.EXTRA_TIPO, ColecaoMusicaActivity.VIDEOS)
+                .putExtra(Navegacao.EXTRA_ID, idColecao));
+    }
+
     public static void abrirPlaylist(Activity origem, long idPlaylist) {
         origem.startActivity(new Intent(origem, ColecaoMusicaActivity.class)
                 .putExtra(ColecaoMusicaActivity.EXTRA_TIPO, ColecaoMusicaActivity.PLAYLIST)

@@ -9,13 +9,14 @@ import java.util.List;
 
 /**
  * O que as telas de Músicas mostram (1.5), montado pelo {@link RepositorioMusicas}. Texto nulo = não se
- * sabe: a tela mostra "Artista desconhecido", "Sem álbum" ou "Vários artistas".
+ * sabe: a tela mostra "Artista desconhecido", "Sem álbum" ou "Vários artistas". 1.5.1: vídeos da pasta de
+ * Músicas, nos álbuns em vídeo e nos vídeos soltos de cada artista; tocam no player de vídeo.
  */
 public final class ModeloMusicas {
 
     private ModeloMusicas() {}
 
-    /** Uma música; {@link #id} é o caminho do arquivo. */
+    /** Uma música ou um vídeo de música ({@link #video}); {@link #id} é o caminho do arquivo. */
     public static final class Musica {
         public String id;
         public String titulo;
@@ -30,6 +31,8 @@ public final class ModeloMusicas {
         @Nullable
         public String capa;
         public int cor;
+        /** 1.5.1: vídeo, que abre no player de vídeo (o id é o do título na biblioteca de vídeo). */
+        public boolean video;
     }
 
     public static final class Album {
@@ -46,6 +49,17 @@ public final class ModeloMusicas {
         @Nullable
         public String capa;
         public int cor;
+        /** 1.5.1: álbum em vídeo; com {@link #soltos}, os vídeos do artista sem álbum. */
+        public boolean video;
+        public boolean soltos;
+        /** "MP3", "FLAC · MP3" ou, em vídeo, "1080p · H.264"; nulo se não se sabe. */
+        @Nullable
+        public String formato;
+        /** Da Wikipédia (1.5.1); nulos = sem artigo. */
+        @Nullable
+        public String resumo;
+        @Nullable
+        public String descricao;
         public final List<Musica> musicas = new ArrayList<>();
 
         public long duracaoMs() {
@@ -64,6 +78,18 @@ public final class ModeloMusicas {
         public int cor;
         public int albuns;
         public int musicas;
+        /** 1.5.1: vídeos dele (dos álbuns em vídeo e soltos). */
+        public int videos;
+        /** "MP3 · FLAC" das músicas e "1080p" dos vídeos (1.5.1); nulos = não tem. */
+        @Nullable
+        public String formatoMusicas;
+        @Nullable
+        public String formatoVideos;
+        /** Da Wikipédia; nulos = sem artigo. */
+        @Nullable
+        public String resumo;
+        @Nullable
+        public String descricao;
     }
 
     public static final class Playlist {

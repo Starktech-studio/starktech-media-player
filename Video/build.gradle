@@ -163,11 +163,12 @@ android {
         // below version tracks the one from F-Droid or universal package when generated with ./gradlew -Puniversal
         // this is overridden when using split apk and normal split apk generation or oneapk amazon generation
         // amazon apk is generated with ./gradlew -Poneapk
-        // StarkTech: a cada versão publicada, sobe os dois aqui ou no comando, com -Pstarktech.versionCode=6 e
+        // StarkTech: a cada versão publicada, sobe os dois aqui ou no comando, com -Pstarktech.versionCode=7 e
         // -Pstarktech.versionName=1.6.0. O versionCode é o que o app compara com o version.json publicado
-        // (motor/Atualizador). 1 foi o dos APKs de teste, por isso a 1.0.0 é o 2, a 1.1.0 o 3, a 1.1.1 o 4 e a 1.5.0 o 5.
-        versionCode = (project.findProperty('starktech.versionCode') ?: '5').toString().trim().toInteger()
-        versionName = (project.findProperty('starktech.versionName') ?: '1.5.0').toString().trim()
+        // (motor/Atualizador). 1 foi o dos APKs de teste, por isso a 1.0.0 é o 2, a 1.1.0 o 3, a 1.1.1 o 4,
+        // a 1.5.0 o 5 e a 1.5.1 o 6.
+        versionCode = (project.findProperty('starktech.versionCode') ?: '6').toString().trim().toInteger()
+        versionName = (project.findProperty('starktech.versionName') ?: '1.5.1').toString().trim()
         def novaVersionName = versionName
         if (! project.hasProperty("universal")) {
             // override versionName and versionCode to get it dependent on the date
