@@ -273,6 +273,8 @@ public final class RepositorioMusicas {
             v.capa = t.quadro;
             v.cor = a.cor;
             v.video = true;
+            v.posicaoSegundos = t.posicaoSegundos;
+            v.assistido = t.assistido;
             a.musicas.add(v);
         }
         for (Album a : porColecao.values()) {

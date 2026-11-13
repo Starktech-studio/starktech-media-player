@@ -8,6 +8,11 @@
     <string name="st_musicas_playlists">Playlists</string>
     <string name="st_musicas_videos">Vídeos</string>
 
+    <!-- 1.7: página do artista com abas -->
+    <string name="st_musicas_ouvir">Ouvir</string>
+    <string name="st_musicas_aba_musicas">Músicas</string>
+    <string name="st_musicas_albuns_em_video">Álbuns em vídeo</string>
+
     <!-- 1.6: aleatório, trocar capa e discos -->
     <string name="st_musicas_tocar_tudo_aleatorio">Tocar tudo aleatório</string>
     <string name="st_musicas_disco">Disco %1$d</string>

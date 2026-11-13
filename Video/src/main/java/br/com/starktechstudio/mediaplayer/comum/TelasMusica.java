@@ -22,11 +22,12 @@ public final class TelasMusica {
                 .putExtra(Navegacao.EXTRA_ID, idArtista));
     }
 
-    /** Os vídeos do artista sem álbum (1.5.1), pelo id da coleção. */
-    public static void abrirVideos(Activity origem, String idColecao) {
+    /** O artista já na aba Vídeos (1.7). */
+    public static void abrirVideosDoArtista(Activity origem, String idArtista) {
         origem.startActivity(new Intent(origem, ColecaoMusicaActivity.class)
-                .putExtra(ColecaoMusicaActivity.EXTRA_TIPO, ColecaoMusicaActivity.VIDEOS)
-                .putExtra(Navegacao.EXTRA_ID, idColecao));
+                .putExtra(ColecaoMusicaActivity.EXTRA_TIPO, ColecaoMusicaActivity.ARTISTA)
+                .putExtra(ColecaoMusicaActivity.EXTRA_VIDEOS, true)
+                .putExtra(Navegacao.EXTRA_ID, idArtista));
     }
 
     public static void abrirPlaylist(Activity origem, long idPlaylist) {

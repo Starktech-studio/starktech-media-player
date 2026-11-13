@@ -33,6 +33,9 @@ public final class ModeloMusicas {
         public int cor;
         /** 1.5.1: vídeo, que abre no player de vídeo (o id é o do título na biblioteca de vídeo). */
         public boolean video;
+        /** 1.7: vídeo já começado (segundos) e assistido, para a barrinha do card. */
+        public int posicaoSegundos;
+        public boolean assistido;
     }
 
     public static final class Album {

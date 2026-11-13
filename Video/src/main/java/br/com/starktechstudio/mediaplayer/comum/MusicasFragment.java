@@ -49,10 +49,8 @@ public class MusicasFragment extends Fragment {
     private static final int ARTISTAS = 0;
     private static final int ALBUNS = 1;
     private static final int PLAYLISTS = 2;
-    /** 1.5.1: álbuns em vídeo e os vídeos soltos de cada artista. */
-    private static final int VIDEOS = 3;
-    private static final int[] NOMES = {R.string.st_musicas_artistas, R.string.st_musicas_albuns, R.string.st_musicas_playlists,
-            R.string.st_musicas_videos};
+    /** 1.7 (D2 do plano 008): a sub-aba Vídeos saiu; os vídeos ficam na página do artista. */
+    private static final int[] NOMES = {R.string.st_musicas_artistas, R.string.st_musicas_albuns, R.string.st_musicas_playlists};
     private static final int COLUNAS_TV = 6;
 
     private boolean tv;
@@ -63,6 +61,14 @@ public class MusicasFragment extends Fragment {
     private Button tudoAleatorio;
     private RecyclerView grade;
     private CapaMusicaAdapter capas;
+    /** 1.7 (D1): Artistas em linhas. */
+    private LinhaArtistaAdapter linhasDeArtistas;
+    private boolean emLinhas;
+    private int ladoTv;
+    private int espacoTv;
+    private int larguraTv;
+    private int colunasCapasTablet = 4;
+    private int larguraTablet;
     private GridLayoutManager gerenteTablet;
     private BarraTocando barra;
     private IndicadorAtualizacao indicador;
@@ -84,7 +90,7 @@ public class MusicasFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         Context contexto = requireContext();
         tv = Aparelho.ehTv(contexto);
-        if (savedInstanceState != null) ativa = savedInstanceState.getInt(ESTADO_SUBABA, ALBUNS);
+        if (savedInstanceState != null) ativa = Math.min(PLAYLISTS, savedInstanceState.getInt(ESTADO_SUBABA, ALBUNS));
 
         LinearLayout pagina = new LinearLayout(contexto);
         pagina.setOrientation(LinearLayout.VERTICAL);
@@ -158,6 +164,7 @@ public class MusicasFragment extends Fragment {
         pagina.addView(permitir, PecasMusica.comTopo(Medidas.px(contexto, 16)));
 
         capas = new CapaMusicaAdapter(tv);
+        linhasDeArtistas = new LinhaArtistaAdapter(requireActivity(), tv);
         grade = tv ? new VerticalGridView(contexto) : new RecyclerView(contexto);
         grade.setClipToPadding(false);
         grade.setVerticalScrollBarEnabled(false);
@@ -176,6 +183,9 @@ public class MusicasFragment extends Fragment {
         int espaco = getResources().getDimensionPixelSize(R.dimen.st_tv_capa_espaco);
         int largura = getResources().getDisplayMetrics().widthPixels - 2 * lateral - gradeTv.getPaddingStart() - gradeTv.getPaddingEnd();
         int lado = (largura - espaco * (COLUNAS_TV - 1)) / COLUNAS_TV;
+        ladoTv = lado;
+        espacoTv = espaco;
+        larguraTv = largura;
         capas.definirLado(lado);
         gradeTv.setNumColumns(COLUNAS_TV);
         gradeTv.setColumnWidth(lado);
@@ -199,7 +209,9 @@ public class MusicasFragment extends Fragment {
             int util = dir - esq - v.getPaddingStart() - v.getPaddingEnd();
             int colunas = LinhasDeCapas.colunas(util, capa, espaco);
             v.post(() -> {
-                gerenteTablet.setSpanCount(colunas);
+                colunasCapasTablet = colunas;
+                larguraTablet = util;
+                gerenteTablet.setSpanCount(emLinhas ? colunasDeLinhas() : colunas);
                 capas.definirLado(util / colunas - espaco);
             });
         });
@@ -236,8 +248,29 @@ public class MusicasFragment extends Fragment {
         outState.putInt(ESTADO_SUBABA, ativa);
     }
 
+    /**
+     * Artistas em linhas (1.7, D1) e o resto em capas: a grade troca de colunas e de adapter. TV: duas colunas
+     * de linhas; tablet: uma, ou duas com a tela larga.
+     */
+    private void usarLinhas(boolean linhas) {
+        if (linhas == emLinhas && grade.getAdapter() != null) return;
+        emLinhas = linhas;
+        if (tv) {
+            VerticalGridView gradeTv = (VerticalGridView) grade;
+            gradeTv.setNumColumns(linhas ? 2 : COLUNAS_TV);
+            gradeTv.setColumnWidth(linhas ? (larguraTv - espacoTv) / 2 : ladoTv);
+        } else {
+            gerenteTablet.setSpanCount(linhas ? colunasDeLinhas() : colunasCapasTablet);
+        }
+        grade.setAdapter(linhas ? linhasDeArtistas : capas);
+    }
+
+    private int colunasDeLinhas() {
+        return larguraTablet >= Medidas.px(requireContext(), 1800) ? 2 : 1;
+    }
+
     private void trocar(int indice) {
-        if (indice == ativa && capas.getItemCount() > 0) return;
+        if (indice == ativa && (capas.getItemCount() > 0 || linhasDeArtistas.getItemCount() > 0)) return;
         ativa = indice;
         mostrar();
         grade.scrollToPosition(0);
@@ -251,6 +284,7 @@ public class MusicasFragment extends Fragment {
         boolean temPasta = repositorio.temPastaDeMusicas();
         boolean podeLer = ArquivosDoAparelho.podeLerMusicas(contexto);
         List<CapaMusicaAdapter.Capa> lista = new ArrayList<>();
+        List<Artista> artistas = null;
         String textoAviso = null;
         if (!temPasta && repositorio.vazio()) {
             textoAviso = getString(R.string.st_musicas_sem_pasta);
@@ -261,11 +295,8 @@ public class MusicasFragment extends Fragment {
             if (lista.size() == 1) textoAviso = getString(R.string.st_musicas_sem_playlists);
         } else if (repositorio.vazio()) {
             textoAviso = getString(R.string.st_musicas_vazia);
-        } else if (ativa == VIDEOS) {
-            lista = videos(repositorio);
-            if (lista.isEmpty()) textoAviso = getString(R.string.st_musicas_sem_videos);
         } else if (ativa == ARTISTAS) {
-            lista = artistas(repositorio);
+            artistas = repositorio.artistas();
         } else {
             lista = albuns(repositorio);
         }
@@ -273,20 +304,9 @@ public class MusicasFragment extends Fragment {
         aviso.setVisibility(textoAviso == null ? View.GONE : View.VISIBLE);
         permitir.setVisibility(temPasta && !podeLer ? View.VISIBLE : View.GONE);
         tudoAleatorio.setVisibility(podeLer && !repositorio.todasAsMusicas().isEmpty() ? View.VISIBLE : View.GONE);
-        capas.atualizar(lista);
-    }
-
-    private List<CapaMusicaAdapter.Capa> artistas(RepositorioMusicas repositorio) {
-        List<CapaMusicaAdapter.Capa> lista = new ArrayList<>();
-        for (Artista a : repositorio.artistas()) {
-            String linha = getResources().getQuantityString(R.plurals.st_n_albuns, a.albuns, a.albuns) + " · "
-                    + getResources().getQuantityString(R.plurals.st_n_musicas, a.musicas, a.musicas);
-            lista.add(new CapaMusicaAdapter.Capa(a.id, PecasMusica.artista(requireContext(), a.nome), linha, a.foto, a.cor,
-                    R.drawable.st_ic_shows, true,
-                    () -> TelasMusica.abrirArtista(requireActivity(), a.id),
-                    () -> Tocador.de(requireContext()).tocar(repositorio.musicasDoArtista(a.id), 0, false)));
-        }
-        return lista;
+        usarLinhas(artistas != null);
+        if (artistas != null) linhasDeArtistas.atualizar(artistas);
+        else capas.atualizar(lista);
     }
 
     private List<CapaMusicaAdapter.Capa> albuns(RepositorioMusicas repositorio) {
@@ -297,31 +317,6 @@ public class MusicasFragment extends Fragment {
                     R.drawable.st_ic_disco, false,
                     () -> TelasMusica.abrirAlbum(requireActivity(), a.id),
                     () -> Tocador.de(requireContext()).tocar(a.musicas, 0, false)));
-        }
-        return lista;
-    }
-
-    /**
-     * Sub-aba Vídeos (1.5.1): uma capa por álbum em vídeo e uma "Vídeos de" por artista com vídeos soltos;
-     * OK abre a lista, segurar assiste do primeiro (o player segue a sequência).
-     */
-    private List<CapaMusicaAdapter.Capa> videos(RepositorioMusicas repositorio) {
-        List<CapaMusicaAdapter.Capa> lista = new ArrayList<>();
-        for (Album a : repositorio.colecoesDeVideo()) {
-            String artista = PecasMusica.artista(requireContext(), a.artista);
-            String nome = a.soltos ? getString(R.string.st_musicas_videos_de, artista) : PecasMusica.album(requireContext(), a.nome);
-            String linha = a.soltos ? getResources().getQuantityString(R.plurals.st_n_videos, a.musicas.size(), a.musicas.size())
-                    : artista + (a.ano == null ? "" : " · " + a.ano);
-            String primeiro = a.musicas.get(0).id;
-            lista.add(new CapaMusicaAdapter.Capa(a.id, nome, linha, a.capa, a.cor, R.drawable.st_ic_assistir, false,
-                    () -> {
-                        if (a.soltos) TelasMusica.abrirVideos(requireActivity(), a.id);
-                        else TelasMusica.abrirAlbum(requireActivity(), a.id);
-                    },
-                    () -> {
-                        SequenciaClipes.soltar();
-                        Navegacao.abrirReproducao(requireActivity(), primeiro, Navegacao.DE_ONDE_PAROU);
-                    }));
         }
         return lista;
     }

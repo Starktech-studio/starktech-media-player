@@ -351,6 +351,20 @@
                 android:gravity="end|center_vertical"
                 android:orientation="horizontal">
 
+                <!-- Aleatório do vídeo de música (1.7): à esquerda de Áudio -->
+                <Button
+                    android:id="@+id/st_rep_aleatorio"
+                    style="@style/StarkTech.Botao.Tv.Secundario"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/st_tv_rep_lado_botao_altura"
+                    android:layout_marginEnd="6dp"
+                    android:minHeight="0dp"
+                    android:paddingStart="@dimen/st_tv_rep_lado_botao_padding"
+                    android:paddingEnd="@dimen/st_tv_rep_lado_botao_padding"
+                    android:text="@string/st_musicas_aleatorio"
+                    android:textSize="@dimen/st_tv_texto_rep_lado_botao"
+                    android:visibility="gone" />
+
                 <Button
                     android:id="@+id/st_rep_audio"
                     style="@style/StarkTech.Botao.Tv.Secundario"

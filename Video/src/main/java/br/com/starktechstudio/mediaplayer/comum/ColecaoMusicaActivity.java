@@ -49,8 +49,8 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
     static final int ALBUM = 0;
     static final int ARTISTA = 1;
     static final int PLAYLIST = 2;
-    /** 1.5.1: os vídeos soltos do artista (o id é o da coleção, {@link RepositorioMusicas#album}). */
-    static final int VIDEOS = 3;
+    /** 1.7: abre o artista na aba Vídeos. */
+    static final String EXTRA_VIDEOS = "br.com.starktechstudio.mediaplayer.extra.ARTISTA_VIDEOS";
     /** Álbuns do artista por linha na TV. */
     private static final int COLUNAS_TV = 6;
 
@@ -68,6 +68,10 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
     /** O que a tela mostra agora, para tocar (faixas do álbum, da playlist ou do artista; os vídeos). */
     private List<Musica> musicas = new ArrayList<>();
     private boolean focoInicial = true;
+    /** Artista (1.7): 0 = Músicas, 1 = Vídeos; -1 = ainda não escolhida. */
+    private int abaDoArtista = -1;
+    private LinearLayout abasDoArtista;
+    private final TextView[] pilulasDoArtista = new TextView[2];
     @Nullable
     private String assinaturaDoTopo;
     @Nullable
@@ -95,12 +99,17 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
         if (!tv) BordasSistema.aplicar(pagina, true, true, true, true);
 
         int rotulo = tipo == ARTISTA ? R.string.st_musicas_artistas : tipo == PLAYLIST ? R.string.st_musicas_playlists
-                : tipo == VIDEOS ? R.string.st_musicas_videos : R.string.st_musicas_albuns;
+                : R.string.st_musicas_albuns;
         pagina.addView(PecasMusica.topo(this, getString(rotulo)));
         cabecalho = new LinearLayout(this);
         cabecalho.setOrientation(LinearLayout.HORIZONTAL);
         cabecalho.setGravity(Gravity.CENTER_VERTICAL);
         pagina.addView(cabecalho, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        if (tipo == ARTISTA) {
+            abasDoArtista = abasDoArtista();
+            abasDoArtista.setVisibility(View.GONE);
+            pagina.addView(abasDoArtista, PecasMusica.comTopo(Medidas.px(this, 28)));
+        }
 
         aviso = Textos.novo(this, "", R.font.st_inter_semibold, 20, R.color.st_texto_secundario);
         aviso.setVisibility(View.GONE);
@@ -134,7 +143,7 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
     }
 
     private void montarFaixas() {
-        faixas = new LinhasMusicaAdapter(tipo == ALBUM || tipo == VIDEOS, tipo == PLAYLIST, this::tocarDaLista, posicao -> {
+        faixas = new LinhasMusicaAdapter(tipo == ALBUM, tipo == PLAYLIST, this::tocarDaLista, posicao -> {
             Musica m = faixas.musica(posicao);
             // Vídeo não tem o menu da música (fila e playlist são do áudio)
             if (!m.video) MenuMusicaActivity.abrirMusica(this, m.id, tipo == PLAYLIST ? idPlaylist : -1, posicao);
@@ -196,9 +205,6 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
             case PLAYLIST:
                 mostrarPlaylist();
                 break;
-            case VIDEOS:
-                mostrarVideos();
-                break;
             default:
                 mostrarAlbum();
                 break;
@@ -248,88 +254,118 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
         aviso.setVisibility(View.GONE);
     }
 
-    /** Os vídeos do artista sem álbum (1.5.1); o id é o da coleção ("videos:" e o artista). */
-    private void mostrarVideos() {
-        Album a = id == null ? null : repositorio.album(id);
-        Artista dono = a == null || a.idArtista == null ? null : repositorio.artista(a.idArtista);
-        if (a == null) {
-            finish();
-            return;
-        }
-        musicas = new ArrayList<>(a.musicas);
-        String nomeArtista = PecasMusica.artista(this, a.artista);
-        String linha = juntar(getResources().getQuantityString(R.plurals.st_n_videos, a.musicas.size(), a.musicas.size()),
-                a.duracaoMs() > 0 ? PecasMusica.duracaoLonga(a.duracaoMs()) : null);
-        List<Button> botoes = new ArrayList<>();
-        botoes.add(botaoAssistir());
-        botoes.add(botaoVideosAleatorio());
-        if (dono != null) {
-            Button artista = PecasMusica.botao(this, R.string.st_musicas_ir_artista, R.drawable.st_ic_shows, false);
-            artista.setOnClickListener(v -> TelasMusica.abrirArtista(this, dono.id));
-            botoes.add(artista);
-        }
-        List<String> selos = new ArrayList<>();
-        selos.add(getString(R.string.st_musicas_selo_videos));
-        if (a.formato != null) selos.add(a.formato);
-        String imagem = dono != null && dono.foto != null ? dono.foto : a.capa;
-        cabecalho(getString(R.string.st_musicas_videos_de, nomeArtista), linha, selos, null, imagem,
-                dono != null ? dono.cor : a.cor, R.drawable.st_ic_shows, dono != null && dono.foto != null, botoes);
-        faixas.atualizar(musicas);
-        aviso.setVisibility(View.GONE);
-    }
-
+    /**
+     * Artista (1.7, D3 do plano 008): topo maior com as contagens e, se ele tem os dois, as abas Músicas
+     * (álbuns de áudio, Ouvir e Aleatório) e Vídeos (álbuns em vídeo e os cards dos vídeos soltos, Assistir e
+     * Aleatório, que tocam todos os vídeos dele em sequência).
+     */
     private void mostrarArtista() {
         Artista a = id == null ? null : repositorio.artista(id);
         if (a == null) {
             finish();
             return;
         }
-        musicas = repositorio.musicasDoArtista(a.id);
-        String linha = juntar(a.albuns > 0 ? getResources().getQuantityString(R.plurals.st_n_albuns, a.albuns, a.albuns) : null,
-                a.musicas > 0 ? getResources().getQuantityString(R.plurals.st_n_musicas, a.musicas, a.musicas) : null,
-                a.videos > 0 ? getResources().getQuantityString(R.plurals.st_n_videos, a.videos, a.videos) : null);
-        List<Button> botoes = new ArrayList<>();
-        if (!musicas.isEmpty()) {
-            botoes.add(botaoTocar(R.string.st_musicas_tocar_tudo, false));
-            botoes.add(botaoTocar(R.string.st_musicas_aleatorio, true));
-        }
+        List<Album> deAudio = new ArrayList<>();
+        List<Album> deVideo = new ArrayList<>();
+        for (Album album : repositorio.albunsDoArtista(a.id)) (album.video ? deVideo : deAudio).add(album);
         Album soltos = repositorio.videosSoltos(a.id);
-        if (musicas.isEmpty() && soltos != null) {
+        List<Musica> todosOsVideos = new ArrayList<>();
+        for (Album album : deVideo) todosOsVideos.addAll(album.musicas);
+        if (soltos != null) todosOsVideos.addAll(soltos.musicas);
+        List<Musica> deAudioDoArtista = repositorio.musicasDoArtista(a.id);
+        boolean temMusicas = !deAudioDoArtista.isEmpty();
+        boolean temVideos = !todosOsVideos.isEmpty();
+        if (abaDoArtista < 0) abaDoArtista = getIntent().getBooleanExtra(EXTRA_VIDEOS, false) && temVideos || !temMusicas ? 1 : 0;
+        if (abaDoArtista == 0 && !temMusicas) abaDoArtista = 1;
+        if (abaDoArtista == 1 && !temVideos) abaDoArtista = 0;
+        boolean videos = abaDoArtista == 1;
+        abasDoArtista.setVisibility(temMusicas && temVideos ? View.VISIBLE : View.GONE);
+        for (int i = 0; i < pilulasDoArtista.length; i++) pilulasDoArtista[i].setSelected(i == abaDoArtista);
+
+        musicas = videos ? todosOsVideos : deAudioDoArtista;
+        List<Button> botoes = new ArrayList<>();
+        if (videos) {
             Button assistir = PecasMusica.botao(this, R.string.st_musicas_assistir, R.drawable.st_ic_assistir, true);
-            assistir.setOnClickListener(v -> assistir(soltos.musicas.get(0).id));
+            assistir.setOnClickListener(v -> assistirTodos(false));
             botoes.add(assistir);
+            Button aleatorio = PecasMusica.botao(this, R.string.st_musicas_aleatorio, R.drawable.st_ic_aleatorio, false);
+            aleatorio.setOnClickListener(v -> assistirTodos(true));
+            botoes.add(aleatorio);
+        } else {
+            botoes.add(botaoTocar(R.string.st_musicas_ouvir, false));
+            botoes.add(botaoTocar(R.string.st_musicas_aleatorio, true));
         }
         botoes.add(botaoTrocarCapa(a.id, PecasMusica.artista(this, a.nome), a.nome));
         List<String> selos = new ArrayList<>();
         if (a.musicas > 0) selos.add(juntar(getString(R.string.st_musicas_selo_musicas), a.formatoMusicas));
         if (a.videos > 0) selos.add(juntar(getString(R.string.st_musicas_selo_videos), a.formatoVideos));
-        cabecalho(PecasMusica.artista(this, a.nome), linha, selos, texto(a.resumo, a.descricao), a.foto, a.cor,
-                R.drawable.st_ic_shows, true, botoes);
+        cabecalho(PecasMusica.artista(this, a.nome), LinhaArtistaAdapter.contagens(this, a), selos, texto(a.resumo, a.descricao),
+                a.foto, a.cor, R.drawable.st_ic_shows, true, botoes);
 
         List<CapaMusicaAdapter.Capa> capas = new ArrayList<>();
-        for (Album album : repositorio.albunsDoArtista(a.id)) {
-            String sub = album.video ? juntar(getString(R.string.st_musicas_album_em_video), album.ano == null ? null : String.valueOf(album.ano))
-                    : album.ano == null ? getResources().getQuantityString(R.plurals.st_n_musicas, album.musicas.size(), album.musicas.size())
-                    : String.valueOf(album.ano);
+        for (Album album : videos ? deVideo : deAudio) {
+            String sub = album.ano != null ? String.valueOf(album.ano)
+                    : getResources().getQuantityString(album.video ? R.plurals.st_n_videos : R.plurals.st_n_musicas,
+                    album.musicas.size(), album.musicas.size());
             capas.add(new CapaMusicaAdapter.Capa(album.id, PecasMusica.album(this, album.nome), sub,
                     album.capa, album.cor, album.video ? R.drawable.st_ic_assistir : R.drawable.st_ic_disco, false,
                     () -> TelasMusica.abrirAlbum(this, album.id),
                     album.video ? () -> assistir(album.musicas.get(0).id)
                             : () -> Tocador.de(this).tocar(album.musicas, 0, false)));
         }
-        List<Musica> videos = soltos == null ? new ArrayList<>() : soltos.musicas;
+        List<Musica> cards = videos && soltos != null ? soltos.musicas : new ArrayList<>();
         // Só refaz as seções se mudaram (a biblioteca avisa muito durante a atualização)
-        StringBuilder assinatura = new StringBuilder();
+        StringBuilder assinatura = new StringBuilder().append(abaDoArtista).append(';');
         for (CapaMusicaAdapter.Capa c : capas) assinatura.append(c.id).append('|').append(c.linha).append('|').append(c.imagem).append(';');
-        for (Musica v : videos) assinatura.append(v.id).append('|').append(v.titulo).append(';');
+        for (Musica v : cards) assinatura.append(v.id).append('|').append(v.titulo).append('|').append(v.posicaoSegundos).append(v.assistido).append(';');
         if (!assinatura.toString().equals(assinaturaDasSecoes)) {
             assinaturaDasSecoes = assinatura.toString();
             secoes.limpar();
-            secoes.secaoDeCapas(getString(R.string.st_musicas_albuns), capas);
-            secoes.secaoDeVideos(getString(R.string.st_musicas_videos), videos);
+            secoes.secaoDeCapas(getString(videos ? R.string.st_musicas_albuns_em_video : R.string.st_musicas_albuns), capas);
+            secoes.secaoDeVideos(getString(R.string.st_musicas_videos), cards);
             secoes.montar();
         }
         aviso.setVisibility(View.GONE);
+    }
+
+    /** Todos os vídeos do artista, na ordem da página ou sorteados (o aleatório guardado também sorteia). */
+    private void assistirTodos(boolean sortear) {
+        if (musicas.isEmpty()) return;
+        String primeiro = SequenciaClipes.usar(ids(musicas), sortear || Preferencias.aleatorioMusica(this));
+        Navegacao.abrirReproducao(this, primeiro, Navegacao.DE_ONDE_PAROU);
+    }
+
+    /** Abas Músicas e Vídeos da página do artista, como as pílulas de temporada. */
+    private LinearLayout abasDoArtista() {
+        LinearLayout linha = new LinearLayout(this);
+        linha.setOrientation(LinearLayout.HORIZONTAL);
+        int[] nomes = {R.string.st_musicas_aba_musicas, R.string.st_musicas_videos};
+        for (int i = 0; i < nomes.length; i++) {
+            final int indice = i;
+            TextView pilula = Textos.novo(this, getString(nomes[i]), R.font.st_inter_extrabold, 22, R.color.st_texto);
+            pilula.setTextColor(androidx.core.content.ContextCompat.getColorStateList(this, R.color.st_cor_pilula));
+            pilula.setBackgroundResource(R.drawable.st_pilula_temporada);
+            pilula.setGravity(Gravity.CENTER);
+            pilula.setPadding(Medidas.px(this, 30), 0, Medidas.px(this, 30), 0);
+            pilula.setFocusable(true);
+            pilula.setClickable(true);
+            pilula.setOnClickListener(v -> trocarAba(indice));
+            if (tv) pilula.setOnFocusChangeListener((v, temFoco) -> {
+                if (temFoco) trocarAba(indice);
+            });
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, Medidas.px(this, 56));
+            if (i > 0) lp.setMarginStart(Medidas.px(this, 12));
+            linha.addView(pilula, lp);
+            pilulasDoArtista[i] = pilula;
+        }
+        return linha;
+    }
+
+    private void trocarAba(int indice) {
+        if (indice == abaDoArtista) return;
+        abaDoArtista = indice;
+        mostrar();
+        lista.scrollToPosition(0);
     }
 
     private void mostrarPlaylist() {
@@ -433,7 +469,10 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
         boolean focoNoTopo = focado != null && dentroDoTopo(focado);
         cabecalho.removeAllViews();
         // Celular deitado: a capa não toma a altura da lista
-        int lado = Math.min(Medidas.px(this, tv ? 300 : 340), getResources().getDisplayMetrics().heightPixels / 4);
+        // Artista (1.7): topo maior, com mais destaque
+        boolean grande = tipo == ARTISTA;
+        int lado = Math.min(Medidas.px(this, grande ? (tv ? 380 : 420) : (tv ? 300 : 340)),
+                getResources().getDisplayMetrics().heightPixels / (grande ? 3 : 4));
         cabecalho.addView(PecasMusica.capa(this, lado, cor, imagem, icone, redonda), new LinearLayout.LayoutParams(lado, lado));
         LinearLayout textos = new LinearLayout(this);
         textos.setOrientation(LinearLayout.VERTICAL);

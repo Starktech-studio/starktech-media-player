@@ -32,6 +32,10 @@ import br.com.starktechstudio.mediaplayer.comum.Preferencias;
 import br.com.starktechstudio.mediaplayer.comum.Reproducao;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Capitulo;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.TipoFaixa;
+import androidx.core.content.ContextCompat;
+import br.com.starktechstudio.mediaplayer.comum.DoisToques;
+import br.com.starktechstudio.mediaplayer.comum.SequenciaClipes;
+import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 
 /**
  * Player da TV (tv-player.dc.html), tocando o arquivo pelo motor do Nova ({@link Reproducao}): topo com o título e o
@@ -69,6 +73,7 @@ public class ReproducaoTvActivity extends AppCompatActivity {
     private ImageButton pausar;
     private Button botaoCapitulos;
     private Button ajustarLegenda;
+    private final DoisToques doisToques = new DoisToques();
     private BarraCapitulosView barra;
     private VerticalGridView lista;
     private CapituloAdapter adapter;
@@ -131,6 +136,7 @@ public class ReproducaoTvActivity extends AppCompatActivity {
         Icones.noTexto(botaoCapitulos, R.drawable.st_ic_capitulos, icone);
         Icones.noTexto(ajustarLegenda, R.drawable.st_ic_ajustar, icone);
         ajustarLegenda.setOnClickListener(v -> Navegacao.abrirAjusteLegenda(this, reproducao.id));
+        ligarAleatorio(findViewById(R.id.st_rep_aleatorio), icone);
 
         // Sem capítulos: só Pausar no centro (INTERFACE.md §4); vídeo de música: anterior e próximo vídeo (1.6)
         boolean comCapitulos = reproducao.temCapitulos();
@@ -266,7 +272,8 @@ public class ReproducaoTvActivity extends AppCompatActivity {
      */
     private void mostrarBotoesDoCentro() {
         boolean clipe = reproducao.ehClipe();
-        boolean anterior = clipe ? reproducao.clipeAnterior() != null : reproducao.temCapitulos();
+        // Vídeo anterior sempre no vídeo de música: o 1º toque volta ao começo (1.7)
+        boolean anterior = clipe || reproducao.temCapitulos();
         boolean proximo = clipe ? reproducao.clipeSeguinte() != null : reproducao.temCapitulos();
         findViewById(R.id.st_rep_grupo_cap_anterior).setVisibility(anterior ? View.VISIBLE : View.GONE);
         findViewById(R.id.st_rep_grupo_cap_proximo).setVisibility(proximo ? View.VISIBLE : View.GONE);
@@ -281,9 +288,35 @@ public class ReproducaoTvActivity extends AppCompatActivity {
     /** Vídeo de música: abre o outro da sequência (os botões da tela e os de mídia, como o do volante). */
     private boolean trocarDeClipe(boolean proximo) {
         if (!reproducao.ehClipe()) return false;
+        // 1.7 (D4): anterior em dois toques; o 1º volta ao começo deste vídeo
+        if (!proximo && !doisToques.segundo()) {
+            reproducao.irPara(0);
+            return true;
+        }
         String outro = proximo ? reproducao.clipeSeguinte() : reproducao.clipeAnterior();
         if (outro != null) abrirEpisodio(outro);
+        else if (!proximo) reproducao.irPara(0);
         return true;
+    }
+
+    /** Aleatório do vídeo de música (1.7): em azul ligado; liga e desliga o guardado, na hora. */
+    private void ligarAleatorio(TextView botao, int icone) {
+        if (!reproducao.ehClipe()) return;
+        botao.setVisibility(View.VISIBLE);
+        botao.setOnClickListener(v -> {
+            SequenciaClipes.alternar(this, RepositorioBiblioteca.atual(this), reproducao.id);
+            mostrarAleatorio(botao, icone);
+            mostrarBotoesDoCentro();
+        });
+        mostrarAleatorio(botao, icone);
+    }
+
+    private void mostrarAleatorio(TextView botao, int icone) {
+        boolean ligado = SequenciaClipes.sorteadaAgora(this, RepositorioBiblioteca.atual(this), reproducao.id);
+        int cor = ContextCompat.getColor(this, ligado ? R.color.st_azul : R.color.st_texto);
+        botao.setTextColor(cor);
+        Icones.noTexto(botao, R.drawable.st_ic_aleatorio, icone, cor);
+        botao.setContentDescription(getString(ligado ? R.string.st_musicas_aleatorio_ligado : R.string.st_musicas_aleatorio_desligado));
     }
 
     private void capituloAnterior() {

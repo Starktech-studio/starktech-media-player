@@ -230,6 +230,24 @@
                     android:textColor="@color/st_texto_secundario"
                     android:textSize="@dimen/st_tablet_texto_rep_rotulo" />
 
+                <!-- Aleatório do vídeo de música (1.7): à esquerda de Áudio -->
+                <TextView
+                    android:id="@+id/st_rep_aleatorio"
+                    style="@style/StarkTech.Texto.Botao"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/st_tablet_rep_botao"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/st_botao_reproducao_tablet"
+                    android:drawablePadding="4dp"
+                    android:gravity="center"
+                    android:minWidth="@dimen/st_tablet_rep_botao"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:text="@string/st_musicas_aleatorio"
+                    android:textColor="@color/st_texto_secundario"
+                    android:textSize="@dimen/st_tablet_texto_rep_rotulo"
+                    android:visibility="gone" />
+
                 <TextView
                     android:id="@+id/st_rep_audio"
                     style="@style/StarkTech.Texto.Botao"

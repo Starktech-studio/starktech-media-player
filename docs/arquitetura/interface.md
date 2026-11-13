@@ -122,3 +122,14 @@ Conferência em cada fase: `git diff --stat nova-v6.6.2 -- MediaLib FileCoreLibr
 | Anterior e próximo vídeo | No vídeo de música, os botões do centro do player viram Vídeo anterior e Próximo vídeo (cada um só se houver); "Próximo: <nome>"; as teclas de mídia da TV e os botões de fora no tablet (`BotoesDeMidia`: volante, fone) trocam de vídeo |
 | Trocar capa | `EditarCapaMusicaActivity`: no artista, as fotos do fanart.tv e da Wikipédia; no artista, álbum e playlist, Do aparelho e Restaurar. Fica nas edições (`Edicoes`, campo CAPA) pela chave: a do artista vale também nos Shows |
 | Discos | `LinhasMusicaAdapter`: álbum de áudio com mais de um disco ganha "DISCO 1", "DISCO 2" antes das faixas de cada um |
+
+## 9. Músicas na 1.7 (plano 008)
+
+| Tela | No código |
+|---|---|
+| Artistas em linhas | `LinhaArtistaAdapter`: foto redonda, nome e "3 álbuns · 42 músicas · 12 vídeos" com os formatos. `MusicasFragment.usarLinhas`: 2 colunas na TV; no tablet, 2 só em tela larga. OK abre o artista; segurar ouve tudo |
+| Sub-aba Vídeos | Saiu, com a tela "Vídeos de <artista>" (modo VIDEOS de `ColecaoMusicaActivity`). `TelasMusica.abrirVideosDoArtista` abre o artista na aba Vídeos (`EXTRA_VIDEOS`) |
+| Página do artista | `ColecaoMusicaActivity` (ARTISTA): pílulas Músicas e Vídeos depois do cabeçalho maior. Músicas: Ouvir, Aleatório e os álbuns de áudio. Vídeos: Assistir, Aleatório (`SequenciaClipes.usar`), Álbuns em vídeo e os vídeos soltos |
+| Cards de vídeo | `SecoesArtistaAdapter` (FileiraDeVideos): quadro 16:9 com a imagem, número da faixa, duração, barrinha do quanto já foi visto (`Musica.posicaoSegundos`) e título em 2 linhas |
+| Aleatório no player | Botão `st_rep_aleatorio`, à esquerda de Áudio, só no vídeo de música: em azul ligado; `SequenciaClipes.alternar` grava a preferência e refaz a ordem na hora |
+| Vídeo anterior | `DoisToques` (3 s): o 1º toque volta ao começo do vídeo; o 2º abre o anterior. Vale na tela, no controle e no volante (`trocarDeClipe`) |

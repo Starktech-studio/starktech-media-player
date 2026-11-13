@@ -43,6 +43,12 @@ public class SequenciaClipesTest {
     }
 
     @Test
+    public void listaDaTela_naOrdem() {
+        assertEquals("a", SequenciaClipes.usar(BASE, false));
+        assertEquals(BASE, SequenciaClipes.montar(BASE, "a", false));
+    }
+
+    @Test
     public void botaoAleatorio_sorteiaTudo() {
         String primeiro = SequenciaClipes.sortear(BASE);
         List<String> ordem = SequenciaClipes.montar(BASE, primeiro, true);
