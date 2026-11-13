@@ -8,7 +8,7 @@ Sem login e sem conta: a biblioteca fica no aparelho. O mesmo APK roda na TV, no
 
 | | |
 |---|---|
-| **Versão** | 1.5.1 |
+| **Versão** | 1.6.0 |
 | **Pacote** | `br.com.starktechstudio.mediaplayer` |
 | **Android** | 6.0 ou mais novo |
 | **Tamanho do APK** | cerca de 110 MB (um APK só, para qualquer processador) |
@@ -64,10 +64,11 @@ Na TV. Prints feitos no emulador, com vídeos de teste gerados só para isso (po
 ### Músicas
 
 - **Pasta de Músicas:** artistas (com foto), álbuns (com a capa da música ou da pasta) e playlists criadas no app.
-- **Tocando agora:** aleatório, repetir e fila; tocar a seguir e pôr na fila.
+- **Tocando agora:** aleatório (fica ligado até desligar), repetir e fila; tocar a seguir, pôr na fila e "Tocar tudo aleatório".
+- **Capas:** trocar a foto do artista e a capa do álbum e da playlist; álbum com mais de um disco separado em Disco 1, Disco 2.
 - **Fora do app:** a música continua com a tela desligada, com notificação e os botões do fone e do controle.
 - **Formatos:** MP3, M4A, AAC, FLAC, OGG, Opus e WAV.
-- **Vídeos de música:** na pasta do artista, em sequência pelo número do nome; álbum em vídeo numa pasta só com vídeos. Tocam no player de vídeo, um atrás do outro.
+- **Vídeos de música:** na pasta do artista, em sequência pelo número do nome; álbum em vídeo numa pasta só com vídeos. Tocam no player de vídeo, um atrás do outro, com vídeo anterior e próximo na tela e nos botões do volante do carro e do fone.
 - **Artista e álbum:** descrição da Wikipédia e selos do formato ("Músicas · MP3", "Vídeos · 1080p").
 
 ### Player
@@ -159,7 +160,7 @@ Chaves (TMDB, fanart.tv e a assinatura do APK) ficam fora do repositório. Detal
 
 ## Situação
 
-Versão 1.5.1, de uso próprio, em teste. O código é público, e as versões do app ficam nas releases deste repositório.
+Versão 1.6.0, de uso próprio, em teste. O código é público, e as versões do app ficam nas releases deste repositório.
 
 **Antes de liberar ao público**, há pendências de termos e licenças. A principal: confirmar com o TMDB o uso da chave e o prazo de 6 meses dos dados guardados. A lista completa, com o que os termos do TMDB, da Wikipédia e das bibliotecas pedem, está em [`liberar-ao-publico.md`](docs/operacional/liberar-ao-publico.md).
 

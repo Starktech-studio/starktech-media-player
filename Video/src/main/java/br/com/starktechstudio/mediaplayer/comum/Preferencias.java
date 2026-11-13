@@ -175,6 +175,20 @@ public final class Preferencias {
         return true;
     }
 
+    private static final String CHAVE_ALEATORIO_MUSICA = "aleatorio_musica";
+
+    /**
+     * Aleatório de Músicas (1.6, D1c do plano 007): ligado no Tocando agora, fica guardado e vale para o que
+     * tocar depois (músicas e vídeos de música), até desligar.
+     */
+    public static boolean aleatorioMusica(Context contexto) {
+        return arquivo(contexto).getBoolean(CHAVE_ALEATORIO_MUSICA, false);
+    }
+
+    public static void definirAleatorioMusica(Context contexto, boolean ligado) {
+        arquivo(contexto).edit().putBoolean(CHAVE_ALEATORIO_MUSICA, ligado).apply();
+    }
+
     private static final String CHAVE_ZOOM_PLAYER = "zoom_player";
 
     /** Zoom escolhido no player ou em Configurações (na ordem de {@code R.array.st_zoom_nomes}); 0 = o de fábrica. */

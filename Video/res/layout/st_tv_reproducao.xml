@@ -265,6 +265,7 @@
                         app:tint="@color/st_texto" />
 
                     <TextView
+                        android:id="@+id/st_rep_rotulo_cap_anterior"
                         style="@style/StarkTech.Texto.Botao"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -332,6 +333,7 @@
                         app:tint="@color/st_texto" />
 
                     <TextView
+                        android:id="@+id/st_rep_rotulo_cap_proximo"
                         style="@style/StarkTech.Texto.Botao"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"

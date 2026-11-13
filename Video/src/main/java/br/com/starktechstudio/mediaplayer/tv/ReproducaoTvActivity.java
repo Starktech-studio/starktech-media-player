@@ -132,10 +132,9 @@ public class ReproducaoTvActivity extends AppCompatActivity {
         Icones.noTexto(ajustarLegenda, R.drawable.st_ic_ajustar, icone);
         ajustarLegenda.setOnClickListener(v -> Navegacao.abrirAjusteLegenda(this, reproducao.id));
 
-        // Sem capítulos: só Pausar no centro (INTERFACE.md §4)
+        // Sem capítulos: só Pausar no centro (INTERFACE.md §4); vídeo de música: anterior e próximo vídeo (1.6)
         boolean comCapitulos = reproducao.temCapitulos();
-        findViewById(R.id.st_rep_grupo_cap_anterior).setVisibility(comCapitulos ? View.VISIBLE : View.GONE);
-        findViewById(R.id.st_rep_grupo_cap_proximo).setVisibility(comCapitulos ? View.VISIBLE : View.GONE);
+        mostrarBotoesDoCentro();
         botaoCapitulos.setVisibility(comCapitulos ? View.VISIBLE : View.GONE);
 
         findViewById(R.id.st_rep_cap_anterior).setOnClickListener(v -> capituloAnterior());
@@ -251,8 +250,7 @@ public class ReproducaoTvActivity extends AppCompatActivity {
     private void mostrarCapitulos() {
         barra.definirMarcas(PecasReproducao.marcas(reproducao));
         int visivel = reproducao.temCapitulos() ? View.VISIBLE : View.GONE;
-        findViewById(R.id.st_rep_grupo_cap_anterior).setVisibility(visivel);
-        findViewById(R.id.st_rep_grupo_cap_proximo).setVisibility(visivel);
+        mostrarBotoesDoCentro();
         botaoCapitulos.setVisibility(visivel);
         adapter.atualizar(reproducao.capitulos, numeroAtual());
     }
@@ -262,12 +260,40 @@ public class ReproducaoTvActivity extends AppCompatActivity {
         return atual == null ? 0 : atual.numero;
     }
 
+    /**
+     * Botões do centro: capítulo anterior e próximo; no vídeo de música (1.6, D4 do plano 007), vídeo
+     * anterior e próximo da sequência, cada um só se houver.
+     */
+    private void mostrarBotoesDoCentro() {
+        boolean clipe = reproducao.ehClipe();
+        boolean anterior = clipe ? reproducao.clipeAnterior() != null : reproducao.temCapitulos();
+        boolean proximo = clipe ? reproducao.clipeSeguinte() != null : reproducao.temCapitulos();
+        findViewById(R.id.st_rep_grupo_cap_anterior).setVisibility(anterior ? View.VISIBLE : View.GONE);
+        findViewById(R.id.st_rep_grupo_cap_proximo).setVisibility(proximo ? View.VISIBLE : View.GONE);
+        if (clipe) {
+            ((TextView) findViewById(R.id.st_rep_rotulo_cap_anterior)).setText(R.string.st_video_anterior);
+            ((TextView) findViewById(R.id.st_rep_rotulo_cap_proximo)).setText(R.string.st_proximo_video);
+            findViewById(R.id.st_rep_cap_anterior).setContentDescription(getString(R.string.st_video_anterior));
+            findViewById(R.id.st_rep_cap_proximo).setContentDescription(getString(R.string.st_proximo_video));
+        }
+    }
+
+    /** Vídeo de música: abre o outro da sequência (os botões da tela e os de mídia, como o do volante). */
+    private boolean trocarDeClipe(boolean proximo) {
+        if (!reproducao.ehClipe()) return false;
+        String outro = proximo ? reproducao.clipeSeguinte() : reproducao.clipeAnterior();
+        if (outro != null) abrirEpisodio(outro);
+        return true;
+    }
+
     private void capituloAnterior() {
+        if (trocarDeClipe(false)) return;
         Capitulo c = reproducao.irParaCapituloAnterior();
         if (c != null && !visiveis) mostrarAviso(PecasReproducao.nomeCapitulo(this, c));
     }
 
     private void proximoCapitulo() {
+        if (trocarDeClipe(true)) return;
         Capitulo c = reproducao.irParaProximoCapitulo();
         if (c != null && !visiveis) mostrarAviso(PecasReproducao.nomeCapitulo(this, c));
     }

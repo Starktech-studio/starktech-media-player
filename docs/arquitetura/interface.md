@@ -111,3 +111,14 @@ Conferência em cada fase: `git diff --stat nova-v6.6.2 -- MediaLib FileCoreLibr
 | Álbum | Selo "Álbum · MP3" ou "Álbum em vídeo · 1080p · H.264" e a descrição, se houver. Álbum em vídeo: Assistir e as faixas; OK numa faixa abre o player nela |
 | Vídeos do artista | `ColecaoMusicaActivity` (VIDEOS, pelo id da coleção): "Vídeos de <artista>", selo, Assistir e a lista |
 | Player | O de vídeo (`Reproducao`), como em filmes e shows. Vídeo de música: o artista embaixo do título; no fim, o seguinte da sequência (`RepositorioBiblioteca.proximoClipe`); Voltar volta para Músicas |
+
+## 8. Músicas na 1.6 (plano 007)
+
+| Tela | No código |
+|---|---|
+| Aleatório guardado | `Preferencias.aleatorioMusica`: ligar ou desligar no Tocando agora fica guardado; `Tocador.tocar` sorteia com ele ligado |
+| Tocar tudo aleatório | Botão ao lado das sub-abas de `MusicasFragment`: todas as músicas de áudio, sorteadas |
+| Vídeos aleatórios | Botão Aleatório no álbum em vídeo e nos vídeos do artista (`ColecaoMusicaActivity`); `SequenciaClipes` guarda a ordem sorteada (o vídeo aberto na frente) enquanto se anda por ela; abrir pela lista volta à regra da preferência |
+| Anterior e próximo vídeo | No vídeo de música, os botões do centro do player viram Vídeo anterior e Próximo vídeo (cada um só se houver); "Próximo: <nome>"; as teclas de mídia da TV e os botões de fora no tablet (`BotoesDeMidia`: volante, fone) trocam de vídeo |
+| Trocar capa | `EditarCapaMusicaActivity`: no artista, as fotos do fanart.tv e da Wikipédia; no artista, álbum e playlist, Do aparelho e Restaurar. Fica nas edições (`Edicoes`, campo CAPA) pela chave: a do artista vale também nos Shows |
+| Discos | `LinhasMusicaAdapter`: álbum de áudio com mais de um disco ganha "DISCO 1", "DISCO 2" antes das faixas de cada um |

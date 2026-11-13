@@ -48,6 +48,12 @@ public final class PecasReproducao {
 
     /** "Próximo: 04 · A memória em 00:38", com o capítulo em branco; vazio no último ou sem capítulos. */
     public static CharSequence textoProximo(Context contexto, Reproducao r) {
+        // Vídeo de música (1.6): o próximo vídeo da sequência
+        if (r.ehClipe()) {
+            String seguinte = r.clipeSeguinte();
+            String nome = seguinte == null ? null : r.nomeDe(seguinte);
+            return nome == null ? "" : contexto.getString(R.string.st_proximo_video_nome, nome);
+        }
         Capitulo proximo = r.proximoCapitulo();
         if (proximo == null) return "";
         SpannableStringBuilder texto = new SpannableStringBuilder(contexto.getString(R.string.st_proximo));

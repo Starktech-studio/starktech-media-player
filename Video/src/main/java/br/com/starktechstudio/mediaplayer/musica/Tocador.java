@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import br.com.starktechstudio.mediaplayer.comum.Preferencias;
 import br.com.starktechstudio.mediaplayer.dados.ModeloMusicas.Musica;
 
 /**
@@ -267,10 +268,10 @@ public final class Tocador {
 
     // ---- Comandos ----
 
-    /** Troca a fila e toca a partir de {@code inicio}. */
+    /** Troca a fila e toca a partir de {@code inicio}; com o aleatório guardado ligado (1.6), sorteia o resto. */
     public void tocar(List<Musica> musicas, int inicio, boolean aleatorio) {
         if (musicas.isEmpty()) return;
-        fila.definir(musicas, inicio, aleatorio);
+        fila.definir(musicas, inicio, aleatorio || Preferencias.aleatorioMusica(app));
         errosSeguidos = 0;
         abrir(true);
     }
@@ -339,8 +340,10 @@ public final class Tocador {
         abrir(true);
     }
 
+    /** Liga ou desliga o aleatório da fila e guarda a escolha (1.6): vale para o que tocar depois. */
     public void alternarAleatorio() {
         fila.alternarAleatorio();
+        Preferencias.definirAleatorioMusica(app, fila.aleatorio());
         mudouEstado();
     }
 

@@ -518,15 +518,15 @@ public final class RepositorioReal implements RepositorioBiblioteca {
     }
 
     /**
-     * O vídeo que vem depois na sequência (D3 do plano 006): o seguinte do mesmo álbum em vídeo ou, sem álbum,
-     * dos vídeos soltos do artista; nulo no último.
+     * A sequência do vídeo de música (D3 do plano 006, 1.6): os do mesmo álbum em vídeo ou, sem álbum, os
+     * vídeos soltos do artista, pelo número e, sem ele, pelo nome; vazia se não é vídeo de música.
      */
     @Override
-    @Nullable
-    public String proximoClipe(String id) {
+    public List<String> sequenciaDoClipe(String id) {
         Retrato r = retrato;
         Acervo.Video atual = r.videos.get(id);
-        if (atual == null || atual.tipo != Classificador.Tipo.CLIPE) return null;
+        List<String> ids = new ArrayList<>();
+        if (atual == null || atual.tipo != Classificador.Tipo.CLIPE) return ids;
         List<Acervo.Video> mesma = new ArrayList<>();
         for (Acervo.Video v : r.videos.values()) {
             if (v.tipo != Classificador.Tipo.CLIPE) continue;
@@ -540,10 +540,8 @@ public final class RepositorioReal implements RepositorioBiblioteca {
             int nome = normalizar(a.titulo).compareTo(normalizar(b.titulo));
             return nome != 0 ? nome : a.caminho.compareTo(b.caminho);
         });
-        for (int i = 0; i < mesma.size() - 1; i++) {
-            if (mesma.get(i).caminho.equals(id)) return mesma.get(i + 1).caminho;
-        }
-        return null;
+        for (Acervo.Video v : mesma) ids.add(v.caminho);
+        return ids;
     }
 
     /** Qualidade e formato do vídeo ("1080p · H.264"), para o selo de Músicas. */

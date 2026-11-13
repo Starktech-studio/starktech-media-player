@@ -213,6 +213,10 @@
             android:exported="false"
             android:theme="@style/Theme.StarkTech" />
         <activity
+            android:name="br.com.starktechstudio.mediaplayer.comum.EditarCapaMusicaActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech" />
+        <activity
             android:name="br.com.starktechstudio.mediaplayer.comum.TocandoAgoraActivity"
             android:exported="false"
             android:launchMode="singleTop"

@@ -60,6 +60,7 @@ public class MusicasFragment extends Fragment {
     private int ativa = ALBUNS;
     private TextView aviso;
     private Button permitir;
+    private Button tudoAleatorio;
     private RecyclerView grade;
     private CapaMusicaAdapter capas;
     private GridLayoutManager gerenteTablet;
@@ -132,6 +133,16 @@ public class MusicasFragment extends Fragment {
             linha.addView(subaba, lp);
             subabas[i] = subaba;
         }
+        // Tocar tudo aleatório (1.6, D1a): a coleção inteira de áudio, sorteada
+        tudoAleatorio = PecasMusica.botao(contexto, R.string.st_musicas_tocar_tudo_aleatorio, R.drawable.st_ic_aleatorio, false);
+        tudoAleatorio.setOnClickListener(v -> {
+            List<br.com.starktechstudio.mediaplayer.dados.ModeloMusicas.Musica> todas = RepositorioMusicas.de(contexto).todasAsMusicas();
+            if (!todas.isEmpty()) Tocador.de(contexto).tocar(todas, (int) (Math.random() * todas.size()), true);
+        });
+        LinearLayout.LayoutParams lpTudo = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lpTudo.setMarginStart(Medidas.px(contexto, 28));
+        linha.setGravity(Gravity.CENTER_VERTICAL);
+        linha.addView(tudoAleatorio, lpTudo);
         pagina.addView(linha, PecasMusica.comTopo(Medidas.px(contexto, 26)));
 
         aviso = Textos.novo(contexto, "", R.font.st_inter_semibold, 20, R.color.st_texto_secundario);
@@ -261,6 +272,7 @@ public class MusicasFragment extends Fragment {
         aviso.setText(textoAviso);
         aviso.setVisibility(textoAviso == null ? View.GONE : View.VISIBLE);
         permitir.setVisibility(temPasta && !podeLer ? View.VISIBLE : View.GONE);
+        tudoAleatorio.setVisibility(podeLer && !repositorio.todasAsMusicas().isEmpty() ? View.VISIBLE : View.GONE);
         capas.atualizar(lista);
     }
 
@@ -306,7 +318,10 @@ public class MusicasFragment extends Fragment {
                         if (a.soltos) TelasMusica.abrirVideos(requireActivity(), a.id);
                         else TelasMusica.abrirAlbum(requireActivity(), a.id);
                     },
-                    () -> Navegacao.abrirReproducao(requireActivity(), primeiro, Navegacao.DE_ONDE_PAROU)));
+                    () -> {
+                        SequenciaClipes.soltar();
+                        Navegacao.abrirReproducao(requireActivity(), primeiro, Navegacao.DE_ONDE_PAROU);
+                    }));
         }
         return lista;
     }

@@ -145,13 +145,13 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
     /** Música: toca a partir dela; vídeo (1.5.1): abre o player de vídeo nele, que segue a sequência. */
     private void tocarDaLista(int posicao) {
         Musica m = musicas.get(posicao);
-        if (m.video) Navegacao.abrirReproducao(this, m.id, Navegacao.DE_ONDE_PAROU);
+        if (m.video) assistir(m.id);
         else Tocador.de(this).tocar(musicas, posicao, false);
     }
 
     /** Artista (1.5.1): seções Álbuns e Vídeos; as colunas saem da largura, como na grade da aba. */
     private void montarSecoes() {
-        secoes = new SecoesArtistaAdapter(tv, v -> Navegacao.abrirReproducao(this, v.id, Navegacao.DE_ONDE_PAROU));
+        secoes = new SecoesArtistaAdapter(tv, v -> assistir(v.id));
         int espaco = getResources().getDimensionPixelSize(tv ? R.dimen.st_tv_capa_espaco : R.dimen.st_tablet_capa_espaco);
         if (tv) {
             int largura = getResources().getDisplayMetrics().widthPixels
@@ -225,6 +225,7 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
         List<Button> botoes = new ArrayList<>();
         if (a.video) {
             botoes.add(botaoAssistir());
+            botoes.add(botaoVideosAleatorio());
         } else {
             botoes.add(botaoTocar(R.string.st_musicas_tocar, false));
             botoes.add(botaoTocar(R.string.st_musicas_aleatorio, true));
@@ -237,12 +238,13 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
             artista.setOnClickListener(v -> TelasMusica.abrirArtista(this, a.idArtista));
             botoes.add(artista);
         }
+        botoes.add(botaoTrocarCapa(a.id, PecasMusica.album(this, a.nome), null));
         List<String> selos = new ArrayList<>();
         selos.add(getString(a.video ? R.string.st_musicas_selo_album_video : R.string.st_musicas_selo_album));
         if (a.formato != null) selos.add(a.formato);
         cabecalho(PecasMusica.album(this, a.nome), linha, selos, texto(a.resumo, a.descricao), a.capa, a.cor,
                 a.video ? R.drawable.st_ic_assistir : R.drawable.st_ic_disco, false, botoes);
-        faixas.atualizar(musicas);
+        faixas.atualizar(musicas, !a.video);
         aviso.setVisibility(View.GONE);
     }
 
@@ -260,6 +262,7 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
                 a.duracaoMs() > 0 ? PecasMusica.duracaoLonga(a.duracaoMs()) : null);
         List<Button> botoes = new ArrayList<>();
         botoes.add(botaoAssistir());
+        botoes.add(botaoVideosAleatorio());
         if (dono != null) {
             Button artista = PecasMusica.botao(this, R.string.st_musicas_ir_artista, R.drawable.st_ic_shows, false);
             artista.setOnClickListener(v -> TelasMusica.abrirArtista(this, dono.id));
@@ -293,9 +296,10 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
         Album soltos = repositorio.videosSoltos(a.id);
         if (musicas.isEmpty() && soltos != null) {
             Button assistir = PecasMusica.botao(this, R.string.st_musicas_assistir, R.drawable.st_ic_assistir, true);
-            assistir.setOnClickListener(v -> Navegacao.abrirReproducao(this, soltos.musicas.get(0).id, Navegacao.DE_ONDE_PAROU));
+            assistir.setOnClickListener(v -> assistir(soltos.musicas.get(0).id));
             botoes.add(assistir);
         }
+        botoes.add(botaoTrocarCapa(a.id, PecasMusica.artista(this, a.nome), a.nome));
         List<String> selos = new ArrayList<>();
         if (a.musicas > 0) selos.add(juntar(getString(R.string.st_musicas_selo_musicas), a.formatoMusicas));
         if (a.videos > 0) selos.add(juntar(getString(R.string.st_musicas_selo_videos), a.formatoVideos));
@@ -310,7 +314,7 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
             capas.add(new CapaMusicaAdapter.Capa(album.id, PecasMusica.album(this, album.nome), sub,
                     album.capa, album.cor, album.video ? R.drawable.st_ic_assistir : R.drawable.st_ic_disco, false,
                     () -> TelasMusica.abrirAlbum(this, album.id),
-                    album.video ? () -> Navegacao.abrirReproducao(this, album.musicas.get(0).id, Navegacao.DE_ONDE_PAROU)
+                    album.video ? () -> assistir(album.musicas.get(0).id)
                             : () -> Tocador.de(this).tocar(album.musicas, 0, false)));
         }
         List<Musica> videos = soltos == null ? new ArrayList<>() : soltos.musicas;
@@ -352,6 +356,7 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
         Button apagar = PecasMusica.botao(this, R.string.st_musicas_apagar, R.drawable.st_ic_lixeira, false);
         apagar.setOnClickListener(v -> MenuMusicaActivity.abrirApagar(this, p.id));
         botoes.add(apagar);
+        botoes.add(botaoTrocarCapa("playlist:" + p.id, p.nome, null));
         List<String> selos = new ArrayList<>();
         selos.add(getString(R.string.st_musicas_selo_playlist));
         cabecalho(p.nome, linha, selos, null, p.capa, p.cor, R.drawable.st_ic_fila, false, botoes);
@@ -373,8 +378,32 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
     private Button botaoAssistir() {
         Button botao = PecasMusica.botao(this, R.string.st_musicas_assistir, R.drawable.st_ic_assistir, true);
         botao.setOnClickListener(v -> {
-            if (!musicas.isEmpty()) Navegacao.abrirReproducao(this, musicas.get(0).id, Navegacao.DE_ONDE_PAROU);
+            if (!musicas.isEmpty()) assistir(musicas.get(0).id);
         });
+        return botao;
+    }
+
+    /** Vídeos aleatórios (1.6, D1b): sorteia a sequência e abre o primeiro; o player segue a ordem sorteada. */
+    private Button botaoVideosAleatorio() {
+        Button botao = PecasMusica.botao(this, R.string.st_musicas_aleatorio, R.drawable.st_ic_aleatorio, false);
+        botao.setOnClickListener(v -> {
+            if (musicas.isEmpty()) return;
+            Navegacao.abrirReproducao(this, SequenciaClipes.sortear(ids(musicas)), Navegacao.DE_ONDE_PAROU);
+        });
+        return botao;
+    }
+
+    /** Abre o vídeo pela lista: a ordem segue a do aleatório guardado (1.6). */
+    private void assistir(String idVideo) {
+        SequenciaClipes.soltar();
+        Navegacao.abrirReproducao(this, idVideo, Navegacao.DE_ONDE_PAROU);
+    }
+
+    /** Trocar capa (álbum, playlist) ou foto (artista, com {@code nomeArtista}), 1.6 D2. */
+    private Button botaoTrocarCapa(String chave, String nome, @Nullable String nomeArtista) {
+        Button botao = PecasMusica.botao(this, nomeArtista != null ? R.string.st_musicas_trocar_foto : R.string.st_musicas_trocar_capa,
+                R.drawable.st_ic_imagem, false);
+        botao.setOnClickListener(v -> EditarCapaMusicaActivity.abrir(this, chave, nome, nomeArtista));
         return botao;
     }
 
@@ -451,7 +480,15 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
             if (i > 0) lp.setMarginStart(Medidas.px(this, 14));
             fila.addView(b, lp);
         }
-        textos.addView(fila, PecasMusica.comTopo(Medidas.px(this, verMais != null ? 20 : 26)));
+        // Muitos botões (1.6: Trocar capa): a fila rola para o lado e acompanha o foco na TV
+        android.widget.HorizontalScrollView rolagemBotoes = new android.widget.HorizontalScrollView(this);
+        rolagemBotoes.setHorizontalScrollBarEnabled(false);
+        rolagemBotoes.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        rolagemBotoes.setClipToPadding(false);
+        rolagemBotoes.addView(fila);
+        LinearLayout.LayoutParams lpFila = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lpFila.topMargin = Medidas.px(this, verMais != null ? 20 : 26);
+        textos.addView(rolagemBotoes, lpFila);
         LinearLayout.LayoutParams lpTextos = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         lpTextos.setMarginStart(Medidas.px(this, 40));
         cabecalho.addView(textos, lpTextos);

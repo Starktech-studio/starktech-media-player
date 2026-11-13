@@ -270,6 +270,24 @@ public final class Reproducao implements Player.Listener {
         return clipe;
     }
 
+    /** Vídeo de música (1.6): o seguinte e o anterior da sequência (na ordem sorteada, com o aleatório); nulo nas pontas. */
+    @Nullable
+    public String clipeSeguinte() {
+        return clipe ? SequenciaClipes.seguinte(contexto, repositorio, id) : null;
+    }
+
+    @Nullable
+    public String clipeAnterior() {
+        return clipe ? SequenciaClipes.anterior(contexto, repositorio, id) : null;
+    }
+
+    /** O nome de outro título (o próximo vídeo, para "Próximo: …"). */
+    @Nullable
+    public String nomeDe(String outro) {
+        Titulo t = repositorio.titulo(outro);
+        return t == null ? null : t.titulo;
+    }
+
     /** A reprodução na tela, se for do título {@code id}. */
     @Nullable
     public static Reproducao naTela(String id) {
@@ -952,7 +970,7 @@ public final class Reproducao implements Player.Listener {
      */
     @Nullable
     private String episodioAutomatico() {
-        if (clipe) return repositorio.proximoClipe(id);
+        if (clipe) return SequenciaClipes.seguinte(contexto, repositorio, id);
         if (idSerie == null || !Preferencias.proximoEpisodioAutomatico(contexto)) return null;
         Episodio seguinte = episodioSeguinte(repositorio.temporadas(idSerie), id);
         return seguinte == null ? null : seguinte.id;

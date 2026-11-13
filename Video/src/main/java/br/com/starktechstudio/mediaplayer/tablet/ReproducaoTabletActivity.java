@@ -174,14 +174,22 @@ public class ReproducaoTabletActivity extends AppCompatActivity implements Gesto
 
         // Sem capítulos: só Pausar no centro (INTERFACE.md §4)
         boolean comCapitulos = reproducao.temCapitulos();
-        capAnterior.setVisibility(comCapitulos ? View.VISIBLE : View.GONE);
-        capProximo.setVisibility(comCapitulos ? View.VISIBLE : View.GONE);
+        // Vídeo de música (1.6): anterior e próximo vídeo no lugar dos de capítulo
+        if (reproducao.ehClipe()) {
+            capAnterior.setText(R.string.st_video_anterior);
+            capProximo.setText(R.string.st_proximo_video);
+        }
+        mostrarBotoesDoCentro();
         botaoCapitulos.setVisibility(comCapitulos ? View.VISIBLE : View.GONE);
 
         findViewById(R.id.st_rep_voltar).setOnClickListener(v -> finish());
-        capAnterior.setOnClickListener(v -> comando(() -> reproducao.irParaCapituloAnterior()));
+        capAnterior.setOnClickListener(v -> comando(() -> {
+            if (!trocarDeClipe(false)) reproducao.irParaCapituloAnterior();
+        }));
         pausar.setOnClickListener(v -> comando(reproducao::pausarOuContinuar));
-        capProximo.setOnClickListener(v -> comando(() -> reproducao.irParaProximoCapitulo()));
+        capProximo.setOnClickListener(v -> comando(() -> {
+            if (!trocarDeClipe(true)) reproducao.irParaProximoCapitulo();
+        }));
         audio.setOnClickListener(v -> abrirFaixas(TipoFaixa.AUDIO));
         legendas.setOnClickListener(v -> abrirFaixas(TipoFaixa.LEGENDA));
         ajustarLegenda.setOnClickListener(v -> abrirAjusteLegenda());
@@ -227,12 +235,13 @@ public class ReproducaoTabletActivity extends AppCompatActivity implements Gesto
 
             @Override
             public void capituloAnterior() {
-                avisarCapitulo(reproducao.irParaCapituloAnterior());
+                // Volante do carro, fone: no vídeo de música, troca de vídeo (1.6)
+                if (!trocarDeClipe(false)) avisarCapitulo(reproducao.irParaCapituloAnterior());
             }
 
             @Override
             public void proximoCapitulo() {
-                avisarCapitulo(reproducao.irParaProximoCapitulo());
+                if (!trocarDeClipe(true)) avisarCapitulo(reproducao.irParaProximoCapitulo());
             }
         });
         reproducao.definirOuvinte(this::atualizar);
@@ -409,7 +418,7 @@ public class ReproducaoTabletActivity extends AppCompatActivity implements Gesto
             pausar.setContentDescription(getString(tocando ? R.string.st_pausar : R.string.st_continuar));
         }
         adapter.definirAtual(numeroAtual());
-        botoes.atualizar(tocando, reproducao.posicao(), reproducao.temCapitulos());
+        botoes.atualizar(tocando, reproducao.posicao(), reproducao.temCapitulos() || reproducao.ehClipe());
         if (!comecou && reproducao.estaPronto()) {
             comecou = true;
             if (visiveis) agendarOcultar();
@@ -420,10 +429,26 @@ public class ReproducaoTabletActivity extends AppCompatActivity implements Gesto
     private void mostrarCapitulos() {
         barra.definirMarcas(PecasReproducao.marcas(reproducao));
         int visivel = reproducao.temCapitulos() ? View.VISIBLE : View.GONE;
-        findViewById(R.id.st_rep_cap_anterior).setVisibility(visivel);
-        findViewById(R.id.st_rep_cap_proximo).setVisibility(visivel);
+        mostrarBotoesDoCentro();
         botaoCapitulos.setVisibility(visivel);
         adapter.atualizar(reproducao.capitulos, numeroAtual());
+    }
+
+    /** Capítulo anterior e próximo; no vídeo de música (1.6), vídeo anterior e próximo, cada um só se houver. */
+    private void mostrarBotoesDoCentro() {
+        boolean clipe = reproducao.ehClipe();
+        boolean anterior = clipe ? reproducao.clipeAnterior() != null : reproducao.temCapitulos();
+        boolean proximo = clipe ? reproducao.clipeSeguinte() != null : reproducao.temCapitulos();
+        findViewById(R.id.st_rep_cap_anterior).setVisibility(anterior ? View.VISIBLE : View.GONE);
+        findViewById(R.id.st_rep_cap_proximo).setVisibility(proximo ? View.VISIBLE : View.GONE);
+    }
+
+    /** Vídeo de música: abre o outro da sequência; devolve false se não é vídeo de música. */
+    private boolean trocarDeClipe(boolean proximo) {
+        if (!reproducao.ehClipe()) return false;
+        String outro = proximo ? reproducao.clipeSeguinte() : reproducao.clipeAnterior();
+        if (outro != null) abrirEpisodio(outro);
+        return true;
     }
 
     private int numeroAtual() {

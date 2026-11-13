@@ -24,9 +24,13 @@ import br.com.starktechstudio.mediaplayer.dados.ModeloMusicas.Musica;
 /**
  * Lista de músicas (1.5: álbum, playlist e a fila do Tocando agora): número da faixa (ou a posição), nome,
  * artista e duração. A que está tocando fica em azul, com o ícone no lugar do número. OK ou toque toca a
- * partir dela; segurar abre o menu da música.
+ * partir dela; segurar abre o menu da música. 1.6: álbum com mais de um disco ganha "DISCO 1", "DISCO 2" antes
+ * das faixas de cada um; as posições dos avisos são sempre as da lista de músicas, sem os títulos de disco.
  */
-public class LinhasMusicaAdapter extends RecyclerView.Adapter<LinhasMusicaAdapter.Linha> {
+public class LinhasMusicaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+    private static final int MUSICA = 0;
+    private static final int DISCO = 1;
 
     public interface AoEscolher {
         void escolher(int posicao);
@@ -41,6 +45,9 @@ public class LinhasMusicaAdapter extends RecyclerView.Adapter<LinhasMusicaAdapte
     private final boolean comAlbum;
     private String tocando;
     private int posicaoTocando = -1;
+    /** Cada linha da lista: o índice da música ou, num título de disco, -(número do disco). */
+    private final List<Integer> linhas = new ArrayList<>();
+    private boolean comDiscos;
 
     public LinhasMusicaAdapter(boolean numeroDaFaixa, boolean comAlbum, AoEscolher tocar, AoEscolher segurar) {
         this.numeroDaFaixa = numeroDaFaixa;
@@ -51,10 +58,34 @@ public class LinhasMusicaAdapter extends RecyclerView.Adapter<LinhasMusicaAdapte
 
     /** Só refaz se a lista mudou (as telas recebem muitos avisos durante a atualização da biblioteca). */
     public void atualizar(List<Musica> novas) {
-        if (iguais(musicas, novas)) return;
+        atualizar(novas, false);
+    }
+
+    /** {@code separarDiscos}: no álbum (1.6, D3), os títulos de disco quando há mais de um. */
+    public void atualizar(List<Musica> novas, boolean separarDiscos) {
+        if (iguais(musicas, novas) && separarDiscos == comDiscos) return;
         musicas.clear();
         musicas.addAll(novas);
+        comDiscos = separarDiscos;
+        linhas.clear();
+        boolean variosDiscos = false;
+        for (Musica m : musicas) if (m.disco > 1) variosDiscos = true;
+        int discoAtual = -1;
+        for (int i = 0; i < musicas.size(); i++) {
+            int disco = Math.max(1, musicas.get(i).disco);
+            if (separarDiscos && variosDiscos && disco != discoAtual) {
+                linhas.add(-disco);
+                discoAtual = disco;
+            }
+            linhas.add(i);
+        }
         notifyDataSetChanged();
+    }
+
+    /** O índice da música na linha {@code posicao}; -1 num título de disco. */
+    private int indiceDaMusica(int posicao) {
+        int i = posicao < 0 || posicao >= linhas.size() ? -1 : linhas.get(posicao);
+        return i < 0 ? -1 : i;
     }
 
     private static boolean iguais(List<Musica> a, List<Musica> b) {
@@ -85,20 +116,38 @@ public class LinhasMusicaAdapter extends RecyclerView.Adapter<LinhasMusicaAdapte
 
     @Override
     public int getItemCount() {
-        return musicas.size();
+        return linhas.size();
+    }
+
+    @Override
+    public int getItemViewType(int posicao) {
+        return linhas.get(posicao) < 0 ? DISCO : MUSICA;
     }
 
     @NonNull
     @Override
-    public Linha onCreateViewHolder(@NonNull ViewGroup pai, int tipo) {
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup pai, int tipo) {
+        if (tipo == DISCO) {
+            TextView rotulo = Textos.rotulo(pai.getContext(), "", 15);
+            rotulo.setPadding(Medidas.px(pai.getContext(), 22), Medidas.px(pai.getContext(), 26), 0, Medidas.px(pai.getContext(), 10));
+            rotulo.setLayoutParams(new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            return new RecyclerView.ViewHolder(rotulo) {
+            };
+        }
         return new Linha(pai.getContext());
     }
 
     @Override
-    public void onBindViewHolder(@NonNull Linha linha, int posicao) {
-        Musica m = musicas.get(posicao);
-        boolean agora = posicaoTocando >= 0 ? posicao == posicaoTocando : m.id.equals(tocando);
-        linha.vincular(m, numeroDaFaixa ? m.faixa : posicao + 1, agora, comAlbum);
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int posicao) {
+        int i = linhas.get(posicao);
+        if (i < 0) {
+            TextView rotulo = (TextView) holder.itemView;
+            rotulo.setText(rotulo.getContext().getString(R.string.st_musicas_disco, -i));
+            return;
+        }
+        Musica m = musicas.get(i);
+        boolean agora = posicaoTocando >= 0 ? i == posicaoTocando : m.id.equals(tocando);
+        ((Linha) holder).vincular(m, numeroDaFaixa ? m.faixa : i + 1, agora, comAlbum);
     }
 
     final class Linha extends RecyclerView.ViewHolder {
@@ -151,13 +200,13 @@ public class LinhasMusicaAdapter extends RecyclerView.Adapter<LinhasMusicaAdapte
             caixa.addView(duracao, lpDuracao);
 
             caixa.setOnClickListener(v -> {
-                int p = getBindingAdapterPosition();
-                if (p != RecyclerView.NO_POSITION) tocar.escolher(p);
+                int i = indiceDaMusica(getBindingAdapterPosition());
+                if (i >= 0) tocar.escolher(i);
             });
             caixa.setOnLongClickListener(v -> {
-                int p = getBindingAdapterPosition();
-                if (p == RecyclerView.NO_POSITION) return false;
-                segurar.escolher(p);
+                int i = indiceDaMusica(getBindingAdapterPosition());
+                if (i < 0) return false;
+                segurar.escolher(i);
                 return true;
             });
         }

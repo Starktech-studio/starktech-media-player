@@ -34,6 +34,7 @@ import br.com.starktechstudio.mediaplayer.motor.Acervo;
 import br.com.starktechstudio.mediaplayer.motor.AcervoMusicas;
 import br.com.starktechstudio.mediaplayer.motor.CapasMusica;
 import br.com.starktechstudio.mediaplayer.motor.Discografia;
+import br.com.starktechstudio.mediaplayer.motor.Edicoes;
 import br.com.starktechstudio.mediaplayer.motor.Pastas;
 
 /**
@@ -185,6 +186,9 @@ public final class RepositorioMusicas {
             a.idArtista = a.artista == null ? null : Acervo.chaveArtista(a.artista);
             a.ano = d.ano;
             a.capa = existe(d.capa);
+            // 1.6: capa trocada à mão vale mais que a da música ou da pasta
+            String editada = capaEditada(a.id);
+            if (editada != null) a.capa = editada;
             a.cor = RepositorioReal.corDe(a.id);
             a.formato = formatos(d.musicas);
             aplicarTexto(a, txt);
@@ -281,6 +285,8 @@ public final class RepositorioMusicas {
             File pasta = new File(primeiro.id).getParentFile();
             File imagem = pasta == null || a.soltos ? null : CapasMusica.imagemDaPasta(pasta);
             a.capa = imagem != null && imagem.canRead() ? imagem.getAbsolutePath() : primeiro.capa;
+            String editada = capaEditada(a.id);
+            if (editada != null) a.capa = editada;
             a.formato = real.formatoDoClipe(primeiro.id);
             if (!a.soltos) aplicarTexto(a, txt);
             r.colecoesDeVideo.add(a);
@@ -406,6 +412,9 @@ public final class RepositorioMusicas {
         a.nome = r.nomeDoArtista.get(chave);
         Acervo.Artista foto = fotos.get(chave);
         a.foto = foto == null ? null : existe(foto.foto);
+        // 1.6: foto trocada à mão (a mesma edição do artista dos Shows)
+        String editada = capaEditada(chave);
+        if (editada != null) a.foto = editada;
         if (foto != null) {
             a.resumo = foto.resumo;
             a.descricao = foto.descricao;
@@ -482,6 +491,26 @@ public final class RepositorioMusicas {
         return atual().musicas.get(id);
     }
 
+    /** Todas as músicas de áudio da coleção ("Tocar tudo aleatório", 1.6). */
+    public List<Musica> todasAsMusicas() {
+        return new ArrayList<>(atual().musicas.values());
+    }
+
+    /** Refaz o que as telas leem (capa trocada à mão, 1.6) e avisa. */
+    public void refazer() {
+        synchronized (this) {
+            retrato = montar();
+        }
+        notificar();
+    }
+
+    /** Capa trocada à mão (1.6): a imagem guardada nas edições, pela chave do álbum, do artista ou "playlist:<id>". */
+    @Nullable
+    private String capaEditada(String chave) {
+        String referencia = Edicoes.de(app).ler(chave).get(Edicoes.Campo.CAPA);
+        return referencia == null ? null : existe(Edicoes.arquivoDe(referencia));
+    }
+
     /** As músicas pelos ids, na ordem; as que não estão na biblioteca agora ficam de fora. */
     public List<Musica> musicas(List<String> ids) {
         Retrato r = atual();
@@ -512,7 +541,7 @@ public final class RepositorioMusicas {
         return null;
     }
 
-    private static Playlist playlist(Retrato r, AcervoMusicas.Playlist p) {
+    private Playlist playlist(Retrato r, AcervoMusicas.Playlist p) {
         Playlist lista = new Playlist();
         lista.id = p.id;
         lista.nome = p.nome;
@@ -525,6 +554,8 @@ public final class RepositorioMusicas {
             lista.posicoes.add(i);
             if (lista.capa == null && m.capa != null) lista.capa = m.capa;
         }
+        String editada = capaEditada("playlist:" + p.id);
+        if (editada != null) lista.capa = editada;
         return lista;
     }
 

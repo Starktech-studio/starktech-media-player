@@ -8,6 +8,20 @@
     <string name="st_musicas_playlists">Playlists</string>
     <string name="st_musicas_videos">Vídeos</string>
 
+    <!-- 1.6: aleatório, trocar capa e discos -->
+    <string name="st_musicas_tocar_tudo_aleatorio">Tocar tudo aleatório</string>
+    <string name="st_musicas_disco">Disco %1$d</string>
+    <string name="st_musicas_trocar_capa">Trocar capa</string>
+    <string name="st_musicas_trocar_foto">Trocar foto</string>
+    <string name="st_musicas_restaurar">Restaurar</string>
+    <string name="st_musicas_opcoes_foto">Opções de foto</string>
+    <string name="st_musicas_buscando_fotos">Buscando fotos do artista…</string>
+    <string name="st_musicas_sem_fotos">Nenhuma foto achada para este artista. Use uma imagem do aparelho.</string>
+    <string name="st_musicas_capa_trocada">Capa trocada</string>
+    <string name="st_musicas_capa_restaurada">A capa automática voltou</string>
+    <string name="st_musicas_capa_nao_baixou">Não deu para baixar a foto. Tente outra.</string>
+    <string name="st_musicas_capa_dica">Escolha uma das opções ou uma imagem do aparelho (JPG, PNG ou WebP). Restaurar volta à capa automática.</string>
+
     <!-- Vídeos em Músicas (1.5.1) -->
     <string name="st_musicas_videos_de">Vídeos de %1$s</string>
     <string name="st_musicas_assistir">Assistir</string>

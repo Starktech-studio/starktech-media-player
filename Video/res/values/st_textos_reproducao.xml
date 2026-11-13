@@ -39,6 +39,11 @@
     <string name="st_legenda_sem_tela_de_acesso">Este aparelho não tem a tela do acesso a todos os arquivos. Sem ele, o app não vê as legendas.</string>
     <string name="st_legenda_pelo_indice">Sem o acesso a todos os arquivos: aparecem as legendas que o Android mostra ao app.</string>
 
+    <!-- Vídeos de música (1.6): anterior e próximo da sequência -->
+    <string name="st_video_anterior">Vídeo anterior</string>
+    <string name="st_proximo_video">Próximo vídeo</string>
+    <string name="st_proximo_video_nome">Próximo: %1$s</string>
+
     <!-- Legenda rápida (1.5): botão à esquerda do player e o painel -->
     <string name="st_legenda_ajustar">Ajustar</string>
     <string name="st_legenda_ajustar_titulo">Ajustar legenda</string>
