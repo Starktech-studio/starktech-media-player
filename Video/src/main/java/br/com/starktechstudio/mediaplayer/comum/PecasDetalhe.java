@@ -6,11 +6,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
-import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
-import android.text.Spanned;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.TypefaceSpan;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,7 +33,7 @@ import br.com.starktechstudio.mediaplayer.dados.Modelo.Titulo;
 
 /**
  * Partes iguais do Detalhe e da Série, na TV e no tablet (tv-detalhe, tablet-detalhe, tv-serie):
- * chips, dados técnicos, tempo, tipo, capítulo atual, próximo episódio e aviso da pasta.
+ * chips, dados técnicos, tempo, tipo, capítulo atual e próximo episódio.
  * As medidas mudam pelo aparelho.
  */
 public final class PecasDetalhe {
@@ -114,26 +110,6 @@ public final class PecasDetalhe {
         }
         return contexto.getString(continuar ? R.string.st_continuar_temporada_episodio : R.string.st_assistir_temporada_episodio,
                 e.temporada, e.numero);
-    }
-
-    /**
-     * Aviso da pasta da série: ícone de pasta em ciano e "Organizada a partir da pasta
-     * Séries / Nome / Temporada 1 / 01.mkv, 02.mkv… — …", com o caminho em monoespaçada branca.
-     */
-    public static void avisoPasta(TextView aviso, Titulo serie, boolean tv) {
-        Context contexto = aviso.getContext();
-        String caminho = contexto.getString(R.string.st_aviso_pasta_caminho, serie.arquivo);
-        SpannableStringBuilder texto = new SpannableStringBuilder(contexto.getString(R.string.st_aviso_pasta_inicio));
-        int inicio = texto.length();
-        texto.append(caminho);
-        texto.setSpan(new TypefaceSpan("monospace"), inicio, texto.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        texto.setSpan(new ForegroundColorSpan(ContextCompat.getColor(contexto, R.color.st_texto)),
-                inicio, texto.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        texto.append(contexto.getString(R.string.st_aviso_pasta_fim));
-        aviso.setText(texto);
-        Icones.noTexto(aviso, R.drawable.st_ic_pastas,
-                contexto.getResources().getDimensionPixelSize(tv ? R.dimen.st_tv_aviso_icone : R.dimen.st_tablet_aviso_icone),
-                ContextCompat.getColor(contexto, R.color.st_ciano));
     }
 
     /**

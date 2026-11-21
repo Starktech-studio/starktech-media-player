@@ -12,12 +12,6 @@
         <item quantity="other">%d episódios</item>
     </plurals>
 
-    <!-- Aviso da pasta: "Organizada a partir da pasta Séries / Nome / Temporada 1 / 01.mkv, 02.mkv… — …" -->
-    <!-- Entre aspas: o Android corta os espaços das pontas -->
-    <string name="st_aviso_pasta_inicio">"Organizada a partir da pasta "</string>
-    <string name="st_aviso_pasta_caminho">%1$s / Temporada 1 / 01.mkv, 02.mkv…</string>
-    <string name="st_aviso_pasta_fim">" — números viram episódios e os nomes vêm do TMDB"</string>
-
     <!-- Botão principal: próximo episódio -->
     <string name="st_continuar_episodio">Continuar · Episódio %1$d</string>
     <string name="st_continuar_temporada_episodio">Continuar · T%1$d E%2$d</string>

@@ -2,7 +2,7 @@
 <!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
 <!--
      Detalhe do filme ou do show no tablet (DetalheTabletActivity), tablet-detalhe.dc.html:
-     Biblioteca (voltar) e Editar, capa e ações, abas Capítulos, Dados técnicos e Elenco (D12).
+     Biblioteca (voltar) e Editar (só o ícone), capa e ações, abas Capítulos, Dados técnicos e Elenco (D12).
      Medidas: px do HTML = dp. A página inteira rola: puxar leva os capítulos para cima, sobre o
      lugar da capa e do título, e dá para ver todos, com qualquer quantidade.
 -->
@@ -73,15 +73,17 @@
                 android:paddingEnd="@dimen/st_tablet_detalhe_topo_botao_padding"
                 android:text="@string/st_favoritar" />
 
-            <Button
+            <!-- Editar só com o ícone, no canto direito do topo (D3, 1.8.0) -->
+            <ImageButton
                 android:id="@+id/st_detalhe_editar"
-                style="@style/StarkTech.Botao.Tablet.Secundario"
-                android:layout_width="wrap_content"
+                android:layout_width="@dimen/st_tablet_detalhe_topo_botao_altura"
                 android:layout_height="@dimen/st_tablet_detalhe_topo_botao_altura"
-                android:minHeight="0dp"
-                android:paddingStart="@dimen/st_tablet_detalhe_topo_botao_padding"
-                android:paddingEnd="@dimen/st_tablet_detalhe_topo_botao_padding"
-                android:text="@string/st_editar" />
+                android:background="@drawable/st_botao_secundario"
+                android:contentDescription="@string/st_editar"
+                android:padding="13dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/st_ic_editar"
+                app:tint="@color/st_texto" />
         </LinearLayout>
 
         <!-- Capa (220x330) e ações, 36 px entre elas -->

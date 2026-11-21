@@ -10,19 +10,20 @@ import android.media.session.PlaybackState;
 /**
  * Botões de mídia de fora do app (multimídia do carro, fone Bluetooth, controle): o Android entrega
  * esses botões à sessão de mídia ativa, com o player na tela ou na miniatura. Próxima e anterior
- * trocam de capítulo; sem capítulos, a sessão não oferece essas ações e o player ignora os botões.
+ * trocam de capítulo e, no episódio (1.8.0, D5 do plano 009) e no vídeo de música (1.6), de vídeo; sem
+ * capítulos e fora deles, a sessão não oferece essas ações e o player ignora os botões.
  */
 final class BotoesDeMidia {
 
-    /** O que os botões pedem ao player. */
+    /** O que os botões pedem ao player; anterior e próximo: o capítulo ou, no episódio e no vídeo de música, o vídeo. */
     interface Acoes {
         void tocar();
 
         void pausar();
 
-        void capituloAnterior();
+        void anterior();
 
-        void proximoCapitulo();
+        void proximo();
     }
 
     private final MediaSession sessao;
@@ -47,12 +48,12 @@ final class BotoesDeMidia {
 
             @Override
             public void onSkipToPrevious() {
-                acoes.capituloAnterior();
+                acoes.anterior();
             }
 
             @Override
             public void onSkipToNext() {
-                acoes.proximoCapitulo();
+                acoes.proximo();
             }
         });
         // O título aparece na tela do carro
@@ -64,14 +65,17 @@ final class BotoesDeMidia {
         sessao.setActive(ligada);
     }
 
-    /** Chamado a cada aviso do player; só fala com o sistema quando algo muda. */
-    void atualizar(boolean tocando, int posicaoSegundos, boolean comCapitulos) {
-        if (mostrouAlgo && tocando == tocandoMostrado && comCapitulos == capitulosMostrados) return;
+    /**
+     * Chamado a cada aviso do player; só fala com o sistema quando algo muda. {@code comAnteriorEProximo}:
+     * o vídeo tem capítulos ou troca de vídeo (episódio, vídeo de música).
+     */
+    void atualizar(boolean tocando, int posicaoSegundos, boolean comAnteriorEProximo) {
+        if (mostrouAlgo && tocando == tocandoMostrado && comAnteriorEProximo == capitulosMostrados) return;
         mostrouAlgo = true;
         tocandoMostrado = tocando;
-        capitulosMostrados = comCapitulos;
+        capitulosMostrados = comAnteriorEProximo;
         long acoes = PlaybackState.ACTION_PLAY | PlaybackState.ACTION_PAUSE | PlaybackState.ACTION_PLAY_PAUSE;
-        if (comCapitulos) acoes |= PlaybackState.ACTION_SKIP_TO_PREVIOUS | PlaybackState.ACTION_SKIP_TO_NEXT;
+        if (comAnteriorEProximo) acoes |= PlaybackState.ACTION_SKIP_TO_PREVIOUS | PlaybackState.ACTION_SKIP_TO_NEXT;
         sessao.setPlaybackState(new PlaybackState.Builder()
                 .setActions(acoes)
                 .setState(tocando ? PlaybackState.STATE_PLAYING : PlaybackState.STATE_PAUSED,

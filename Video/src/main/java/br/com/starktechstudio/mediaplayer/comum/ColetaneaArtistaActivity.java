@@ -24,7 +24,8 @@ import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 
 /**
  * Coletânea (D5) e artista (D7), no padrão do Detalhe, com o layout de cada aparelho: a capa e, ao
- * lado, o nome, os chips, o texto do artista (Wikipédia) e Editar; embaixo, com título próprio, as
+ * lado, o nome, os chips, o texto do artista (Wikipédia) e Editar só com o ícone (na TV, no fim da
+ * fileira, depois de Ver mais; no tablet, no canto direito do topo); embaixo, com título próprio, as
  * capas dos filmes ou dos shows, que abrem o Detalhe como as de qualquer lista. Editar troca a capa, o
  * fundo e o nome, e no artista busca outro para juntar os shows. O que muda na TV (pílulas do topo e o
  * foco ligado nelas) fica em {@code tv.ColetaneaArtistaTvActivity}.
@@ -79,10 +80,8 @@ public class ColetaneaArtistaActivity extends AppCompatActivity {
         fonte = findViewById(R.id.st_coletanea_fonte);
         secao = findViewById(R.id.st_coletanea_secao);
         verMais = findViewById(R.id.st_coletanea_ver_mais);
-        Button editar = findViewById(R.id.st_coletanea_editar);
-        editar.setOnClickListener(v -> Navegacao.abrirEditar(this, id));
-        Icones.noTexto(editar, R.drawable.st_ic_editar,
-                getResources().getDimensionPixelSize(tv ? R.dimen.st_tv_botao_icone : R.dimen.st_tablet_detalhe_topo_botao_icone));
+        // Editar só com o ícone (ImageButton no layout, 1.8.0)
+        findViewById(R.id.st_coletanea_editar).setOnClickListener(v -> Navegacao.abrirEditar(this, id));
         verMais.setOnClickListener(v -> {
             Titulo atual = repositorio.titulo(id);
             if (atual != null) Navegacao.abrirSinopse(this, atual.titulo, atual.sinopse);

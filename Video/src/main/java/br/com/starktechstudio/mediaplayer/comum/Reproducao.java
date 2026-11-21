@@ -55,7 +55,8 @@ import br.com.starktechstudio.mediaplayer.musica.Tocador;
  * legendas do motor) por baixo dos controles da F1. Abre o arquivo do título ou do episódio de onde
  * parou (ou no capítulo pedido), aplica as preferências de áudio e legenda, a forma da legenda
  * ({@link #aplicarEstiloDaLegenda}) e a escolha feita no Detalhe; pausar, pulo e capítulo anterior /
- * próximo (só entre capítulos, nunca para outro título — INTERFACE.md §4). Ao sair de vista, a
+ * próximo (só entre capítulos, nunca para outro título — INTERFACE.md §4); no episódio e no vídeo de
+ * música, também o vídeo anterior e o próximo ({@link #videoAnterior}, {@link #videoSeguinte}). Ao sair de vista, a
  * posição vai para a biblioteca, sem perder a que já estava lá ({@link #trocaPosicao}); no fim do
  * vídeo, o título fica assistido e, com "Próximo episódio automático" ligado, o episódio dá lugar ao
  * seguinte ({@link #definirAoPassarEpisodio}). O zoom guardado vale ao abrir, na TV e no tablet
@@ -279,6 +280,47 @@ public final class Reproducao implements Player.Listener {
     @Nullable
     public String clipeAnterior() {
         return clipe ? SequenciaClipes.anterior(contexto, repositorio, id) : null;
+    }
+
+    /** Episódio de série (1.8.0): os botões e as teclas de mídia passam de episódio. */
+    public boolean ehEpisodio() {
+        return idSerie != null;
+    }
+
+    /** Clipe ou episódio: o player troca de vídeo (anterior e próximo), além dos capítulos. */
+    public boolean trocaDeVideo() {
+        return clipe || idSerie != null;
+    }
+
+    /**
+     * Episódio (1.8.0): o seguinte da série, de temporada em temporada, com ou sem "Próximo episódio
+     * automático" (ele só decide o que acontece no fim); null no último e fora de série.
+     */
+    @Nullable
+    public String episodioSeguinteId() {
+        if (idSerie == null) return null;
+        Episodio seguinte = episodioSeguinte(repositorio.temporadas(idSerie), id);
+        return seguinte == null ? null : seguinte.id;
+    }
+
+    /** Episódio (1.8.0): o anterior da série, de temporada em temporada; null no primeiro e fora de série. */
+    @Nullable
+    public String episodioAnteriorId() {
+        if (idSerie == null) return null;
+        Episodio anterior = episodioAnterior(repositorio.temporadas(idSerie), id);
+        return anterior == null ? null : anterior.id;
+    }
+
+    /** O próximo vídeo: o clipe seguinte da sequência ou o episódio seguinte; null nas pontas e nos outros títulos. */
+    @Nullable
+    public String videoSeguinte() {
+        return clipe ? clipeSeguinte() : episodioSeguinteId();
+    }
+
+    /** O vídeo anterior: o clipe anterior da sequência ou o episódio anterior; null nas pontas e nos outros títulos. */
+    @Nullable
+    public String videoAnterior() {
+        return clipe ? clipeAnterior() : episodioAnteriorId();
     }
 
     /** O nome de outro título (o próximo vídeo, para "Próximo: …"). */
@@ -984,6 +1026,22 @@ public final class Reproducao implements Player.Listener {
             for (Episodio e : temporada.episodios) {
                 if (passou && e.caminho != null) return e;
                 if (id.equals(e.id)) passou = true;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * O par de {@link #episodioSeguinte}: o que vem antes de {@code id}, de temporada em temporada (o último
+     * da temporada anterior), pulando quem está sem arquivo; null no primeiro e com {@code id} fora da lista.
+     */
+    @Nullable
+    static Episodio episodioAnterior(List<Temporada> temporadas, String id) {
+        Episodio anterior = null;
+        for (Temporada temporada : temporadas) {
+            for (Episodio e : temporada.episodios) {
+                if (id.equals(e.id)) return anterior;
+                if (e.caminho != null) anterior = e;
             }
         }
         return null;

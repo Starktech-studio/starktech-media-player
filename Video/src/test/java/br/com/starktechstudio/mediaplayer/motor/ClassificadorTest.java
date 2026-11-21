@@ -3,6 +3,8 @@
 package br.com.starktechstudio.mediaplayer.motor;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -15,7 +17,10 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-/** Filmes, séries (D4: temporada e episódio), shows, não identificados, varredura e montagem das séries. */
+/**
+ * Filmes, séries (D4: temporada e episódio), shows, não identificados, varredura e montagem das séries;
+ * desenhos com episódios e coletânea de desenhos (1.8.0, D7 a D9 do plano 009).
+ */
 public class ClassificadorTest {
 
     @Rule
@@ -24,11 +29,16 @@ public class ClassificadorTest {
     private static final Pastas.Pasta FILMES = new Pastas.Pasta("/hd/Filmes", Pastas.Origem.HD_EXTERNO, Pastas.Tipo.FILMES, false);
     private static final Pastas.Pasta SERIES = new Pastas.Pasta("/hd/Séries", Pastas.Origem.HD_EXTERNO, Pastas.Tipo.SERIES, false);
     private static final Pastas.Pasta SHOWS = new Pastas.Pasta("/hd/Shows", Pastas.Origem.HD_EXTERNO, Pastas.Tipo.SHOWS, false);
+    private static final Pastas.Pasta DESENHOS = new Pastas.Pasta("/hd/Desenhos", Pastas.Origem.HD_EXTERNO, Pastas.Tipo.DESENHOS, false);
     private static final Pastas.Pasta SEM_TIPO = new Pastas.Pasta("/hd/Downloads", Pastas.Origem.HD_EXTERNO, null, false);
     private static final Pastas.Pasta IGNORAR = new Pastas.Pasta("/hd/Backup", Pastas.Origem.HD_EXTERNO, Pastas.Tipo.IGNORAR, true);
 
     private static Classificador.Item serie(String relativo) {
         return Classificador.classificar("/hd/Séries/" + relativo, SERIES);
+    }
+
+    private static Classificador.Item desenho(String relativo) {
+        return Classificador.classificar("/hd/Desenhos/" + relativo, DESENHOS);
     }
 
     private static void episodio(Classificador.Item item, String serie, int temporada, int episodio) {
@@ -118,6 +128,76 @@ public class ClassificadorTest {
         assertEquals(Classificador.Motivo.FORA_DO_PADRAO, serie("episodio sem numero.mkv").motivo);
         assertEquals(Classificador.Motivo.FUNDO_DEMAIS, serie("Maré Alta/Temporada 1/Disco 1/01.mkv").motivo);
         assertEquals(Classificador.Motivo.SEM_EPISODIO, serie("Maré Alta/Temporada 1/S01 ep 2 sem nome.mkv").motivo);
+    }
+
+    @Test
+    public void desenho_noPadraoDeSeries_viraEpisodio() {
+        episodio(desenho("Turma da Praia/Temporada 2/03.mkv"), "Turma da Praia", 2, 3);
+        episodio(desenho("Turma da Praia/Temp 1/Turma.da.Praia.S01E04.mkv"), "Turma da Praia", 1, 4);
+        episodio(desenho("Turma da Praia/3x05.mkv"), "Turma da Praia", 3, 5);
+        episodio(desenho("Turma da Praia/Temporada 1/E06.mkv"), "Turma da Praia", 1, 6);
+        // Direto na pasta Desenhos: só com o código, e o nome antes dele
+        episodio(desenho("Turma da Praia S02E07.mkv"), "Turma da Praia", 2, 7);
+    }
+
+    @Test
+    public void desenho_semPastaDeTemporada_valeComoTemporada1() {
+        episodio(desenho("Turma da Praia/01.mkv"), "Turma da Praia", 1, 1);
+        episodio(desenho("Turma da Praia/E02.mkv"), "Turma da Praia", 1, 2);
+    }
+
+    @Test
+    public void desenho_parteN_viraEpisodio() {
+        episodio(desenho("A Grande Viagem/A Grande Viagem - Parte 1.mkv"), "A Grande Viagem", 1, 1);
+        episodio(desenho("A Grande Viagem/A.Grande.Viagem.Part.2.mkv"), "A Grande Viagem", 1, 2);
+        episodio(desenho("A Grande Viagem/Temporada 2/parte_03.mkv"), "A Grande Viagem", 2, 3);
+        // "Parte N" é só dos desenhos: em Séries continua sem episódio
+        assertEquals(Classificador.Motivo.SEM_EPISODIO, serie("Maré Alta/Temporada 1/Parte 2.mkv").motivo);
+    }
+
+    @Test
+    public void desenho_foraDoPadrao_continuaFilme() {
+        Classificador.Item solto = desenho("Nome do desenho (2019).mkv");
+        assertEquals(Classificador.Tipo.DESENHO, solto.tipo);
+        assertEquals("Nome do desenho", solto.titulo);
+        assertEquals(Integer.valueOf(2019), solto.ano);
+        // Pasta de filmes (D8): "Disney / Nome (1999).mkv" não junta nada
+        Classificador.Item naPasta = desenho("Disney/Viagem ao Mar 2 (1999).mkv");
+        assertEquals(Classificador.Tipo.DESENHO, naPasta.tipo);
+        assertEquals("Viagem ao Mar 2", naPasta.titulo);
+        assertEquals(Classificador.Tipo.DESENHO, desenho("Disney/Pixar/Turma/01.mkv").tipo);
+        assertEquals("pasta do meio que não é de temporada", Classificador.Tipo.DESENHO, desenho("Turma da Praia/Extras/02.mkv").tipo);
+        assertEquals("direto na pasta, sem código", Classificador.Tipo.DESENHO, desenho("Parte 2.mkv").tipo);
+        assertEquals(Classificador.Tipo.DESENHO, desenho("Turma da Praia/Temporada 1/making of.mkv").tipo);
+    }
+
+    @Test
+    public void desenhoQueViraEpisodio_perdeALinhaDoTmdb() {
+        Acervo.Video filme = new Acervo.Video();
+        filme.tipo = Classificador.Tipo.DESENHO;
+        Acervo.Video episodio = new Acervo.Video();
+        episodio.tipo = Classificador.Tipo.EPISODIO;
+        Acervo.Video outroFilme = new Acervo.Video();
+        outroFilme.tipo = Classificador.Tipo.FILME;
+        assertTrue("desenho → episódio", Varredura.mudouDeEpisodio(filme, episodio));
+        assertTrue("episódio → desenho", Varredura.mudouDeEpisodio(episodio, filme));
+        assertFalse("filme ↔ desenho: a busca é a mesma, a linha fica", Varredura.mudouDeEpisodio(outroFilme, filme));
+        assertFalse("o mesmo tipo", Varredura.mudouDeEpisodio(episodio, episodio));
+        assertFalse("vídeo novo", Varredura.mudouDeEpisodio(null, episodio));
+    }
+
+    @Test
+    public void coletaneaDeDesenho_chavePorTipo() {
+        String deFilme = Acervo.chaveColetanea("Coleção Brinquedos", false);
+        String deDesenho = Acervo.chaveColetanea("Coleção Brinquedos", true);
+        assertEquals("a de filmes não muda (a edição guardada vale)", Acervo.chaveColetanea("Coleção Brinquedos"), deFilme);
+        assertNotEquals("filme e desenho da mesma coleção não se misturam", deFilme, deDesenho);
+        assertTrue(Acervo.ehColetanea(deDesenho));
+        assertTrue(Acervo.ehColetaneaDeDesenho(deDesenho));
+        assertFalse(Acervo.ehColetaneaDeDesenho(deFilme));
+        assertFalse("coleção de filmes que começa por \"Desenho\"",
+                Acervo.ehColetaneaDeDesenho(Acervo.chaveColetanea("Desenho: a coleção", false)));
+        assertEquals("sem diferenciar maiúscula e acento", deDesenho, Acervo.chaveColetanea("coleção brinquedos", true));
     }
 
     @Test

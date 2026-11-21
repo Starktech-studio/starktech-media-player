@@ -2,8 +2,9 @@
 <!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
 <!--
      Série na TV (SerieTvActivity), tv-serie.dc.html: fundo da série (bloco de cor na F1 + véu 72 %
-     + degradê), barra do topo com Séries marcada e "Editar", capa e informações com o aviso da
-     pasta, botão do próximo episódio e Favoritar, temporadas e a grade de episódios (2 colunas).
+     + degradê), barra do topo com Séries (TV Shows ou Desenhos) marcada, capa e informações com a
+     descrição da série (até 3 linhas), botão do próximo episódio, Editar e Favoritar, temporadas e
+     a grade de episódios (2 colunas).
      Medidas: px do HTML / 2. O desenho tem 1280 px: a página rola até o episódio em foco.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -155,28 +156,10 @@
                         android:layout_height="0dp"
                         android:layout_weight="1" />
 
-                    <!-- Editar só com o ícone (pedido do Gustavo, 31/10/2026) -->
-                    <ImageButton
-                        android:id="@+id/st_serie_editar"
-                        android:layout_width="29dp"
-                        android:layout_height="@dimen/st_tv_botao_icone_altura"
-                        android:background="@drawable/st_botao_secundario"
-                        android:contentDescription="@string/st_editar"
-                        android:focusable="true"
-                        android:foreground="@drawable/st_foco_tv"
-                        android:paddingStart="@dimen/st_tv_botao_icone_padding"
-                        android:paddingTop="7.5dp"
-                        android:paddingEnd="@dimen/st_tv_botao_icone_padding"
-                        android:paddingBottom="7.5dp"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/st_ic_editar"
-                        app:tint="@color/st_texto" />
-
                     <ImageButton
                         android:id="@+id/st_botao_configuracoes"
                         android:layout_width="29dp"
                         android:layout_height="@dimen/st_tv_botao_icone_altura"
-                        android:layout_marginStart="7dp"
                         android:background="@drawable/st_botao_secundario"
                         android:contentDescription="@string/st_configuracoes"
                         android:focusable="true"
@@ -227,7 +210,9 @@
                         android:layout_weight="1"
                         android:orientation="vertical">
 
+                        <!-- "Série" ou "Desenho", pela pasta (no código) -->
                         <TextView
+                            android:id="@+id/st_serie_rotulo"
                             style="@style/StarkTech.Texto.Rotulo"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -252,24 +237,21 @@
                             android:layout_marginTop="@dimen/st_tv_serie_espaco_info"
                             android:orientation="horizontal" />
 
-                        <!-- Aviso da pasta (até 1100 px) -->
+                        <!-- Descrição da série, como a sinopse do Detalhe: até 3 linhas com reticências;
+                             sem descrição, some (gone, no código) -->
                         <TextView
-                            android:id="@+id/st_serie_aviso"
-                            style="@style/StarkTech.Texto.Forte"
+                            android:id="@+id/st_serie_sinopse"
+                            style="@style/StarkTech.Texto"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/st_tv_serie_espaco_info"
-                            android:background="@drawable/st_aviso_pasta"
-                            android:drawablePadding="6dp"
-                            android:gravity="center_vertical"
-                            android:lineSpacingMultiplier="1.15"
-                            android:maxWidth="@dimen/st_tv_aviso_largura"
-                            android:paddingStart="@dimen/st_tv_aviso_padding_h"
-                            android:paddingTop="@dimen/st_tv_aviso_padding_v"
-                            android:paddingEnd="@dimen/st_tv_aviso_padding_h"
-                            android:paddingBottom="@dimen/st_tv_aviso_padding_v"
+                            android:ellipsize="end"
+                            android:lineSpacingMultiplier="1.24"
+                            android:maxWidth="@dimen/st_tv_detalhe_sinopse_largura"
+                            android:maxLines="3"
                             android:textColor="@color/st_texto_secundario"
-                            android:textSize="@dimen/st_tv_texto_aviso" />
+                            android:textSize="@dimen/st_tv_texto_detalhe_sinopse"
+                            android:visibility="gone" />
 
                         <LinearLayout
                             android:layout_width="wrap_content"
@@ -282,6 +264,24 @@
                                 style="@style/StarkTech.Botao.Tv.Primario"
                                 android:layout_width="wrap_content"
                                 android:layout_height="@dimen/st_tv_botao_altura" />
+
+                            <!-- Editar só com o ícone, entre o principal e o Favoritar, como no Detalhe -->
+                            <ImageButton
+                                android:id="@+id/st_serie_editar"
+                                android:contentDescription="@string/st_editar"
+                                android:layout_width="33dp"
+                                android:layout_height="@dimen/st_tv_botao_altura"
+                                android:layout_marginStart="@dimen/st_tv_detalhe_botao_espaco"
+                                android:background="@drawable/st_botao_secundario"
+                                android:focusable="true"
+                                android:foreground="@drawable/st_foco_tv"
+                                android:paddingStart="10dp"
+                                android:paddingTop="9.5dp"
+                                android:paddingEnd="10dp"
+                                android:paddingBottom="9.5dp"
+                                android:scaleType="fitCenter"
+                                android:src="@drawable/st_ic_editar"
+                                app:tint="@color/st_texto" />
 
                             <ImageButton
                                 android:id="@+id/st_serie_favoritar"

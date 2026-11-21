@@ -169,6 +169,17 @@ public final class Acervo {
         return "serie:" + Nomes.normalizar(nome);
     }
 
+    /**
+     * Chave da série pelo tipo (1.8.0): o desenho com episódios fica separado da série de mesmo nome, para
+     * as duas não se juntarem numa capa só; a das séries é a mesma de antes (a edição guardada continua valendo).
+     */
+    public static String chaveSerie(String nome, boolean desenho) {
+        return desenho ? PREFIXO_SERIE_DESENHO + Nomes.normalizar(nome) : chaveSerie(nome);
+    }
+
+    /** O "|" não sai do nome normalizado de uma série que comece por "desenho". */
+    private static final String PREFIXO_SERIE_DESENHO = "serie:desenho|";
+
     public static boolean ehSerie(String chave) {
         return chave != null && chave.startsWith("serie:");
     }
@@ -181,6 +192,23 @@ public final class Acervo {
     public static boolean ehColetanea(String chave) {
         return chave != null && chave.startsWith("coletanea:");
     }
+
+    /**
+     * Chave da coletânea pelo tipo (1.8.0, D9 e risco 8 do plano 009): a de desenhos fica separada da de
+     * filmes, para a mesma coleção do TMDB não misturar os dois; a de filmes é a mesma de antes (a edição
+     * guardada continua valendo).
+     */
+    public static String chaveColetanea(String nome, boolean desenho) {
+        return desenho ? PREFIXO_COLETANEA_DESENHO + Nomes.normalizar(nome) : chaveColetanea(nome);
+    }
+
+    /** Coletânea de desenhos (1.8.0): também é coletânea ({@link #ehColetanea}). */
+    public static boolean ehColetaneaDeDesenho(String chave) {
+        return chave != null && chave.startsWith(PREFIXO_COLETANEA_DESENHO);
+    }
+
+    /** O "|" não sai do nome normalizado de uma coleção de filmes que comece por "desenho". */
+    private static final String PREFIXO_COLETANEA_DESENHO = "coletanea:desenho|";
 
     /** Chave do artista (capa, edição): pelo nome, sem acento e maiúscula; sem nome = "Sem artista". */
     public static String chaveArtista(String nome) {

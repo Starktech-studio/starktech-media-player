@@ -2,8 +2,9 @@
 <!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
 <!--
      Série no tablet (SerieTabletActivity), sem desenho (D12): o Detalhe do tablet com o conteúdo
-     da Série da TV — capa, título, chips, aviso da pasta e o botão do próximo episódio; temporadas
-     em abas e os episódios em 2 colunas. Medidas: px do HTML = dp.
+     da Série da TV — capa, rótulo (Série ou Desenho), título, chips, a descrição da série (até 3
+     linhas e "Ver mais", como no Detalhe) e o botão do próximo episódio; Favoritar e Editar (só o
+     ícone) no topo; temporadas em abas e os episódios em 2 colunas. Medidas: px do HTML = dp.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -65,15 +66,17 @@
                     android:paddingEnd="@dimen/st_tablet_detalhe_topo_botao_padding"
                     android:text="@string/st_favoritar" />
 
-                <Button
+                <!-- Editar só com o ícone, no canto direito do topo (D3, 1.8.0) -->
+                <ImageButton
                     android:id="@+id/st_serie_editar"
-                    style="@style/StarkTech.Botao.Tablet.Secundario"
-                    android:layout_width="wrap_content"
+                    android:layout_width="@dimen/st_tablet_detalhe_topo_botao_altura"
                     android:layout_height="@dimen/st_tablet_detalhe_topo_botao_altura"
-                    android:minHeight="0dp"
-                    android:paddingStart="@dimen/st_tablet_detalhe_topo_botao_padding"
-                    android:paddingEnd="@dimen/st_tablet_detalhe_topo_botao_padding"
-                    android:text="@string/st_editar" />
+                    android:background="@drawable/st_botao_secundario"
+                    android:contentDescription="@string/st_editar"
+                    android:padding="13dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/st_ic_editar"
+                    app:tint="@color/st_texto" />
             </LinearLayout>
 
             <!-- Capa (220x330) e informações -->
@@ -109,7 +112,9 @@
                     android:gravity="center_vertical"
                     android:orientation="vertical">
 
+                    <!-- "Série" ou "Desenho", pela pasta (no código) -->
                     <TextView
+                        android:id="@+id/st_serie_rotulo"
                         style="@style/StarkTech.Texto.Rotulo"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -133,23 +138,35 @@
                         android:layout_marginTop="@dimen/st_tablet_detalhe_espaco_info"
                         android:orientation="horizontal" />
 
+                    <!-- Descrição da série, como a sinopse do Detalhe: até 3 linhas; "Ver mais" abre o
+                         resto numa janela. Sem descrição, as duas somem (gone, no código) -->
                     <TextView
-                        android:id="@+id/st_serie_aviso"
-                        style="@style/StarkTech.Texto.Forte"
+                        android:id="@+id/st_serie_sinopse"
+                        style="@style/StarkTech.Texto"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/st_tablet_detalhe_espaco_info"
-                        android:background="@drawable/st_aviso_pasta"
-                        android:drawablePadding="10dp"
-                        android:gravity="center_vertical"
-                        android:lineSpacingMultiplier="1.15"
+                        android:ellipsize="end"
+                        android:justificationMode="inter_word"
+                        android:lineSpacingMultiplier="1.28"
+                        android:maxLines="3"
                         android:maxWidth="@dimen/st_tablet_detalhe_sinopse_largura"
-                        android:paddingStart="@dimen/st_tablet_aviso_padding_h"
-                        android:paddingTop="@dimen/st_tablet_aviso_padding_v"
-                        android:paddingEnd="@dimen/st_tablet_aviso_padding_h"
-                        android:paddingBottom="@dimen/st_tablet_aviso_padding_v"
                         android:textColor="@color/st_texto_secundario"
-                        android:textSize="@dimen/st_tablet_texto_aviso" />
+                        android:textSize="@dimen/st_tablet_texto_detalhe_sinopse"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/st_serie_ver_mais"
+                        style="@style/StarkTech.Texto.Botao"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="6dp"
+                        android:paddingEnd="12dp"
+                        android:paddingBottom="2dp"
+                        android:text="@string/st_ver_mais"
+                        android:textColor="@color/st_azul"
+                        android:textSize="@dimen/st_tablet_texto_detalhe_sinopse"
+                        android:visibility="gone" />
 
                     <Button
                         android:id="@+id/st_serie_principal"

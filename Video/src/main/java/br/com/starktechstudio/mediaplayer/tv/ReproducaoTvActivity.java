@@ -3,6 +3,7 @@
 package br.com.starktechstudio.mediaplayer.tv;
 
 import android.content.Intent;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -12,6 +13,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,7 +49,9 @@ import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
  * tela e o motor só busca ao soltar (busca a cada repetição travaria em HD USB).
  * D13: os controles somem no tempo de Configurações, 5 s de fábrica (nunca com a barra em uso); com eles
  * ocultos, ← / → pulam o que está em Configurações, 10 s de fábrica, e qualquer outra tecla mostra os
- * controles; próxima / anterior do controle remoto = capítulo.
+ * controles; próxima / anterior do controle remoto = capítulo e, no episódio e no vídeo de música, o vídeo
+ * (1.8.0, D5 do plano 009: no episódio, Ep. anterior e Próx. episódio ao lado dos de capítulo; o anterior em
+ * dois toques, e no 1º episódio volta ao começo).
  * Voltar fecha a lista de capítulos; depois, recolhe os controles; com eles ocultos, o 1º só avisa e o 2º,
  * em até 3 s, vai para o Detalhe ou, em episódio, para a Série (D4 do plano 004; a posição fica salva).
  */
@@ -138,14 +142,17 @@ public class ReproducaoTvActivity extends AppCompatActivity {
         ajustarLegenda.setOnClickListener(v -> Navegacao.abrirAjusteLegenda(this, reproducao.id));
         ligarAleatorio(findViewById(R.id.st_rep_aleatorio), icone);
 
-        // Sem capítulos: só Pausar no centro (INTERFACE.md §4); vídeo de música: anterior e próximo vídeo (1.6)
+        // Sem capítulos: só Pausar no centro (INTERFACE.md §4); vídeo de música: anterior e próximo vídeo (1.6);
+        // episódio: também Ep. anterior e Próx. episódio (1.8.0)
         boolean comCapitulos = reproducao.temCapitulos();
         mostrarBotoesDoCentro();
         botaoCapitulos.setVisibility(comCapitulos ? View.VISIBLE : View.GONE);
 
+        findViewById(R.id.st_rep_ep_anterior).setOnClickListener(v -> trocarDeVideo(false));
         findViewById(R.id.st_rep_cap_anterior).setOnClickListener(v -> capituloAnterior());
         pausar.setOnClickListener(v -> reproducao.pausarOuContinuar());
         findViewById(R.id.st_rep_cap_proximo).setOnClickListener(v -> proximoCapitulo());
+        findViewById(R.id.st_rep_ep_proximo).setOnClickListener(v -> trocarDeVideo(true));
         audio.setOnClickListener(v -> Navegacao.abrirFaixas(this, reproducao.id, TipoFaixa.AUDIO));
         legendas.setOnClickListener(v -> Navegacao.abrirFaixas(this, reproducao.id, TipoFaixa.LEGENDA));
         zoom.setOnClickListener(v -> trocarZoom());
@@ -220,7 +227,8 @@ public class ReproducaoTvActivity extends AppCompatActivity {
     }
 
     /**
-     * Fim do episódio com "Próximo episódio automático" ligado: esta tela reabre com o seguinte.
+     * Fim do episódio com "Próximo episódio automático" ligado, ou o anterior / o próximo pedido (1.8.0):
+     * esta tela reabre com o outro, de onde parou (o assistido, do começo: D6 do plano 009).
      * recreate() solta o motor antes de abrir o novo (o decodificador da TV pode ser um só) e mantém
      * o que está atrás; o intent trocado aqui é o que o onCreate novo lê.
      */
@@ -268,15 +276,23 @@ public class ReproducaoTvActivity extends AppCompatActivity {
 
     /**
      * Botões do centro: capítulo anterior e próximo; no vídeo de música (1.6, D4 do plano 007), vídeo
-     * anterior e próximo da sequência, cada um só se houver.
+     * anterior e próximo da sequência, cada um só se houver. No episódio (1.8.0, D5 do plano 009), Ep.
+     * anterior (sempre: no 1º episódio, volta ao começo) e Próx. episódio (só se houver) por fora dos de
+     * capítulo; sem capítulos, só os de episódio.
      */
     private void mostrarBotoesDoCentro() {
         boolean clipe = reproducao.ehClipe();
+        boolean episodio = reproducao.ehEpisodio();
+        boolean capitulos = reproducao.temCapitulos();
         // Vídeo anterior sempre no vídeo de música: o 1º toque volta ao começo (1.7)
-        boolean anterior = clipe || reproducao.temCapitulos();
-        boolean proximo = clipe ? reproducao.clipeSeguinte() != null : reproducao.temCapitulos();
+        boolean anterior = clipe || capitulos;
+        boolean proximo = clipe ? reproducao.clipeSeguinte() != null : capitulos;
+        boolean episodioSeguinte = episodio && reproducao.episodioSeguinteId() != null;
         findViewById(R.id.st_rep_grupo_cap_anterior).setVisibility(anterior ? View.VISIBLE : View.GONE);
         findViewById(R.id.st_rep_grupo_cap_proximo).setVisibility(proximo ? View.VISIBLE : View.GONE);
+        findViewById(R.id.st_rep_grupo_ep_anterior).setVisibility(episodio ? View.VISIBLE : View.GONE);
+        findViewById(R.id.st_rep_grupo_ep_proximo).setVisibility(episodioSeguinte ? View.VISIBLE : View.GONE);
+        ajustarCentro(episodio && capitulos);
         if (clipe) {
             ((TextView) findViewById(R.id.st_rep_rotulo_cap_anterior)).setText(R.string.st_video_anterior);
             ((TextView) findViewById(R.id.st_rep_rotulo_cap_proximo)).setText(R.string.st_proximo_video);
@@ -285,17 +301,49 @@ public class ReproducaoTvActivity extends AppCompatActivity {
         }
     }
 
-    /** Vídeo de música: abre o outro da sequência (os botões da tela e os de mídia, como o do volante). */
-    private boolean trocarDeClipe(boolean proximo) {
-        if (!reproducao.ehClipe()) return false;
-        // 1.7 (D4): anterior em dois toques; o 1º volta ao começo deste vídeo
-        if (!proximo && !doisToques.segundo()) {
-            reproducao.irPara(0);
+    /**
+     * Episódio com capítulos (5 botões no centro): os lados estreitam e o espaço entre os botões diminui, para
+     * caber na largura da TV (960 dp); nos outros, as medidas do layout.
+     */
+    private void ajustarCentro(boolean cinco) {
+        Resources res = getResources();
+        int lado = res.getDimensionPixelSize(cinco ? R.dimen.st_tv_rep_lado_largura_episodio : R.dimen.st_tv_rep_lado_largura_zoom);
+        int espaco = res.getDimensionPixelSize(cinco ? R.dimen.st_tv_rep_botao_espaco_episodio : R.dimen.st_tv_rep_botao_espaco);
+        for (int id : new int[]{R.id.st_rep_lado_esquerdo, R.id.st_rep_lado_direito}) {
+            View v = findViewById(id);
+            if (v.getLayoutParams().width != lado) {
+                v.getLayoutParams().width = lado;
+                v.requestLayout();
+            }
+        }
+        for (int id : new int[]{R.id.st_rep_grupo_ep_anterior, R.id.st_rep_grupo_cap_anterior,
+                R.id.st_rep_grupo_cap_proximo, R.id.st_rep_grupo_ep_proximo}) {
+            View v = findViewById(id);
+            LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) v.getLayoutParams();
+            boolean antes = id == R.id.st_rep_grupo_ep_anterior || id == R.id.st_rep_grupo_cap_anterior;
+            if ((antes ? lp.getMarginEnd() : lp.getMarginStart()) == espaco) continue;
+            if (antes) lp.setMarginEnd(espaco);
+            else lp.setMarginStart(espaco);
+            v.requestLayout();
+        }
+    }
+
+    /**
+     * Vídeo de música e episódio (1.8.0): abre o outro (os botões da tela e os de mídia, como o do volante e o
+     * do fone), de onde parou. O anterior em dois toques (1.7, D4 do plano 007): o 1º volta ao começo deste
+     * vídeo e o 2º, em até 3 s, abre o anterior; sem anterior (1º episódio, começo da sequência), volta sempre ao
+     * começo. O próximo só abre se houver. False: o título não troca de vídeo (filme, desenho, show).
+     */
+    private boolean trocarDeVideo(boolean proximo) {
+        if (!reproducao.trocaDeVideo()) return false;
+        if (proximo) {
+            String seguinte = reproducao.videoSeguinte();
+            if (seguinte != null) abrirEpisodio(seguinte);
             return true;
         }
-        String outro = proximo ? reproducao.clipeSeguinte() : reproducao.clipeAnterior();
-        if (outro != null) abrirEpisodio(outro);
-        else if (!proximo) reproducao.irPara(0);
+        String anterior = reproducao.videoAnterior();
+        if (doisToques.vaiAoAnterior(anterior != null)) abrirEpisodio(anterior);
+        else reproducao.irPara(0);
         return true;
     }
 
@@ -319,14 +367,22 @@ public class ReproducaoTvActivity extends AppCompatActivity {
         botao.setContentDescription(getString(ligado ? R.string.st_musicas_aleatorio_ligado : R.string.st_musicas_aleatorio_desligado));
     }
 
+    /** Cap. anterior; no vídeo de música, o mesmo botão é o do vídeo anterior (1.6). */
     private void capituloAnterior() {
-        if (trocarDeClipe(false)) return;
+        if (reproducao.ehClipe()) {
+            trocarDeVideo(false);
+            return;
+        }
         Capitulo c = reproducao.irParaCapituloAnterior();
         if (c != null && !visiveis) mostrarAviso(PecasReproducao.nomeCapitulo(this, c));
     }
 
+    /** Próx. capítulo; no vídeo de música, o mesmo botão é o do próximo vídeo (1.6). */
     private void proximoCapitulo() {
-        if (trocarDeClipe(true)) return;
+        if (reproducao.ehClipe()) {
+            trocarDeVideo(true);
+            return;
+        }
         Capitulo c = reproducao.irParaProximoCapitulo();
         if (c != null && !visiveis) mostrarAviso(PecasReproducao.nomeCapitulo(this, c));
     }
@@ -448,11 +504,12 @@ public class ReproducaoTvActivity extends AppCompatActivity {
                     }
                     mostrarControles();
                     return true;
+                // Episódio e vídeo de música: o vídeo (1.8.0, D5); nos outros, o capítulo
                 case KeyEvent.KEYCODE_MEDIA_NEXT:
-                    proximoCapitulo();
+                    if (!trocarDeVideo(true)) proximoCapitulo();
                     return true;
                 case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
-                    capituloAnterior();
+                    if (!trocarDeVideo(false)) capituloAnterior();
                     return true;
                 case KeyEvent.KEYCODE_MEDIA_FAST_FORWARD:
                     pular(1);

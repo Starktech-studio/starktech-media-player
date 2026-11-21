@@ -2,7 +2,8 @@
 <!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
 <!--
      Coletânea e artista na TV (ColetaneaArtistaTvActivity), no padrão do Detalhe: fundo atrás, barra
-     do topo com a seção marcada e Configurações, capa e, ao lado, nome, chips, texto e Editar; embaixo,
+     do topo com a seção marcada e Configurações, capa e, ao lado, nome, chips, texto, Ver mais e Editar
+     (só o ícone, no fim da fileira: D4, 1.8.0); embaixo,
      com título próprio, as capas dos filmes ou dos shows, criadas no código. A página rola até a capa em foco.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -257,7 +258,8 @@
                             android:textSize="@dimen/st_tv_texto_menu_dica"
                             android:visibility="gone" />
 
-                        <!-- Editar e Ver mais -->
+                        <!-- Ver mais e Editar (só o ícone, 33 dp, como no Detalhe). A margem fica no Ver mais:
+                             escondido (gone), o Editar não ganha recuo -->
                         <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -265,20 +267,29 @@
                             android:orientation="horizontal">
 
                             <Button
-                                android:id="@+id/st_coletanea_editar"
-                                style="@style/StarkTech.Botao.Tv.Secundario"
-                                android:layout_width="wrap_content"
-                                android:layout_height="@dimen/st_tv_botao_altura"
-                                android:text="@string/st_editar" />
-
-                            <Button
                                 android:id="@+id/st_coletanea_ver_mais"
                                 style="@style/StarkTech.Botao.Tv.Secundario"
                                 android:layout_width="wrap_content"
                                 android:layout_height="@dimen/st_tv_botao_altura"
-                                android:layout_marginStart="@dimen/st_tv_coletanea_acao_espaco"
+                                android:layout_marginEnd="@dimen/st_tv_coletanea_acao_espaco"
                                 android:text="@string/st_ver_mais"
                                 android:visibility="gone" />
+
+                            <ImageButton
+                                android:id="@+id/st_coletanea_editar"
+                                android:contentDescription="@string/st_editar"
+                                android:layout_width="33dp"
+                                android:layout_height="@dimen/st_tv_botao_altura"
+                                android:background="@drawable/st_botao_secundario"
+                                android:focusable="true"
+                                android:foreground="@drawable/st_foco_tv"
+                                android:paddingStart="10dp"
+                                android:paddingTop="9.5dp"
+                                android:paddingEnd="10dp"
+                                android:paddingBottom="9.5dp"
+                                android:scaleType="fitCenter"
+                                android:src="@drawable/st_ic_editar"
+                                app:tint="@color/st_texto" />
                         </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>

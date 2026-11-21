@@ -41,7 +41,7 @@ import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 
 /**
  * Detalhe do filme ou do show no tablet (tablet-detalhe.dc.html): Biblioteca (voltar), as estrelas
- * da nota (só em filme assistido, {@link EstrelasNota}), Favoritar e Editar no topo; capa, tipo, título, chips, sinopse (até 3 linhas; o resto em "Ver mais", numa janela,
+ * da nota (só em filme assistido, {@link EstrelasNota}), Favoritar e Editar (só o ícone) no topo; capa, tipo, título, chips, sinopse (até 3 linhas; o resto em "Ver mais", numa janela,
  * para os botões não descerem) e os botões Assistir (do início), Continuar
  * (de onde parou, só com o vídeo em andamento) e Áudio e legendas; abas Capítulos (o capítulo
  * onde o vídeo parou em azul), Dados técnicos e Elenco (D12). Marcar como assistido
@@ -98,14 +98,13 @@ public class DetalheTabletActivity extends AppCompatActivity {
         abaElenco = findViewById(R.id.st_aba_elenco);
         conteudoAba = findViewById(R.id.st_detalhe_aba_conteudo);
         Button voltar = findViewById(R.id.st_detalhe_voltar);
-        Button editar = findViewById(R.id.st_detalhe_editar);
+        View editar = findViewById(R.id.st_detalhe_editar);
         Button assistir = findViewById(R.id.st_detalhe_assistir);
         Button faixas = findViewById(R.id.st_detalhe_faixas);
 
         Resources res = getResources();
         int iconeTopo = res.getDimensionPixelSize(R.dimen.st_tablet_detalhe_topo_botao_icone);
         Icones.noTexto(voltar, R.drawable.st_ic_voltar, iconeTopo);
-        Icones.noTexto(editar, R.drawable.st_ic_editar, iconeTopo);
         Icones.noTexto(assistir, R.drawable.st_ic_assistir, res.getDimensionPixelSize(R.dimen.st_tablet_detalhe_botao_icone_primario));
         int icone = res.getDimensionPixelSize(R.dimen.st_tablet_detalhe_botao_icone);
         Icones.noTexto(continuar, R.drawable.st_ic_do_inicio, icone);

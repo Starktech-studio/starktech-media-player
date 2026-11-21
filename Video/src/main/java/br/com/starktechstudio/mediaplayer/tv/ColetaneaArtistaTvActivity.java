@@ -10,8 +10,9 @@ import br.com.starktechstudio.mediaplayer.dados.Modelo.Titulo;
 
 /**
  * Coletânea e artista na TV: a tela comum com o topo da Série. A seção do título fica marcada
- * ({@link TopoSecaoTv}): Filmes na coletânea, Shows no artista. Em linha reta: pílulas, Editar (e Ver
- * mais) e a primeira linha de capas.
+ * ({@link TopoSecaoTv}): Filmes na coletânea de filmes, Desenhos na de desenhos, Shows no artista. Em
+ * linha reta: pílulas, a fileira de ações (Ver mais, quando aparece, e Editar só com o ícone, no fim) e
+ * a primeira linha de capas; o ↓ das pílulas e o ↑ das capas vão ao Editar, que está sempre lá.
  */
 public class ColetaneaArtistaTvActivity extends ColetaneaArtistaActivity {
 

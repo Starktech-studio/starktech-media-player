@@ -77,4 +77,12 @@ public class ChaveNomeTest {
         assertEquals("Artista", Classificador.classificar("/hd/Shows/Nacionais/Artista - Show.mkv", SHOWS).artista);
         assertNull(Classificador.classificar("/hd/Filmes/Nacionais/Nome (2012).mkv", FILMES).grupo);
     }
+
+    @Test
+    public void desenhoESerieDeMesmoNome_chavesDeSerieSeparadas() {
+        // 1.8.0: o desenho com episódios não se junta à série de mesmo nome; a da série não muda
+        assertEquals(Acervo.chaveSerie("Nome da Série"), Acervo.chaveSerie("Nome da Série", false));
+        assertNotEquals(Acervo.chaveSerie("Nome da Série", false), Acervo.chaveSerie("Nome da Série", true));
+        assertEquals(true, Acervo.ehSerie(Acervo.chaveSerie("Nome", true)));
+    }
 }

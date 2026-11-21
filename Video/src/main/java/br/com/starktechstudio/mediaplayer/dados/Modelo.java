@@ -65,10 +65,13 @@ public final class Modelo {
         }
     }
 
-    /** Títulos do {@link Tipo#SERIE} de uma aba: TV Shows ou Séries, pelo tipo da pasta. */
+    /**
+     * Títulos do {@link Tipo#SERIE} de uma aba: TV Shows ou Séries, pelo tipo da pasta. O desenho com
+     * episódios (1.8.0) fica fora das duas: aparece na aba Desenhos.
+     */
     public static List<Titulo> daAbaDeSeries(List<Titulo> titulos, boolean tvShows) {
         List<Titulo> lista = new ArrayList<>();
-        for (Titulo t : titulos) if (t.tvShow == tvShows) lista.add(t);
+        for (Titulo t : titulos) if (!t.desenho && t.tvShow == tvShows) lista.add(t);
         return lista;
     }
 
@@ -159,6 +162,11 @@ public final class Modelo {
         public int numeroEpisodios;
         /** Série de pasta TV Shows: igual a uma série em tudo, só que na aba TV Shows. */
         public boolean tvShow;
+        /**
+         * Série de pasta Desenhos (1.8.0, D7): desenho com temporadas e episódios, igual a uma série em tudo,
+         * só que na aba Desenhos, com o rótulo "Desenho" e Desenhos marcada no topo da TV.
+         */
+        public boolean desenho;
 
         // Coletânea (D5)
         /** Filme: a coletânea em que está (do TMDB ou ajustada à mão); nulo = fora de coletânea. */
@@ -247,6 +255,7 @@ public final class Modelo {
             t.numeroTemporadas = numeroTemporadas;
             t.numeroEpisodios = numeroEpisodios;
             t.tvShow = tvShow;
+            t.desenho = desenho;
             t.colecaoNome = colecaoNome;
             t.idColetanea = idColetanea;
             t.colecaoCapa = colecaoCapa;

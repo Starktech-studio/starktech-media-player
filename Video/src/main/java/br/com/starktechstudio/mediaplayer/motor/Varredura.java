@@ -113,6 +113,8 @@ public final class Varredura {
 
         long agora = System.currentTimeMillis();
         List<Acervo.Video> gravar = new ArrayList<>();
+        // 1.8.0 (risco 1 do plano 009): vídeo que passou de filme a episódio (ou o contrário) perde a linha do TMDB
+        List<String> semTmdb = new ArrayList<>();
         Set<String> achados = new HashSet<>();
         for (Classificador.Item item : Classificador.varrer(pastas)) {
             achados.add(item.caminho);
@@ -140,6 +142,7 @@ public final class Varredura {
             v.adicionado = velho != null ? velho.adicionado : agora;
             if (mesmoArquivo) copiarDadosTecnicos(velho, v);
             if (velho == null || !igual(velho, v)) gravar.add(v);
+            if (mudouDeEpisodio(velho, v)) semTmdb.add(v.caminho);
         }
 
         List<String> remover = new ArrayList<>();
@@ -168,10 +171,21 @@ public final class Varredura {
         }
         if (!gravar.isEmpty() || !remover.isEmpty()) {
             acervo.gravarVideos(gravar, remover);
+            for (String caminho : semTmdb) acervo.apagarTmdb(caminho);
             for (String caminho : remover) apagarMiniatura(antes.get(caminho));
             aviso.aoMudar();
         }
         return tentarDeNovo;
+    }
+
+    /**
+     * O vídeo passou de episódio a outro tipo, ou de outro tipo a episódio (desenho que vira episódio, 1.8.0):
+     * a linha do TMDB, gravada pelo caminho, é de filme (ou de episódio) e não serve mais; sem ela, o vídeo é
+     * buscado de novo do jeito certo. Entre filme, desenho, show e stand-up a busca é a mesma: a linha fica.
+     */
+    static boolean mudouDeEpisodio(Acervo.Video velho, Acervo.Video novo) {
+        if (velho == null || velho.tipo == novo.tipo) return false;
+        return velho.tipo == Classificador.Tipo.EPISODIO || novo.tipo == Classificador.Tipo.EPISODIO;
     }
 
     private static int[] conta(Map<String, int[]> contas, String pasta) {

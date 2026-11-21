@@ -100,11 +100,20 @@ public interface RepositorioBiblioteca {
      */
     List<Titulo> filmesEColetaneas();
 
-    /** Os filmes da coletânea, por ano. Vazio se ela não existe ou ficou com menos de 2. */
+    /** Os filmes (ou desenhos) da coletânea, por ano. Vazio se ela não existe ou ficou com menos de 2. */
     List<Titulo> filmesDaColetanea(String idColetanea);
 
-    /** Nomes das coletâneas da biblioteca, mesmo com um filme só (sugestões do ajuste à mão). */
+    /**
+     * Nomes das coletâneas da biblioteca, mesmo com um filme só (sugestões do ajuste à mão); desde a 1.8.0,
+     * as de filmes e as de desenhos juntas, sem repetir.
+     */
     List<String> nomesDeColetanea();
+
+    /**
+     * Aba Desenhos (1.8.0, D7 e D9), em ordem alfabética: os filmes de desenho soltos, no lugar de 2 ou mais
+     * da mesma coletânea a capa dela, e os desenhos com episódios ({@link Titulo#desenho}).
+     */
+    List<Titulo> desenhos();
 
     /**
      * Ajuste à mão: {@code nome} põe o filme nessa coletânea; "" tira de coletânea; null volta ao que

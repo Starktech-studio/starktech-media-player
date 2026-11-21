@@ -56,7 +56,8 @@ import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
  * Player do tablet (tablet-player.dc.html), tocando o arquivo pelo motor do Nova ({@link Reproducao}): topo
  * com Voltar, título grande e o capítulo; embaixo, barra (tocar ou arrastar muda a posição),
  * Capítulos (abre a faixa de capítulos, que arrasta para o lado, sem "Ver todos"), Áudio e Legendas
- * à esquerda; Cap. anterior, Pausar, Próx. capítulo no centro (os de capítulo somem sem capítulos;
+ * à esquerda; Cap. anterior, Pausar, Próx. capítulo no centro (os de capítulo somem sem capítulos; no
+ * episódio, 1.8.0, também Ep. anterior e Próx. episódio, por fora, e o anterior em dois toques;
  * filme e desenho ganham marcas de 10 em 10 minutos, que usam os mesmos botões;
  * o pulo de Configurações, 10 s de fábrica, só com dois toques nas laterais); "Próximo capítulo em…"
  * e Expandir à direita.
@@ -153,6 +154,8 @@ public class ReproducaoTabletActivity extends AppCompatActivity implements Gesto
         barra = findViewById(R.id.st_rep_barra);
         TextView capAnterior = findViewById(R.id.st_rep_cap_anterior);
         TextView capProximo = findViewById(R.id.st_rep_cap_proximo);
+        TextView epAnterior = findViewById(R.id.st_rep_ep_anterior);
+        TextView epProximo = findViewById(R.id.st_rep_ep_proximo);
         TextView audio = findViewById(R.id.st_rep_audio);
         TextView legendas = findViewById(R.id.st_rep_legendas);
         ajustarLegenda = findViewById(R.id.st_rep_ajustar_legenda);
@@ -170,6 +173,8 @@ public class ReproducaoTabletActivity extends AppCompatActivity implements Gesto
         int branco = ContextCompat.getColor(this, R.color.st_texto);
         Icones.acimaDoTexto(capAnterior, R.drawable.st_ic_cap_anterior, icone, branco);
         Icones.acimaDoTexto(capProximo, R.drawable.st_ic_cap_proximo, icone, branco);
+        Icones.acimaDoTexto(epAnterior, R.drawable.st_ic_ep_anterior, icone, branco);
+        Icones.acimaDoTexto(epProximo, R.drawable.st_ic_ep_proximo, icone, branco);
         Icones.acimaDoTexto(audio, R.drawable.st_ic_audio, icone, branco);
         Icones.acimaDoTexto(legendas, R.drawable.st_ic_legendas, icone, branco);
         Icones.acimaDoTexto(ajustarLegenda, R.drawable.st_ic_ajustar, icone, branco);
@@ -177,7 +182,7 @@ public class ReproducaoTabletActivity extends AppCompatActivity implements Gesto
         Icones.acimaDoTexto(botaoCapitulos, R.drawable.st_ic_capitulos, icone, branco);
         Icones.acimaDoTexto(expandir, R.drawable.st_ic_expandir, icone, branco);
 
-        // Sem capítulos: só Pausar no centro (INTERFACE.md §4)
+        // Sem capítulos: só Pausar no centro (INTERFACE.md §4); episódio: também Ep. anterior e Próx. episódio (1.8.0)
         boolean comCapitulos = reproducao.temCapitulos();
         // Vídeo de música (1.6): anterior e próximo vídeo no lugar dos de capítulo
         if (reproducao.ehClipe()) {
@@ -188,13 +193,16 @@ public class ReproducaoTabletActivity extends AppCompatActivity implements Gesto
         botaoCapitulos.setVisibility(comCapitulos ? View.VISIBLE : View.GONE);
 
         findViewById(R.id.st_rep_voltar).setOnClickListener(v -> finish());
+        // No vídeo de música, os de capítulo são os do vídeo (1.6)
         capAnterior.setOnClickListener(v -> comando(() -> {
-            if (!trocarDeClipe(false)) reproducao.irParaCapituloAnterior();
+            if (!reproducao.ehClipe() || !trocarDeVideo(false)) reproducao.irParaCapituloAnterior();
         }));
         pausar.setOnClickListener(v -> comando(reproducao::pausarOuContinuar));
         capProximo.setOnClickListener(v -> comando(() -> {
-            if (!trocarDeClipe(true)) reproducao.irParaProximoCapitulo();
+            if (!reproducao.ehClipe() || !trocarDeVideo(true)) reproducao.irParaProximoCapitulo();
         }));
+        epAnterior.setOnClickListener(v -> comando(() -> trocarDeVideo(false)));
+        epProximo.setOnClickListener(v -> comando(() -> trocarDeVideo(true)));
         audio.setOnClickListener(v -> abrirFaixas(TipoFaixa.AUDIO));
         legendas.setOnClickListener(v -> abrirFaixas(TipoFaixa.LEGENDA));
         ajustarLegenda.setOnClickListener(v -> abrirAjusteLegenda());
@@ -239,14 +247,14 @@ public class ReproducaoTabletActivity extends AppCompatActivity implements Gesto
             }
 
             @Override
-            public void capituloAnterior() {
-                // Volante do carro, fone: no vídeo de música, troca de vídeo (1.6)
-                if (!trocarDeClipe(false)) avisarCapitulo(reproducao.irParaCapituloAnterior());
+            public void anterior() {
+                // Volante do carro, fone: no vídeo de música (1.6) e no episódio (1.8.0, D5), troca de vídeo
+                if (!trocarDeVideo(false)) avisarCapitulo(reproducao.irParaCapituloAnterior());
             }
 
             @Override
-            public void proximoCapitulo() {
-                if (!trocarDeClipe(true)) avisarCapitulo(reproducao.irParaProximoCapitulo());
+            public void proximo() {
+                if (!trocarDeVideo(true)) avisarCapitulo(reproducao.irParaProximoCapitulo());
             }
         });
         reproducao.definirOuvinte(this::atualizar);
@@ -301,7 +309,8 @@ public class ReproducaoTabletActivity extends AppCompatActivity implements Gesto
     }
 
     /**
-     * Fim do episódio com "Próximo episódio automático" ligado: esta tela reabre com o seguinte
+     * Fim do episódio com "Próximo episódio automático" ligado, ou o anterior / o próximo pedido (1.8.0, de
+     * onde parou; o assistido, do começo: D6 do plano 009): esta tela reabre com o outro
      * (recreate() solta o motor antes de abrir o novo; o intent trocado aqui é o que o onCreate novo
      * lê). Na miniatura, fica no fim do vídeo: a tela nova abriria com os controles na janelinha.
      */
@@ -423,7 +432,7 @@ public class ReproducaoTabletActivity extends AppCompatActivity implements Gesto
             pausar.setContentDescription(getString(tocando ? R.string.st_pausar : R.string.st_continuar));
         }
         adapter.definirAtual(numeroAtual());
-        botoes.atualizar(tocando, reproducao.posicao(), reproducao.temCapitulos() || reproducao.ehClipe());
+        botoes.atualizar(tocando, reproducao.posicao(), reproducao.temCapitulos() || reproducao.trocaDeVideo());
         if (!comecou && reproducao.estaPronto()) {
             comecou = true;
             if (visiveis) agendarOcultar();
@@ -439,27 +448,40 @@ public class ReproducaoTabletActivity extends AppCompatActivity implements Gesto
         adapter.atualizar(reproducao.capitulos, numeroAtual());
     }
 
-    /** Capítulo anterior e próximo; no vídeo de música (1.6), vídeo anterior e próximo, cada um só se houver. */
+    /**
+     * Capítulo anterior e próximo; no vídeo de música (1.6), vídeo anterior e próximo, cada um só se houver.
+     * No episódio (1.8.0, D5 do plano 009), Ep. anterior (sempre: no 1º episódio, volta ao começo) e Próx.
+     * episódio (só se houver), por fora dos de capítulo; sem capítulos, só os de episódio.
+     */
     private void mostrarBotoesDoCentro() {
         boolean clipe = reproducao.ehClipe();
+        boolean episodio = reproducao.ehEpisodio();
         // Vídeo anterior sempre no vídeo de música: o 1º toque volta ao começo (1.7)
         boolean anterior = clipe || reproducao.temCapitulos();
         boolean proximo = clipe ? reproducao.clipeSeguinte() != null : reproducao.temCapitulos();
+        boolean episodioSeguinte = episodio && reproducao.episodioSeguinteId() != null;
         findViewById(R.id.st_rep_cap_anterior).setVisibility(anterior ? View.VISIBLE : View.GONE);
         findViewById(R.id.st_rep_cap_proximo).setVisibility(proximo ? View.VISIBLE : View.GONE);
+        findViewById(R.id.st_rep_ep_anterior).setVisibility(episodio ? View.VISIBLE : View.GONE);
+        findViewById(R.id.st_rep_ep_proximo).setVisibility(episodioSeguinte ? View.VISIBLE : View.GONE);
     }
 
-    /** Vídeo de música: abre o outro da sequência; devolve false se não é vídeo de música. */
-    private boolean trocarDeClipe(boolean proximo) {
-        if (!reproducao.ehClipe()) return false;
-        // 1.7 (D4): anterior em dois toques; o 1º volta ao começo deste vídeo
-        if (!proximo && !doisToques.segundo()) {
-            reproducao.irPara(0);
+    /**
+     * Vídeo de música e episódio (1.8.0): abre o outro, de onde parou. O anterior em dois toques (1.7, D4 do
+     * plano 007): o 1º volta ao começo deste vídeo e o 2º, em até 3 s, abre o anterior; sem anterior (1º
+     * episódio, começo da sequência), volta sempre ao começo. O próximo só abre se houver. Na miniatura, não
+     * troca ({@link #abrirEpisodio}). False: o título não troca de vídeo (filme, desenho, show).
+     */
+    private boolean trocarDeVideo(boolean proximo) {
+        if (!reproducao.trocaDeVideo()) return false;
+        if (proximo) {
+            String seguinte = reproducao.videoSeguinte();
+            if (seguinte != null) abrirEpisodio(seguinte);
             return true;
         }
-        String outro = proximo ? reproducao.clipeSeguinte() : reproducao.clipeAnterior();
-        if (outro != null) abrirEpisodio(outro);
-        else if (!proximo) reproducao.irPara(0);
+        String anterior = reproducao.videoAnterior();
+        if (doisToques.vaiAoAnterior(anterior != null)) abrirEpisodio(anterior);
+        else reproducao.irPara(0);
         return true;
     }
 

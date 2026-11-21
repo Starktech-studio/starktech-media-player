@@ -33,6 +33,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -236,7 +237,7 @@ public final class RepositorioReal implements RepositorioBiblioteca {
                     series = new HashSet<>();
                     seriesPorPasta.put(v.pasta, series);
                 }
-                if (series.add(Acervo.chaveSerie(v.serie))) conta[1]++;
+                if (series.add(chaveDaSerie(v, r.pastas.get(v.pasta)))) conta[1]++;
             } else {
                 conta[0]++;
             }
@@ -252,7 +253,7 @@ public final class RepositorioReal implements RepositorioBiblioteca {
                     r.titulos.put(v.caminho, tituloDoVideo(r, v));
                     break;
                 case EPISODIO: {
-                    String chave = Acervo.chaveSerie(v.serie);
+                    String chave = chaveDaSerie(v, r.pastas.get(v.pasta));
                     List<Acervo.Video> lista = porSerie.get(chave);
                     if (lista == null) {
                         lista = new ArrayList<>();
@@ -271,6 +272,17 @@ public final class RepositorioReal implements RepositorioBiblioteca {
             montarSerie(r, serie.getKey(), serie.getValue());
         }
         return r;
+    }
+
+    /** Chave da série do episódio: a do desenho (pasta Desenhos) separada da série de mesmo nome (1.8.0). */
+    private static String chaveDaSerie(Acervo.Video v, Pastas.Pasta pasta) {
+        return Acervo.chaveSerie(v.serie, pasta != null && pasta.tipo == Pastas.Tipo.DESENHOS);
+    }
+
+    /** A pasta cadastrada pelo caminho; nula se não estiver mais na lista. */
+    private Pastas.Pasta pastaDe(String caminho) {
+        for (Pastas.Pasta p : pastas.lista()) if (p.caminho.equals(caminho)) return p;
+        return null;
     }
 
     private Titulo tituloDoVideo(Retrato r, Acervo.Video v) {
@@ -374,6 +386,8 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         t.tipo = Tipo.SERIE;
         Pastas.Pasta pasta = r.pastas.get(primeiro.pasta);
         t.tvShow = pasta != null && pasta.tipo == Pastas.Tipo.TVSHOWS;
+        // 1.8.0 (D7): episódios da pasta Desenhos viram um desenho com temporadas, na aba Desenhos
+        t.desenho = pasta != null && pasta.tipo == Pastas.Tipo.DESENHOS;
         t.titulo = dados != null && temTexto(dados.titulo) ? dados.titulo : primeiro.serie;
         t.tituloOriginal = dados != null && dados.tituloOriginal != null ? dados.tituloOriginal : primeiro.serie;
         t.ano = dados != null && dados.ano != null ? dados.ano : primeiro.ano == null ? "" : String.valueOf(primeiro.ano);
@@ -471,11 +485,14 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         return t;
     }
 
-    /** O que depende do tipo e do assistido já finais: a nota (D6) e a coletânea, só em filme. */
+    /**
+     * O que depende do tipo e do assistido já finais: a nota (D6) e a coletânea, em filme e, desde a 1.8.0
+     * (D9), em desenho, com a chave pelo tipo ({@link Acervo#chaveColetanea(String, boolean)}).
+     */
     private static void completar(Titulo t, Acervo.Estado e) {
         t.nota = t.podeDarNota() ? e.nota : null;
-        t.idColetanea = t.tipo == Tipo.FILME && !t.ehColetanea() && temTexto(t.colecaoNome)
-                ? Acervo.chaveColetanea(t.colecaoNome) : null;
+        boolean temColetanea = (t.tipo == Tipo.FILME || t.tipo == Tipo.DESENHO) && !t.ehColetanea() && temTexto(t.colecaoNome);
+        t.idColetanea = temColetanea ? Acervo.chaveColetanea(t.colecaoNome, t.tipo == Tipo.DESENHO) : null;
     }
 
     private Episodio comEstado(Episodio base) {
@@ -761,10 +778,15 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         return lista;
     }
 
+    /** Filme ou desenho: o tipo dos títulos de uma coletânea, pela chave (1.8.0, D9). */
+    static Tipo tipoDaColetanea(String id) {
+        return Acervo.ehColetaneaDeDesenho(id) ? Tipo.DESENHO : Tipo.FILME;
+    }
+
     /** Capa de coletânea ou de artista; nula se não existe (coletânea com menos de 2, artista sem show). */
     private Titulo capaMontada(Retrato r, String id, boolean comEdicao) {
         if (Acervo.ehColetanea(id)) {
-            List<Titulo> filmes = porColetanea(doTipo(r, Tipo.FILME)).get(id);
+            List<Titulo> filmes = porColetanea(doTipo(r, tipoDaColetanea(id))).get(id);
             return filmes == null || filmes.size() < FILMES_NA_COLETANEA ? null : capaDeColetanea(r, id, filmes, comEdicao);
         }
         List<Titulo> shows = showsDe(r, id);
@@ -818,10 +840,13 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         return ano == null ? Integer.MAX_VALUE : ano;
     }
 
-    /** A capa e o fundo da coleção; sem eles, os do primeiro filme. */
+    /**
+     * A capa e o fundo da coleção; sem eles, os do primeiro filme. A de desenhos tem o tipo DESENHO (1.8.0):
+     * na TV, a tela da Coleção marca Desenhos no topo.
+     */
     private Titulo capaDeColetanea(Retrato r, String id, List<Titulo> filmes, boolean comEdicao) {
         Titulo primeiro = filmes.get(0);
-        Titulo t = capaVazia(id, Tipo.FILME, primeiro.colecaoNome);
+        Titulo t = capaVazia(id, tipoDaColetanea(id), primeiro.colecaoNome);
         t.numeroFilmes = filmes.size();
         t.todosAssistidos = true;
         for (Titulo filme : filmes) {
@@ -839,7 +864,29 @@ public final class RepositorioReal implements RepositorioBiblioteca {
     @Override
     public List<Titulo> filmesEColetaneas() {
         Retrato r = retrato;
-        List<Titulo> filmes = doTipo(r, Tipo.FILME);
+        List<Titulo> lista = comColetaneas(r, Tipo.FILME);
+        Collator ordem = collator();
+        Collections.sort(lista, (a, b) -> ordem.compare(a.titulo, b.titulo));
+        return lista;
+    }
+
+    /**
+     * Aba Desenhos (1.8.0, D7 e D9), em ordem alfabética: os filmes de desenho soltos, as capas das coletâneas
+     * de desenhos e os desenhos com episódios (séries da pasta Desenhos).
+     */
+    @Override
+    public List<Titulo> desenhos() {
+        Retrato r = retrato;
+        List<Titulo> lista = comColetaneas(r, Tipo.DESENHO);
+        for (Titulo t : todos(r)) if (t.tipo == Tipo.SERIE && t.desenho) lista.add(t);
+        Collator ordem = collator();
+        Collections.sort(lista, (a, b) -> ordem.compare(a.titulo, b.titulo));
+        return lista;
+    }
+
+    /** Os títulos do tipo soltos e, no lugar de 2 ou mais da mesma coletânea, a capa dela (sem ordem). */
+    private List<Titulo> comColetaneas(Retrato r, Tipo tipo) {
+        List<Titulo> filmes = doTipo(r, tipo);
         Map<String, List<Titulo>> grupos = porColetanea(filmes);
         List<Titulo> lista = new ArrayList<>();
         for (Titulo t : filmes) {
@@ -849,21 +896,24 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         for (Map.Entry<String, List<Titulo>> grupo : grupos.entrySet()) {
             if (grupo.getValue().size() >= FILMES_NA_COLETANEA) lista.add(capaDeColetanea(r, grupo.getKey(), grupo.getValue(), true));
         }
-        Collator ordem = collator();
-        Collections.sort(lista, (a, b) -> ordem.compare(a.titulo, b.titulo));
         return lista;
     }
 
     @Override
     public List<Titulo> filmesDaColetanea(String idColetanea) {
-        List<Titulo> filmes = idColetanea == null ? null : porColetanea(doTipo(retrato, Tipo.FILME)).get(idColetanea);
+        List<Titulo> filmes = idColetanea == null ? null
+                : porColetanea(doTipo(retrato, tipoDaColetanea(idColetanea))).get(idColetanea);
         return filmes == null || filmes.size() < FILMES_NA_COLETANEA ? Collections.<Titulo>emptyList() : filmes;
     }
 
     @Override
     public List<String> nomesDeColetanea() {
-        List<String> nomes = new ArrayList<>();
-        for (List<Titulo> grupo : porColetanea(doTipo(retrato, Tipo.FILME)).values()) nomes.add(grupo.get(0).colecaoNome);
+        // 1.8.0 (D9): as de desenhos também (a mesma coleção nos dois tipos aparece uma vez)
+        Set<String> unicos = new LinkedHashSet<>();
+        for (Tipo tipo : new Tipo[]{Tipo.FILME, Tipo.DESENHO}) {
+            for (List<Titulo> grupo : porColetanea(doTipo(retrato, tipo)).values()) unicos.add(grupo.get(0).colecaoNome);
+        }
+        List<String> nomes = new ArrayList<>(unicos);
         Collections.sort(nomes, collator());
         return nomes;
     }
@@ -1849,7 +1899,11 @@ public final class RepositorioReal implements RepositorioBiblioteca {
             case DESENHO:
             case SHOW:
             case STANDUP: {
-                if (!precisa(antes, tudo)) return v.tipo == Classificador.Tipo.FILME && completarColecao(busca, v, antes);
+                // 1.8.0 (D9): a coleção do desenho também conta (coletânea de desenhos)
+                if (!precisa(antes, tudo)) {
+                    return (v.tipo == Classificador.Tipo.FILME || v.tipo == Classificador.Tipo.DESENHO)
+                            && completarColecao(busca, v, antes);
+                }
                 String titulo = edicao.containsKey(Edicoes.Campo.TITULO) ? edicao.get(Edicoes.Campo.TITULO)
                         : v.artista != null ? v.artista + " " + v.titulo : v.titulo;
                 Integer ano = edicao.containsKey(Edicoes.Campo.ANO) ? numero(edicao.get(Edicoes.Campo.ANO)) : v.ano;
@@ -1858,7 +1912,7 @@ public final class RepositorioReal implements RepositorioBiblioteca {
                 return true;
             }
             case EPISODIO: {
-                String chaveSerie = Acervo.chaveSerie(v.serie);
+                String chaveSerie = chaveDaSerie(v, pastaDe(v.pasta));
                 Acervo.Tmdb serie = tmdb.get(chaveSerie);
                 boolean precisaSerie = precisa(serie, tudo) && !seriesFeitas.contains(chaveSerie);
                 if (!precisa(antes, tudo) && !precisaSerie) return false;

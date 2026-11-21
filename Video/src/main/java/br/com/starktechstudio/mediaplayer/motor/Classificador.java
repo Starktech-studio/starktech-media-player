@@ -29,7 +29,11 @@ import java.util.regex.Pattern;
  * também sem a pasta da temporada (e, direto na pasta Séries, o nome da série vem antes deles).</li>
  * <li>Shows: "Artista - Show (2019).mkv" (ano opcional; sem " - ", só o título). A primeira subpasta
  * abaixo da pasta Shows é o grupo (D7: "Shows/Nacionais/…"); direto em Shows, sem grupo.</li>
- * <li>Desenhos (F3): como Filmes, um arquivo só ("Nome do desenho (2019).mkv").</li>
+ * <li>Desenhos (F3): como Filmes, um arquivo só ("Nome do desenho (2019).mkv"). Desde a 1.8.0 (D7 e D8 do
+ * plano 009), o que segue o padrão de Séries vira episódio de um desenho com temporadas: "Nome / Temporada N /
+ * 01.mkv", "S01E01", "1x01", "E01", só o número e também "Parte N" / "Part N"; "Nome / 01.mkv", sem a pasta
+ * da temporada, vale como Temporada 1. O resto (arquivo solto, pasta de filmes como "Disney / Nome (2019).mkv")
+ * continua filme.</li>
  * <li>Stand-up (F3): como Filmes, um arquivo só ("Nome do especial (2021).mkv").</li>
  * </ul>
  * Pasta Ignorar e arquivos que não são vídeo ficam de fora; pasta sem tipo e nomes fora do padrão
@@ -146,6 +150,8 @@ public final class Classificador {
     private static final Pattern N_X_N = Pattern.compile("(?<!\\d)(\\d{1,2})x(\\d{1,3})(?!\\d)");
     private static final Pattern SO_E = Pattern.compile("(?:^|[\\s._-])e(\\d{1,3})(?!\\d)");
     private static final Pattern SO_NUMERO = Pattern.compile("^(\\d{1,3})$");
+    /** Desenho (1.8.0): "Parte 2", "Part 2", "parte_02" no nome do arquivo. */
+    private static final Pattern PARTE = Pattern.compile("(?:^|[\\s._-])(?:parte|part)[\\s._-]*(\\d{1,3})(?!\\d)");
     private static final Pattern TEMPORADA = Pattern.compile("^(?:temporada|temp|season)\\s*(\\d{1,2})$");
     private static final Pattern TEMPORADA_CURTA = Pattern.compile("^[ts](\\d{1,2})$");
 
@@ -163,7 +169,7 @@ public final class Classificador {
         String[] partes = relativo.split("/");
         switch (pasta.tipo) {
             case FILMES: return filme(caminhoArquivo, partes);
-            case DESENHOS: return Item.desenho(filme(caminhoArquivo, partes));
+            case DESENHOS: return desenho(caminhoArquivo, partes);
             case STANDUP: return Item.standup(filme(caminhoArquivo, partes));
             case SHOWS: return show(caminhoArquivo, partes);
             // Músicas (1.5.1): o vídeo é do artista; o áudio fica com a VarreduraMusicas
@@ -188,6 +194,71 @@ public final class Classificador {
         }
         if (doArquivo.titulo.isEmpty()) return Item.naoIdentificado(caminho, Motivo.FORA_DO_PADRAO);
         return Item.filme(caminho, doArquivo.titulo, doArquivo.ano);
+    }
+
+    // ---- Desenhos ----
+
+    /** Desenho (1.8.0): episódio quando segue o padrão ({@link #episodioDeDesenho}); senão, filme de desenho. */
+    private static Item desenho(String caminho, String[] partes) {
+        Item comoEpisodio = episodioDeDesenho(caminho, partes);
+        return comoEpisodio != null ? comoEpisodio : Item.desenho(filme(caminho, partes));
+    }
+
+    /**
+     * O padrão de Séries ({@link #episodio}) mais "Parte N", sem os não identificados: o que não segue fica
+     * nulo e vira filme. Direto na pasta Desenhos, só com "S01E01" / "1x01" e o nome antes do código; numa
+     * subpasta (o nome do desenho), o código, só o número, "E01" ou "Parte N", com a temporada pela pasta do
+     * meio ou, sem ela, Temporada 1. Pastas demais (ou uma do meio que não é de temporada): filme.
+     */
+    static Item episodioDeDesenho(String caminho, String[] partes) {
+        if (partes.length > 3) return null;
+        String limpo = Nomes.limpar(Nomes.semExtensao(partes[partes.length - 1]));
+        String minusculo = limpo.toLowerCase(Locale.ROOT);
+
+        int temporada = -1;
+        int episodio = -1;
+        int fimDoCodigo = -1;
+        Matcher codigo = S_E.matcher(minusculo);
+        if (!codigo.find()) {
+            codigo = N_X_N.matcher(minusculo);
+            if (!codigo.find()) codigo = null;
+        }
+        if (codigo != null) {
+            temporada = Integer.parseInt(codigo.group(1));
+            episodio = Integer.parseInt(codigo.group(2));
+            fimDoCodigo = codigo.end();
+        }
+
+        if (partes.length == 1) {
+            if (codigo == null) return null;
+            TituloAno serie = tituloAno(aparar(limpo.substring(0, codigo.start())));
+            if (serie.titulo.isEmpty()) return null;
+            return Item.episodio(caminho, serie.titulo, serie.ano, temporada, episodio, tituloDoEpisodio(limpo, fimDoCodigo));
+        }
+
+        TituloAno serie = tituloAno(Nomes.limpar(partes[0]));
+        if (serie.titulo.isEmpty()) return null;
+        if (codigo == null) {
+            Matcher so = SO_NUMERO.matcher(minusculo);
+            if (so.matches()) {
+                episodio = Integer.parseInt(so.group(1));
+            } else {
+                Matcher e = SO_E.matcher(minusculo);
+                Matcher parte = PARTE.matcher(minusculo);
+                if (e.find()) {
+                    episodio = Integer.parseInt(e.group(1));
+                    fimDoCodigo = e.end();
+                } else if (parte.find()) {
+                    episodio = Integer.parseInt(parte.group(1));
+                    fimDoCodigo = parte.end();
+                }
+            }
+            if (episodio < 0) return null;
+            // "Nome / 01.mkv": sem a pasta da temporada, Temporada 1 (D8)
+            temporada = partes.length == 3 ? temporadaDaPasta(partes[1]) : 1;
+            if (temporada < 0) return null;
+        }
+        return Item.episodio(caminho, serie.titulo, serie.ano, temporada, episodio, tituloDoEpisodio(limpo, fimDoCodigo));
     }
 
     // ---- Shows ----

@@ -74,7 +74,7 @@ import br.com.starktechstudio.mediaplayer.motor.ImagemDoAparelho;
  * (o Detalhe passa a mostrar "corrigidos à mão"). O resultado escolhido em Buscar no TMDB preenche
  * a tela na hora (prévia, sem gravar: Salvar grava, fechar descarta); os campos mexidos nesta tela ou
  * já editados à mão ficam como estão. Na TV, o foco só realça a caixa de texto: OK entra, seleciona
- * o texto e abre o teclado. Filme: Coletânea (D5), para mover a outra, tirar dela ou voltar ao TMDB.
+ * o texto e abre o teclado. Filme e desenho (1.8.0): Coletânea (D5), para mover a outra, tirar dela ou voltar ao TMDB.
  * Capa de coletânea e de artista: só o nome, a capa e o fundo, sem Buscar no TMDB. Capa de artista:
  * as fotos do fanart.tv e da Wikipédia entram nas opções da capa, e "Buscar artista" troca o artista: com
  * um que já está na biblioteca, os shows dos dois ficam juntos ("Queen + Adam Lambert" em "Queen"). O artista
@@ -436,8 +436,8 @@ public class EditarActivity extends AppCompatActivity {
             if (!pendente || mexidos.contains(item.getKey())) valores.put(item.getKey(), item.getValue().getText().toString());
         }
         if (!pendente || mexidos.contains(Campo.TIPO)) valores.put(Campo.TIPO, tipo.name());
-        // Coletânea só vale em filme: "" tira dela; null volta ao que o TMDB diz
-        final boolean gravarColetanea = caixaColetanea != null && coletaneaMexida && tipo == Tipo.FILME;
+        // Coletânea só vale em filme e, desde a 1.8.0 (D9), em desenho: "" tira dela; null volta ao que o TMDB diz
+        final boolean gravarColetanea = caixaColetanea != null && coletaneaMexida && temColetanea(tipo);
         final String coletanea = gravarColetanea && !coletaneaDoTmdb ? caixaColetanea.getText().toString() : null;
         final String artista = artistaEscolhido;
         final String fotoDoArtista = fotoDoArtistaEscolhido;
@@ -855,8 +855,13 @@ public class EditarActivity extends AppCompatActivity {
     private void marcarTipo(Tipo novo) {
         tipo = novo;
         for (TextView segmento : segmentos) segmento.setSelected(segmento.getTag() == novo);
-        // Coletânea só existe em filme
-        if (linhaColetanea != null) linhaColetanea.setVisibility(novo == Tipo.FILME ? View.VISIBLE : View.GONE);
+        // Coletânea só existe em filme e em desenho (1.8.0)
+        if (linhaColetanea != null) linhaColetanea.setVisibility(temColetanea(novo) ? View.VISIBLE : View.GONE);
+    }
+
+    /** Filme e desenho (1.8.0, D9) entram em coletânea; série, show e stand-up, não. */
+    private static boolean temColetanea(Tipo tipo) {
+        return tipo == Tipo.FILME || tipo == Tipo.DESENHO;
     }
 
     private TextView rotulo(@StringRes int texto) {

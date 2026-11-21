@@ -263,10 +263,6 @@
     <dimen name="st_tv_serie_capa_icone">17.5dp</dimen>
     <dimen name="st_tv_serie_espaco">28dp</dimen>
     <dimen name="st_tv_serie_espaco_info">8dp</dimen>
-    <dimen name="st_tv_aviso_padding_h">9dp</dimen>
-    <dimen name="st_tv_aviso_padding_v">7dp</dimen>
-    <dimen name="st_tv_aviso_icone">12dp</dimen>
-    <dimen name="st_tv_aviso_largura">550dp</dimen>
     <dimen name="st_tv_temporadas_margem_topo">20dp</dimen>
     <dimen name="st_tv_temporada_altura">28dp</dimen>
     <dimen name="st_tv_temporada_padding">13dp</dimen>
@@ -282,7 +278,6 @@
     <dimen name="st_tv_episodio_progresso_largura">110dp</dimen>
     <dimen name="st_tv_episodio_selo_icone">7dp</dimen>
     <dimen name="st_tv_texto_serie_titulo">36sp</dimen>
-    <dimen name="st_tv_texto_aviso">8.5sp</dimen>
     <dimen name="st_tv_texto_temporada">10sp</dimen>
     <dimen name="st_tv_texto_episodio_numero">15sp</dimen>
     <dimen name="st_tv_texto_episodio_rotulo">7sp</dimen>
@@ -291,9 +286,6 @@
     <dimen name="st_tv_texto_episodio_selo">7sp</dimen>
 
     <!-- Tablet: Série (sem desenho; D12: como a TV, temporadas em abas) -->
-    <dimen name="st_tablet_aviso_padding_h">14dp</dimen>
-    <dimen name="st_tablet_aviso_padding_v">10dp</dimen>
-    <dimen name="st_tablet_aviso_icone">20dp</dimen>
     <dimen name="st_tablet_episodio_padding">12dp</dimen>
     <dimen name="st_tablet_episodio_espaco">16dp</dimen>
     <dimen name="st_tablet_episodio_miniatura_largura">160dp</dimen>
@@ -301,7 +293,6 @@
     <dimen name="st_tablet_episodio_miniatura_canto">10dp</dimen>
     <dimen name="st_tablet_episodio_progresso_largura">160dp</dimen>
     <dimen name="st_tablet_episodio_selo_icone">12dp</dimen>
-    <dimen name="st_tablet_texto_aviso">14sp</dimen>
     <dimen name="st_tablet_texto_episodio_numero">20sp</dimen>
     <dimen name="st_tablet_texto_episodio_rotulo">11sp</dimen>
     <dimen name="st_tablet_texto_episodio_nome">16sp</dimen>
@@ -349,6 +340,9 @@
     <dimen name="st_tv_rep_botao_padding">11dp</dimen>
     <dimen name="st_tv_rep_botao_pausar_padding">17dp</dimen>
     <dimen name="st_tv_rep_botao_espaco">11dp</dimen>
+    <!-- Episódio com capítulos (1.8.0, D5): 5 botões no centro; os lados estreitam e o espaço entre eles diminui -->
+    <dimen name="st_tv_rep_botao_espaco_episodio">6dp</dimen>
+    <dimen name="st_tv_rep_lado_largura_episodio">300dp</dimen>
     <dimen name="st_tv_rep_lado_botao_altura">28dp</dimen>
     <dimen name="st_tv_rep_lado_botao_padding">9dp</dimen>
     <dimen name="st_tv_rep_lado_botao_icone">11dp</dimen>

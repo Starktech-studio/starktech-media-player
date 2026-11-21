@@ -39,6 +39,12 @@
     <string name="st_legenda_sem_tela_de_acesso">Este aparelho não tem a tela do acesso a todos os arquivos. Sem ele, o app não vê as legendas.</string>
     <string name="st_legenda_pelo_indice">Sem o acesso a todos os arquivos: aparecem as legendas que o Android mostra ao app.</string>
 
+    <!-- Episódio (1.8.0, D5): anterior e próximo da série, além dos capítulos -->
+    <string name="st_ep_anterior">Ep. anterior</string>
+    <string name="st_episodio_anterior">Episódio anterior</string>
+    <string name="st_prox_episodio">Próx. episódio</string>
+    <string name="st_proximo_episodio">Próximo episódio</string>
+
     <!-- Vídeos de música (1.6): anterior e próximo da sequência -->
     <string name="st_video_anterior">Vídeo anterior</string>
     <string name="st_proximo_video">Próximo vídeo</string>

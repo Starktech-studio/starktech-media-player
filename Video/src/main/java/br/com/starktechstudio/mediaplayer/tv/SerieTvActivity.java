@@ -31,17 +31,19 @@ import br.com.starktechstudio.mediaplayer.comum.Grade;
 import br.com.starktechstudio.mediaplayer.comum.Icones;
 import br.com.starktechstudio.mediaplayer.comum.Imagens;
 import br.com.starktechstudio.mediaplayer.comum.Navegacao;
-import br.com.starktechstudio.mediaplayer.comum.Navegacao.Aba;
 import br.com.starktechstudio.mediaplayer.comum.PecasDetalhe;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Episodio;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Temporada;
+import br.com.starktechstudio.mediaplayer.dados.Modelo.Tipo;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Titulo;
 import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 
 /**
  * Série na TV (tv-serie.dc.html): fundo da série atrás (bloco de cor na F1, véu e degradê); no
- * topo, Séries marcada ({@link TopoSecaoTv}) e Editar só com o ícone; capa, título, chips (temporadas, episódios, qualidade), aviso
- * da pasta, botão do próximo episódio ("Continuar · Episódio 3") e Favoritar; as temporadas em
+ * topo, Séries, TV Shows ou Desenhos marcada ({@link TopoSecaoTv}, pela pasta); capa, rótulo ("Série"
+ * ou "Desenho"), título, chips (temporadas, episódios, qualidade), a descrição da série (até 3 linhas,
+ * como no Detalhe; sem descrição, nada no lugar), botão do próximo episódio ("Continuar · Episódio 3"),
+ * Editar e Favoritar só com o ícone; as temporadas em
  * pílulas (a pílula em foco vira a temporada mostrada, como no topo da tela principal) e os
  * episódios em 2 colunas, com o estado de cada um: Assistido, Em andamento ou novo.
  */
@@ -56,10 +58,12 @@ public class SerieTvActivity extends AppCompatActivity {
 
     private View fundo;
     private View capa;
+    private TextView rotulo;
     private TextView nome;
     private LinearLayout chips;
-    private TextView aviso;
+    private TextView sinopse;
     private Button principal;
+    private ImageButton editar;
     private ImageButton favoritar;
     private TopoSecaoTv topo;
     private LinearLayout pilulasTemporada;
@@ -79,14 +83,15 @@ public class SerieTvActivity extends AppCompatActivity {
 
         fundo = findViewById(R.id.st_serie_fundo);
         capa = findViewById(R.id.st_serie_capa);
+        rotulo = findViewById(R.id.st_serie_rotulo);
         nome = findViewById(R.id.st_serie_titulo);
         chips = findViewById(R.id.st_serie_chips);
-        aviso = findViewById(R.id.st_serie_aviso);
+        sinopse = findViewById(R.id.st_serie_sinopse);
         principal = findViewById(R.id.st_serie_principal);
+        editar = findViewById(R.id.st_serie_editar);
         favoritar = findViewById(R.id.st_serie_favoritar);
         pilulasTemporada = findViewById(R.id.st_serie_temporadas);
         episodios = findViewById(R.id.st_serie_episodios);
-        View editar = findViewById(R.id.st_serie_editar);
 
         topo = new TopoSecaoTv(this);
 
@@ -108,7 +113,7 @@ public class SerieTvActivity extends AppCompatActivity {
         carregar();
         if (primeiraVez) {
             primeiraVez = false;
-            principal.requestFocus();
+            (principal.getVisibility() == View.VISIBLE ? principal : editar).requestFocus();
         }
     }
 
@@ -121,10 +126,12 @@ public class SerieTvActivity extends AppCompatActivity {
         temporadas = repositorio.temporadas(id);
         proximo = PecasDetalhe.proximoEpisodio(temporadas);
 
-        // Topo: Séries ou TV Shows marcada; ↑ dos botões vai a ela (não a Editar), ↓ das pílulas ao botão principal
-        topo.marcar(serie.tvShow ? Aba.TVSHOWS : Aba.SERIES, R.id.st_serie_principal);
-        principal.setNextFocusUpId(topo.idAtiva());
-        favoritar.setNextFocusUpId(topo.idAtiva());
+        // Topo: Séries, TV Shows ou Desenhos marcada; ↑ dos botões (principal, Editar, Favoritar) vai a ela,
+        // ↓ das pílulas ao botão principal (sem episódio a ver, a Editar)
+        topo.marcar(Navegacao.abaDoTitulo(serie),
+                proximo != null ? R.id.st_serie_principal : R.id.st_serie_editar);
+        for (View botao : new View[]{principal, editar, favoritar}) botao.setNextFocusUpId(topo.idAtiva());
+        rotulo.setText(PecasDetalhe.rotuloTipo(serie.desenho ? Tipo.DESENHO : Tipo.SERIE));
 
         fundo.setBackground(PecasDetalhe.fundoDoTitulo(this, serie.corFundo));
         Imagens.fundoDaPagina(fundo, serie.imagemFundo());
@@ -139,7 +146,8 @@ public class SerieTvActivity extends AppCompatActivity {
         List<Boolean> azuis = new ArrayList<>();
         for (int i = 0; i < textos.size(); i++) azuis.add(false);
         PecasDetalhe.chips(chips, textos, azuis, true);
-        PecasDetalhe.avisoPasta(aviso, serie, true);
+        sinopse.setText(serie.sinopse);
+        sinopse.setVisibility(serie.sinopse == null || serie.sinopse.isEmpty() ? View.GONE : View.VISIBLE);
 
         principal.setVisibility(proximo == null ? View.GONE : View.VISIBLE);
         if (proximo != null) {

@@ -4,6 +4,7 @@ package br.com.starktechstudio.mediaplayer.tablet;
 
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.text.Layout;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -32,14 +33,16 @@ import br.com.starktechstudio.mediaplayer.comum.Navegacao;
 import br.com.starktechstudio.mediaplayer.comum.PecasDetalhe;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Episodio;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Temporada;
+import br.com.starktechstudio.mediaplayer.dados.Modelo.Tipo;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Titulo;
 import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 
 /**
  * Série no tablet (sem desenho; D12): o Detalhe do tablet com o conteúdo da Série da TV —
- * Biblioteca (voltar), Favoritar e Editar, capa, título, chips (temporadas, episódios, qualidade), aviso da
- * pasta e o botão do próximo episódio; as temporadas em abas e os episódios em 2 colunas, com
- * Assistido, Em andamento ou novo.
+ * Biblioteca (voltar), Favoritar e Editar (só o ícone, no canto), capa, rótulo ("Série" ou "Desenho"),
+ * título, chips (temporadas, episódios, qualidade), a descrição da série (até 3 linhas e "Ver mais",
+ * como no Detalhe; sem descrição, nada no lugar) e o botão do próximo episódio; as temporadas em abas
+ * e os episódios em 2 colunas, com Assistido, Em andamento ou novo.
  */
 public class SerieTabletActivity extends AppCompatActivity {
 
@@ -50,10 +53,12 @@ public class SerieTabletActivity extends AppCompatActivity {
     private int temporadaAtiva = -1;
 
     private View capa;
+    private TextView rotulo;
     private TextView nome;
     private Button favoritar;
     private LinearLayout chips;
-    private TextView aviso;
+    private TextView sinopse;
+    private TextView verMais;
     private Button principal;
     private LinearLayout abasTemporada;
     private LinearLayout episodios;
@@ -72,21 +77,23 @@ public class SerieTabletActivity extends AppCompatActivity {
         BordasSistema.aplicar(findViewById(R.id.st_serie_corpo), true, true, true, true);
 
         capa = findViewById(R.id.st_serie_capa);
+        rotulo = findViewById(R.id.st_serie_rotulo);
         nome = findViewById(R.id.st_serie_titulo);
         favoritar = findViewById(R.id.st_serie_favoritar);
         chips = findViewById(R.id.st_serie_chips);
-        aviso = findViewById(R.id.st_serie_aviso);
+        sinopse = findViewById(R.id.st_serie_sinopse);
+        verMais = findViewById(R.id.st_serie_ver_mais);
         principal = findViewById(R.id.st_serie_principal);
         abasTemporada = findViewById(R.id.st_serie_temporadas);
         episodios = findViewById(R.id.st_serie_episodios);
         Button voltar = findViewById(R.id.st_serie_voltar);
-        Button editar = findViewById(R.id.st_serie_editar);
+        View editar = findViewById(R.id.st_serie_editar);
 
         int iconeTopo = getResources().getDimensionPixelSize(R.dimen.st_tablet_detalhe_topo_botao_icone);
         Icones.noTexto(voltar, R.drawable.st_ic_voltar, iconeTopo);
-        Icones.noTexto(editar, R.drawable.st_ic_editar, iconeTopo);
         voltar.setOnClickListener(v -> finish());
         editar.setOnClickListener(v -> Navegacao.abrirEditar(this, id));
+        verMais.setOnClickListener(v -> Navegacao.abrirSinopse(this, serie.titulo, serie.sinopse));
         favoritar.setOnClickListener(v -> {
             repositorio.definirFavorito(id, !serie.favorito);
             Titulo nova = repositorio.titulo(id);
@@ -123,6 +130,7 @@ public class SerieTabletActivity extends AppCompatActivity {
         float canto = getResources().getDimension(R.dimen.st_tablet_detalhe_capa_canto);
         capa.setBackground(CapaAdapter.blocoDeCor(this, serie.corCapa, canto, false));
         Imagens.noFundo(capa, serie.imagemCapa(), Imagens.CAPA, canto);
+        rotulo.setText(PecasDetalhe.rotuloTipo(serie.desenho ? Tipo.DESENHO : Tipo.SERIE));
         nome.setText(serie.titulo);
         mostrarFavorito();
         List<String> textos = new ArrayList<>(Arrays.asList(
@@ -132,7 +140,10 @@ public class SerieTabletActivity extends AppCompatActivity {
         List<Boolean> azuis = new ArrayList<>();
         for (int i = 0; i < textos.size(); i++) azuis.add(false);
         PecasDetalhe.chips(chips, textos, azuis, false);
-        PecasDetalhe.avisoPasta(aviso, serie, false);
+        sinopse.setText(serie.sinopse);
+        sinopse.setVisibility(serie.sinopse == null || serie.sinopse.isEmpty() ? View.GONE : View.VISIBLE);
+        verMais.setVisibility(View.GONE);
+        sinopse.post(this::mostrarVerMais);
 
         principal.setVisibility(proximo == null ? View.GONE : View.VISIBLE);
         if (proximo != null) {
@@ -145,6 +156,14 @@ public class SerieTabletActivity extends AppCompatActivity {
         int inicial = temporadaAtiva;
         if (inicial < 0 || inicial >= temporadas.size()) inicial = indiceDaTemporada(proximo);
         mostrarTemporada(inicial);
+    }
+
+    /** "Ver mais" só quando a descrição não coube nas 3 linhas (como no Detalhe). */
+    private void mostrarVerMais() {
+        Layout linhas = sinopse.getVisibility() == View.VISIBLE ? sinopse.getLayout() : null;
+        int ultima = linhas == null ? -1 : linhas.getLineCount() - 1;
+        boolean cortou = ultima >= 0 && (linhas.getEllipsisCount(ultima) > 0 || linhas.getLineEnd(ultima) < sinopse.getText().length());
+        verMais.setVisibility(cortou ? View.VISIBLE : View.GONE);
     }
 
     /** Favorita vai para a fileira Favoritos do Início. */

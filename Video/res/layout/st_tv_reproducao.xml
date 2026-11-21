@@ -4,7 +4,8 @@
      Player da TV (ReproducaoTvActivity), tv-player.dc.html: vídeo (motor do Nova, F3), topo com o título
      e o capítulo, lista de capítulos à direita (abre em "Capítulos"), barra com as marcas dos
      capítulos (recebe foco: ← / → movem a posição), "Próximo capítulo em…" à esquerda, botões com nome
-     no centro e Áudio, Legendas, Zoom e Capítulos à direita. Controles somem após 5 s (D13).
+     no centro (no episódio, 1.8.0: Ep. anterior · Cap. anterior · Pausar · Próx. capítulo · Próx. episódio)
+     e Áudio, Legendas, Zoom e Capítulos à direita. Controles somem após 5 s (D13).
      Medidas: px do HTML / 2. Sem fundo animado.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -202,8 +203,10 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <!-- Esquerda: Ajustar a legenda (1.5, só com legenda) e "Próximo: 04 · A memória em 00:38" -->
+            <!-- Esquerda: Ajustar a legenda (1.5, só com legenda) e "Próximo: 04 · A memória em 00:38".
+                 Com os 5 botões do episódio no centro, os dois lados estreitam (no código, 1.8.0) -->
             <LinearLayout
+                android:id="@+id/st_rep_lado_esquerdo"
                 android:layout_width="@dimen/st_tv_rep_lado_largura_zoom"
                 android:layout_height="wrap_content"
                 android:gravity="start|center_vertical"
@@ -239,6 +242,43 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:orientation="horizontal">
+
+                <!-- Episódio anterior: só no episódio (1.8.0, D5); no 1º episódio, volta ao começo -->
+                <LinearLayout
+                    android:id="@+id/st_rep_grupo_ep_anterior"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/st_tv_rep_botao_espaco"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <ImageButton
+                        android:id="@+id/st_rep_ep_anterior"
+                        android:layout_width="wrap_content"
+                        android:layout_height="@dimen/st_tv_rep_botao_altura"
+                        android:adjustViewBounds="true"
+                        android:background="@drawable/st_botao_secundario"
+                        android:contentDescription="@string/st_episodio_anterior"
+                        android:foreground="@drawable/st_foco_tv"
+                        android:paddingStart="@dimen/st_tv_rep_botao_padding"
+                        android:paddingTop="11.5dp"
+                        android:paddingEnd="@dimen/st_tv_rep_botao_padding"
+                        android:paddingBottom="11.5dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/st_ic_ep_anterior"
+                        app:tint="@color/st_texto" />
+
+                    <TextView
+                        android:id="@+id/st_rep_rotulo_ep_anterior"
+                        style="@style/StarkTech.Texto.Botao"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:text="@string/st_ep_anterior"
+                        android:textColor="@color/st_texto_secundario"
+                        android:textSize="@dimen/st_tv_texto_rep_rotulo" />
+                </LinearLayout>
 
                 <LinearLayout
                     android:id="@+id/st_rep_grupo_cap_anterior"
@@ -342,10 +382,48 @@
                         android:textColor="@color/st_texto_secundario"
                         android:textSize="@dimen/st_tv_texto_rep_rotulo" />
                 </LinearLayout>
+
+                <!-- Próximo episódio: só no episódio (1.8.0, D5), só se houver -->
+                <LinearLayout
+                    android:id="@+id/st_rep_grupo_ep_proximo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/st_tv_rep_botao_espaco"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <ImageButton
+                        android:id="@+id/st_rep_ep_proximo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="@dimen/st_tv_rep_botao_altura"
+                        android:adjustViewBounds="true"
+                        android:background="@drawable/st_botao_secundario"
+                        android:contentDescription="@string/st_proximo_episodio"
+                        android:foreground="@drawable/st_foco_tv"
+                        android:paddingStart="@dimen/st_tv_rep_botao_padding"
+                        android:paddingTop="11.5dp"
+                        android:paddingEnd="@dimen/st_tv_rep_botao_padding"
+                        android:paddingBottom="11.5dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/st_ic_ep_proximo"
+                        app:tint="@color/st_texto" />
+
+                    <TextView
+                        android:id="@+id/st_rep_rotulo_ep_proximo"
+                        style="@style/StarkTech.Texto.Botao"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:text="@string/st_prox_episodio"
+                        android:textColor="@color/st_texto_secundario"
+                        android:textSize="@dimen/st_tv_texto_rep_rotulo" />
+                </LinearLayout>
             </LinearLayout>
 
             <!-- Direita: Áudio, Legendas, Zoom, Capítulos (este em azul com a lista aberta) -->
             <LinearLayout
+                android:id="@+id/st_rep_lado_direito"
                 android:layout_width="@dimen/st_tv_rep_lado_largura_zoom"
                 android:layout_height="wrap_content"
                 android:gravity="end|center_vertical"

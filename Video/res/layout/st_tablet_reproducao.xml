@@ -4,7 +4,8 @@
      Player do tablet (ReproducaoTabletActivity), tablet-player.dc.html: vídeo (motor do Nova, F3; toques
      e gestos em GestosReproducao), topo com Voltar, título grande e o capítulo; embaixo, a faixa de
      capítulos (abre em "Capítulos", arrasta para o lado), barra, Capítulos, Áudio e Legendas à
-     esquerda, botões no centro, "Próximo capítulo em…" e Expandir à direita. Controles somem após
+     esquerda, botões no centro (no episódio, 1.8.0: Ep. anterior · Cap. anterior · Pausar · Próx.
+     capítulo · Próx. episódio), "Próximo capítulo em…" e Expandir à direita. Controles somem após
      5 s, junto com a barra do sistema; um toque mostra os dois.
      Medidas: px do HTML = dp. Sem fundo animado.
 -->
@@ -306,6 +307,25 @@
                 android:gravity="center"
                 android:orientation="horizontal">
 
+                <!-- Episódio anterior: só no episódio (1.8.0, D5); no 1º episódio, volta ao começo -->
+                <TextView
+                    android:id="@+id/st_rep_ep_anterior"
+                    style="@style/StarkTech.Texto.Botao"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/st_tablet_rep_botao"
+                    android:layout_marginEnd="@dimen/st_tablet_rep_botao_espaco"
+                    android:background="@drawable/st_botao_reproducao_tablet"
+                    android:contentDescription="@string/st_episodio_anterior"
+                    android:drawablePadding="4dp"
+                    android:gravity="center"
+                    android:minWidth="@dimen/st_tablet_rep_botao"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:text="@string/st_ep_anterior"
+                    android:textColor="@color/st_texto_secundario"
+                    android:textSize="@dimen/st_tablet_texto_rep_rotulo"
+                    android:visibility="gone" />
+
                 <TextView
                     android:id="@+id/st_rep_cap_anterior"
                     style="@style/StarkTech.Texto.Botao"
@@ -350,6 +370,25 @@
                     android:text="@string/st_prox_capitulo"
                     android:textColor="@color/st_texto_secundario"
                     android:textSize="@dimen/st_tablet_texto_rep_rotulo" />
+
+                <!-- Próximo episódio: só no episódio (1.8.0, D5), só se houver -->
+                <TextView
+                    android:id="@+id/st_rep_ep_proximo"
+                    style="@style/StarkTech.Texto.Botao"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/st_tablet_rep_botao"
+                    android:layout_marginStart="@dimen/st_tablet_rep_botao_espaco"
+                    android:background="@drawable/st_botao_reproducao_tablet"
+                    android:contentDescription="@string/st_proximo_episodio"
+                    android:drawablePadding="4dp"
+                    android:gravity="center"
+                    android:minWidth="@dimen/st_tablet_rep_botao"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:text="@string/st_prox_episodio"
+                    android:textColor="@color/st_texto_secundario"
+                    android:textSize="@dimen/st_tablet_texto_rep_rotulo"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <!-- Direita: "Próximo: 02 · … em 00:28" e Expandir (tela cheia) -->

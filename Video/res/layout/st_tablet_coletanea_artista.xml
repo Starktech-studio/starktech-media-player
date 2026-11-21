@@ -2,8 +2,9 @@
 <!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
 <!--
      Coletânea e artista no tablet (ColetaneaArtistaActivity), no padrão do Detalhe: Biblioteca
-     (voltar), capa e, ao lado, nome, chips, texto e Editar; embaixo, com título próprio, as capas dos
-     filmes ou dos shows, criadas no código, com as colunas pela largura. Medidas: px do HTML = dp.
+     (voltar) e Editar (só o ícone, no canto direito), capa e, ao lado, nome, chips, texto e Ver mais;
+     embaixo, com título próprio, as capas dos filmes ou dos shows, criadas no código, com as colunas
+     pela largura. Medidas: px do HTML = dp.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -33,16 +34,39 @@
             android:paddingEnd="@dimen/st_tablet_margem_h"
             android:paddingBottom="@dimen/st_tablet_detalhe_margem_v">
 
-            <!-- Biblioteca (voltar) -->
-            <Button
-                android:id="@+id/st_coletanea_voltar"
-                style="@style/StarkTech.Botao.Tablet.Secundario"
-                android:layout_width="wrap_content"
-                android:layout_height="@dimen/st_tablet_detalhe_topo_botao_altura"
-                android:minHeight="0dp"
-                android:paddingStart="@dimen/st_tablet_detalhe_topo_botao_padding"
-                android:paddingEnd="@dimen/st_tablet_detalhe_topo_botao_padding"
-                android:text="@string/st_biblioteca" />
+            <!-- Biblioteca (voltar) e Editar -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/st_coletanea_voltar"
+                    style="@style/StarkTech.Botao.Tablet.Secundario"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/st_tablet_detalhe_topo_botao_altura"
+                    android:minHeight="0dp"
+                    android:paddingStart="@dimen/st_tablet_detalhe_topo_botao_padding"
+                    android:paddingEnd="@dimen/st_tablet_detalhe_topo_botao_padding"
+                    android:text="@string/st_biblioteca" />
+
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+
+                <!-- Editar só com o ícone, no canto direito do topo (D3, 1.8.0) -->
+                <ImageButton
+                    android:id="@+id/st_coletanea_editar"
+                    android:layout_width="@dimen/st_tablet_detalhe_topo_botao_altura"
+                    android:layout_height="@dimen/st_tablet_detalhe_topo_botao_altura"
+                    android:background="@drawable/st_botao_secundario"
+                    android:contentDescription="@string/st_editar"
+                    android:padding="13dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/st_ic_editar"
+                    app:tint="@color/st_texto" />
+            </LinearLayout>
 
             <!-- Capa (220x330) e informações -->
             <LinearLayout
@@ -129,7 +153,7 @@
                         android:textSize="@dimen/st_tablet_texto_menu_dica"
                         android:visibility="gone" />
 
-                    <!-- Editar e Ver mais -->
+                    <!-- Ver mais (o Editar foi para o topo, só com o ícone: D3, 1.8.0) -->
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -137,21 +161,10 @@
                         android:orientation="horizontal">
 
                         <Button
-                            android:id="@+id/st_coletanea_editar"
-                            style="@style/StarkTech.Botao.Tablet.Secundario"
-                            android:layout_width="wrap_content"
-                            android:layout_height="@dimen/st_tablet_detalhe_topo_botao_altura"
-                            android:minHeight="0dp"
-                            android:paddingStart="@dimen/st_tablet_detalhe_topo_botao_padding"
-                            android:paddingEnd="@dimen/st_tablet_detalhe_topo_botao_padding"
-                            android:text="@string/st_editar" />
-
-                        <Button
                             android:id="@+id/st_coletanea_ver_mais"
                             style="@style/StarkTech.Botao.Tablet.Secundario"
                             android:layout_width="wrap_content"
                             android:layout_height="@dimen/st_tablet_detalhe_topo_botao_altura"
-                            android:layout_marginStart="@dimen/st_tablet_detalhe_botao_espaco"
                             android:minHeight="0dp"
                             android:paddingStart="@dimen/st_tablet_detalhe_topo_botao_padding"
                             android:paddingEnd="@dimen/st_tablet_detalhe_topo_botao_padding"

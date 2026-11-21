@@ -36,8 +36,9 @@ import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
  * (tv-menu-capa.dc.html), em ordem alfabética do título, com o filtro "Só não assistidos" no topo,
  * que vale para todas as abas. TV: grade Leanback com foco pelo controle; tablet: grade por toque.
  * As colunas saem da largura disponível. Sem títulos do tipo, o aviso ({@link AvisoVazio}). Filmes
- * lista os filmes e as coletâneas (D5); Shows lista os artistas e, com "por grupo" ligado em
- * Configurações, em seções por subpasta (D7).
+ * lista os filmes e as coletâneas (D5); Desenhos (1.8.0) lista os filmes de desenho, as coletâneas de
+ * desenhos e os desenhos com episódios, que ficam fora de Séries e de TV Shows; Shows lista os artistas e,
+ * com "por grupo" ligado em Configurações, em seções por subpasta (D7).
  */
 public class ListaFragment extends Fragment {
 
@@ -174,7 +175,9 @@ public class ListaFragment extends Fragment {
             temTitulos = !todas.isEmpty();
             nada = lista.isEmpty();
         } else {
+            // Desenhos (1.8.0): filmes de desenho, coletâneas de desenhos e desenhos com episódios
             List<Titulo> todos = tipo == Tipo.FILME ? repositorio.filmesEColetaneas()
+                    : tipo == Tipo.DESENHO ? repositorio.desenhos()
                     : tipo == Tipo.SHOW ? repositorio.artistas()
                     : tipo == Tipo.SERIE ? Modelo.daAbaDeSeries(repositorio.titulos(tipo), tvShows)
                     : repositorio.titulos(tipo);
