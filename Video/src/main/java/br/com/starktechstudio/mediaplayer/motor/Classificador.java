@@ -326,6 +326,17 @@ public final class Classificador {
         return numeros;
     }
 
+    /**
+     * Nome do episódio no cartão e no player (2.0.1): o próprio ({@code proprio}: o do TMDB, o editado à mão ou o
+     * que vem depois do número no nome do arquivo) e, sem ele, o nome do arquivo sem a extensão, limpo como os
+     * outros nomes tirados do arquivo ("As Aventuras das Babás Smurf.mp4" → "As Aventuras das Babás Smurf") — nunca
+     * o nome da série repetido nem "Episódio N", que o rótulo do cartão já diz.
+     */
+    public static String nomeDoEpisodio(String proprio, String nomeArquivo) {
+        if (proprio != null && !proprio.trim().isEmpty()) return proprio.trim();
+        return Nomes.limpar(Nomes.semExtensao(nomeArquivo == null ? "" : nomeArquivo));
+    }
+
     // ---- Shows ----
 
     private static Item show(String caminho, String[] partes) {

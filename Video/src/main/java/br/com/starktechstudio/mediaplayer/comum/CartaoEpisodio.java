@@ -14,13 +14,17 @@ import androidx.core.content.ContextCompat;
 
 import com.archos.mediacenter.video.R;
 
+import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Episodio;
+import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 
 /**
  * Cartão de um episódio na Série (tv-serie.dc.html; tablet nas mesmas peças, D12): miniatura com
- * o número, "EPISÓDIO N", nome (TMDB), "Arquivo 01.mkv · 42 min", barra de progresso e o selo
+ * a prévia (2.0.1: a imagem do episódio do TMDB ou o quadro do vídeo; sem ela, o número), "EPISÓDIO N",
+ * nome (TMDB ou, sem ele, o do arquivo sem a extensão), a duração ("42 min"), barra de progresso e o selo
  * Assistido (verde) ou Em andamento (azul); episódio novo fica sem selo. OK ou toque abre o player
  * no episódio, de onde parou. Fica numa grade dentro da página que rola ({@link Grade}).
  */
@@ -37,7 +41,8 @@ public final class CartaoEpisodio {
     private final TextView numero;
     private final TextView rotulo;
     private final TextView nome;
-    private final TextView arquivo;
+    /** A linha de baixo: só a duração (2.0.1; antes, "Arquivo 01.mkv · 42 min"). */
+    private final TextView duracao;
     private final ProgressBar progresso;
     private final TextView selo;
     private Episodio episodio;
@@ -49,7 +54,7 @@ public final class CartaoEpisodio {
         numero = item.findViewById(R.id.st_episodio_numero);
         rotulo = item.findViewById(R.id.st_episodio_rotulo);
         nome = item.findViewById(R.id.st_episodio_nome);
-        arquivo = item.findViewById(R.id.st_episodio_arquivo);
+        duracao = item.findViewById(R.id.st_episodio_arquivo);
         progresso = item.findViewById(R.id.st_episodio_progresso);
         selo = item.findViewById(R.id.st_episodio_selo);
         item.setOnClickListener(v -> {
@@ -64,17 +69,37 @@ public final class CartaoEpisodio {
         return new CartaoEpisodio(item, tv, aoEscolher);
     }
 
+    /** O episódio do cartão (nulo antes do primeiro {@link #vincular}). */
+    public Episodio episodio() {
+        return episodio;
+    }
+
+    /**
+     * Quadros que chegaram com a Série aberta ({@link RepositorioBiblioteca#lerQuadrosDaSerie}): refaz só os
+     * cartões cuja imagem mudou, na mesma view, sem refazer a grade nem tirar o foco.
+     */
+    public static void atualizarImagens(List<CartaoEpisodio> cartoes, RepositorioBiblioteca repositorio) {
+        for (CartaoEpisodio cartao : cartoes) {
+            if (cartao.episodio == null) continue;
+            Episodio novo = repositorio.episodio(cartao.episodio.id);
+            if (novo != null && !Objects.equals(novo.miniatura, cartao.episodio.miniatura)) cartao.vincular(novo);
+        }
+    }
+
     public void vincular(Episodio e) {
         episodio = e;
         Context contexto = itemView.getContext();
         Resources res = contexto.getResources();
         float canto = res.getDimension(tv ? R.dimen.st_tv_episodio_miniatura_canto : R.dimen.st_tablet_episodio_miniatura_canto);
         miniatura.setBackground(CapaAdapter.blocoDeCor(contexto, e.corMiniatura, canto, tv));
-        Imagens.noFundo(miniatura, e.miniatura, Imagens.CARTAO, canto);
+        // Prévia (2.0.1): com a imagem, o número some; sem ela (ou até ela chegar), fica o número sobre a cor
+        Imagens.noFundo(miniatura, e.miniatura, Imagens.CARTAO, canto, numero);
         numero.setText(String.format(Locale.ROOT, "%02d", e.numero));
         rotulo.setText(contexto.getString(R.string.st_episodio_n, e.numero));
         nome.setText(e.nome);
-        arquivo.setText(contexto.getString(R.string.st_arquivo_duracao, e.arquivo, e.duracaoMin));
+        // Só o tempo; duração ainda não lida: a linha some
+        duracao.setText(contexto.getString(R.string.st_duracao_min, e.duracaoMin));
+        duracao.setVisibility(e.duracaoMin > 0 ? View.VISIBLE : View.GONE);
 
         boolean andamento = e.emAndamento();
         progresso.setVisibility(andamento ? View.VISIBLE : View.GONE);

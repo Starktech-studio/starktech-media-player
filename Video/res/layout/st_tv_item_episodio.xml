@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
 <!--
-     Episódio na Série da TV (CartaoEpisodio), tv-serie.dc.html: miniatura 240x135 px com o número,
-     "EPISÓDIO N", nome (TMDB), arquivo e duração, barra de progresso (em andamento) e o selo
-     Assistido / Em andamento. Foco: borda branca no cartão. Medidas: px do HTML / 2.
+     Episódio na Série da TV (CartaoEpisodio), tv-serie.dc.html: miniatura 240x135 px com a prévia
+     (2.0.1: imagem do episódio ou quadro do vídeo; sem ela, o número), "EPISÓDIO N", nome (TMDB ou o do
+     arquivo), a duração, barra de progresso (em andamento) e o selo Assistido / Em andamento. Foco: borda
+     branca no cartão. Medidas: px do HTML / 2.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"

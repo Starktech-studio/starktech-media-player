@@ -4,7 +4,9 @@
      Coletânea e artista na TV (ColetaneaArtistaTvActivity), no padrão do Detalhe: fundo atrás, topo
      só com a marca e o relógio (2.0), capa e, ao lado, nome, chips, texto, Ver mais e Editar
      (só o ícone, no fim da fileira: D4, 1.8.0); embaixo,
-     com título próprio, as capas dos filmes ou dos shows, criadas no código. A página rola até a capa em foco.
+     com título próprio, as capas dos filmes ou dos shows, criadas no código. A página rola até a capa em foco
+     e, com o foco em Ver mais, no Editar ou numa capa que caiba com a página no alto, volta ao alto
+     (RolagemPaginaTv, 2.0.1).
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -17,7 +19,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <ScrollView
+    <br.com.starktechstudio.mediaplayer.tv.RolagemPaginaTv
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:focusable="false"
@@ -226,5 +228,5 @@
                     android:orientation="vertical" />
             </LinearLayout>
         </FrameLayout>
-    </ScrollView>
+    </br.com.starktechstudio.mediaplayer.tv.RolagemPaginaTv>
 </FrameLayout>

@@ -189,6 +189,13 @@ public interface RepositorioBiblioteca {
      */
     void lerDadosDoArquivo(String id);
 
+    /**
+     * Tela da Série aberta (2.0.1): os episódios dela ainda sem imagem (sem a do TMDB e sem o quadro do vídeo)
+     * ganham o quadro agora, um por vez, fora da fila da varredura e fora da tela; uma tentativa por episódio a
+     * cada abertura do app. Avisa os ouvintes a cada poucos quadros e no fim.
+     */
+    void lerQuadrosDaSerie(String idSerie);
+
     /** Capítulos que o player achou ao abrir um vídeo que ficou sem eles na biblioteca. */
     void guardarCapitulos(String id, Capitulos capitulos);
 

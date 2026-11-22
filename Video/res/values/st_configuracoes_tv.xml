@@ -14,15 +14,15 @@
 
     <!-- Painel da marca da TV (ajuste de 21/11/2026): as novidades valem só para a versão abaixo; outra versão mostra
          st_versao_sem_novidades. A cada versão publicada, trocar as duas -->
-    <string name="st_cfg_novidades_versao" translatable="false">2.0.0</string>
+    <string name="st_cfg_novidades_versao" translatable="false">2.0.1</string>
     <string-array name="st_cfg_novidades">
-        <item>Servidor em casa pelo Samba</item>
-        <item>Vídeos tocam pela rede</item>
-        <item>Baixar músicas para ouvir sem rede, no tablet e no celular</item>
-        <item>Selo de origem nas músicas</item>
-        <item>Configurações organizadas em seções</item>
-        <item>Detalhes sem o menu no topo</item>
-        <item>Tempo total nos detalhes de Músicas</item>
+        <item>Confirmação ao salvar no Editar</item>
+        <item>Logo nova da StarkTech nas Configurações e no rodapé da TV</item>
+        <item>Nome do arquivo nos episódios sem título</item>
+        <item>Prévia em imagem nos episódios e nos capítulos</item>
+        <item>Recomeçar no primeiro episódio e no primeiro vídeo</item>
+        <item>Série e coletânea voltam inteiras ao topo na TV</item>
+        <item>Só o tempo embaixo de cada episódio</item>
     </string-array>
 
     <!-- Seções -->

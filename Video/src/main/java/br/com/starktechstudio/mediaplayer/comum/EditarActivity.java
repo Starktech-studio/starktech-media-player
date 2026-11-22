@@ -81,7 +81,8 @@ import br.com.starktechstudio.mediaplayer.motor.ImagemDoAparelho;
  * um que já está na biblioteca, os shows dos dois ficam juntos ("Queen + Adam Lambert" em "Queen"). O artista
  * escolhido aparece na hora (nome, foto como capa nova e as fotos dele nas opções); só o Salvar grava.
  * Coletânea de desenhos (ajuste de 22/11/2026): "Mostrar como" — Como filmes (o padrão) ou Como série
- * (episódios), que a transforma numa série com os desenhos como episódios; vale no Salvar.
+ * (episódios), que a transforma numa série com os desenhos como episódios; vale no Salvar. O Salvar confirma
+ * com "Alterações salvas" (2.0.1) ou diz o que não deu certo.
  */
 public class EditarActivity extends AppCompatActivity {
 
@@ -132,6 +133,9 @@ public class EditarActivity extends AppCompatActivity {
     private boolean fundoMexido;
     private boolean salvou;
     private boolean salvando;
+    /** "Salvando…" do Salvar que grava fora da tela: sai quando chega a confirmação (2.0.1). */
+    @Nullable
+    private Toast avisoSalvando;
     /**
      * Mudanças que só valem no Salvar: o resultado escolhido em "Buscar no TMDB" (id da busca e a
      * prévia, quando chega da rede) e o Restaurar original (a tela mostra a prévia, sem a edição à mão).
@@ -461,12 +465,14 @@ public class EditarActivity extends AppCompatActivity {
             repositorio.salvarEdicao(id, valores);
             if (gravarColetanea) repositorio.definirColetanea(id, coletanea);
             salvou = true;
+            avisarSalvo(R.string.st_edicao_salva);
             finish();
             return;
         }
         // TMDB e opção do TMDB ainda não baixada (url:) usam a rede: fora da tela, antes de fechar
         salvando = true;
-        Toast.makeText(this, R.string.st_salvando, Toast.LENGTH_SHORT).show();
+        avisoSalvando = Toast.makeText(getApplicationContext(), R.string.st_salvando, Toast.LENGTH_SHORT);
+        avisoSalvando.show();
         final boolean restaurarAgora = restaurar;
         final String tmdb = resultadoTmdb;
         final String novaCapa = capaMexida ? capa : null;
@@ -490,12 +496,24 @@ public class EditarActivity extends AppCompatActivity {
             if (gravarExibicao) repositorio.definirColetaneaComoSerie(id, serie);
             final boolean imagens = baixou;
             runOnUiThread(() -> {
-                if (!trocou) Toast.makeText(this, R.string.st_tmdb_sem_rede, Toast.LENGTH_LONG).show();
-                else if (!imagens) Toast.makeText(this, R.string.st_imagem_nao_baixou, Toast.LENGTH_LONG).show();
                 salvou = true;
+                // O que não deu certo no lugar da confirmação: o resto ficou salvo
+                avisarSalvo(!trocou ? R.string.st_tmdb_sem_rede : !imagens ? R.string.st_imagem_nao_baixou : R.string.st_edicao_salva);
                 finish();
             });
         }, "StarkTechSalvar").start();
+    }
+
+    /**
+     * Confirmação do Salvar (2.0.1), em todos os caminhos: antes não havia nenhuma (só o "Salvando…" do caminho
+     * fora da tela). Pelo contexto do app, para continuar à vista depois que esta tela fecha e a de trás se troca
+     * (a coletânea que vira série abre a tela da Série no lugar). Aviso de problema fica mais tempo.
+     */
+    private void avisarSalvo(int texto) {
+        if (avisoSalvando != null) avisoSalvando.cancel();
+        avisoSalvando = null;
+        boolean problema = texto != R.string.st_edicao_salva;
+        Toast.makeText(getApplicationContext(), texto, problema ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT).show();
     }
 
     @Override

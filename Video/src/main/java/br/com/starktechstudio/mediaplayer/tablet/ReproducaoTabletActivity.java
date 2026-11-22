@@ -230,6 +230,8 @@ public class ReproducaoTabletActivity extends AppCompatActivity implements Gesto
         adapter = new CapituloAdapter(R.layout.st_tablet_item_capitulo_faixa, false,
                 c -> comando(() -> reproducao.irParaCapitulo(c)));
         lista.setAdapter(adapter);
+        // Prévia dos capítulos (2.0.1): só as já feitas no Detalhe; fazer aqui disputaria o motor com o vídeo
+        adapter.definirVideo(this, reproducao.id, reproducao.duracao, false);
         adapter.atualizar(reproducao.capitulos, numeroAtual());
         reproducao.definirAoMudarCapitulos(this::mostrarCapitulos);
         reproducao.definirAoPassarEpisodio(this::abrirEpisodio);
@@ -451,7 +453,8 @@ public class ReproducaoTabletActivity extends AppCompatActivity implements Gesto
     /**
      * Capítulo anterior e próximo; no vídeo de música (1.6), vídeo anterior e próximo, cada um só se houver.
      * No episódio (1.8.0, D5 do plano 009), Ep. anterior (sempre: no 1º episódio, volta ao começo) e Próx.
-     * episódio (só se houver), por fora dos de capítulo; sem capítulos, só os de episódio.
+     * episódio (só se houver), por fora dos de capítulo; sem capítulos, só os de episódio. Sem anterior (1º
+     * episódio, 1º vídeo), o anterior se chama "Recomeçar" (2.0.1).
      */
     private void mostrarBotoesDoCentro() {
         boolean clipe = reproducao.ehClipe();
@@ -464,6 +467,22 @@ public class ReproducaoTabletActivity extends AppCompatActivity implements Gesto
         findViewById(R.id.st_rep_cap_proximo).setVisibility(proximo ? View.VISIBLE : View.GONE);
         findViewById(R.id.st_rep_ep_anterior).setVisibility(episodio ? View.VISIBLE : View.GONE);
         findViewById(R.id.st_rep_ep_proximo).setVisibility(episodioSeguinte ? View.VISIBLE : View.GONE);
+        // 2.0.1: sem anterior, o botão do anterior é "Recomeçar", com o ícone de voltar ao início
+        boolean recomecar = PecasReproducao.recomecar(reproducao);
+        int icone = getResources().getDimensionPixelSize(R.dimen.st_tablet_rep_botao_icone);
+        int branco = ContextCompat.getColor(this, R.color.st_texto);
+        if (episodio) {
+            TextView epAnterior = findViewById(R.id.st_rep_ep_anterior);
+            epAnterior.setText(recomecar ? R.string.st_recomecar : R.string.st_ep_anterior);
+            epAnterior.setContentDescription(getString(recomecar ? R.string.st_recomecar_descricao : R.string.st_episodio_anterior));
+            Icones.acimaDoTexto(epAnterior, recomecar ? R.drawable.st_ic_do_inicio : R.drawable.st_ic_ep_anterior, icone, branco);
+        }
+        if (clipe) {
+            TextView videoAnterior = findViewById(R.id.st_rep_cap_anterior);
+            videoAnterior.setText(recomecar ? R.string.st_recomecar : R.string.st_video_anterior);
+            videoAnterior.setContentDescription(getString(recomecar ? R.string.st_recomecar_descricao : R.string.st_video_anterior));
+            Icones.acimaDoTexto(videoAnterior, recomecar ? R.drawable.st_ic_do_inicio : R.drawable.st_ic_cap_anterior, icone, branco);
+        }
     }
 
     /**

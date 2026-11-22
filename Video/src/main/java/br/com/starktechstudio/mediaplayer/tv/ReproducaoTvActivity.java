@@ -167,6 +167,8 @@ public class ReproducaoTvActivity extends AppCompatActivity {
             pausar.requestFocus();
         });
         lista.setAdapter(adapter);
+        // Prévia dos capítulos (2.0.1): só as já feitas no Detalhe; fazer aqui disputaria o motor com o vídeo
+        adapter.definirVideo(this, reproducao.id, reproducao.duracao, false);
         adapter.atualizar(reproducao.capitulos, numeroAtual());
         reproducao.definirAoMudarCapitulos(this::mostrarCapitulos);
         reproducao.definirAoPassarEpisodio(this::abrirEpisodio);
@@ -278,7 +280,8 @@ public class ReproducaoTvActivity extends AppCompatActivity {
      * Botões do centro: capítulo anterior e próximo; no vídeo de música (1.6, D4 do plano 007), vídeo
      * anterior e próximo da sequência, cada um só se houver. No episódio (1.8.0, D5 do plano 009), Ep.
      * anterior (sempre: no 1º episódio, volta ao começo) e Próx. episódio (só se houver) por fora dos de
-     * capítulo; sem capítulos, só os de episódio.
+     * capítulo; sem capítulos, só os de episódio. Sem anterior (1º episódio, 1º vídeo), o anterior se chama
+     * "Recomeçar" (2.0.1).
      */
     private void mostrarBotoesDoCentro() {
         boolean clipe = reproducao.ehClipe();
@@ -293,10 +296,20 @@ public class ReproducaoTvActivity extends AppCompatActivity {
         findViewById(R.id.st_rep_grupo_ep_anterior).setVisibility(episodio ? View.VISIBLE : View.GONE);
         findViewById(R.id.st_rep_grupo_ep_proximo).setVisibility(episodioSeguinte ? View.VISIBLE : View.GONE);
         ajustarCentro(episodio && capitulos);
+        // 2.0.1: sem anterior, o botão do anterior é "Recomeçar", com o ícone de voltar ao início
+        boolean recomecar = PecasReproducao.recomecar(reproducao);
+        if (episodio) {
+            ImageButton epAnterior = findViewById(R.id.st_rep_ep_anterior);
+            epAnterior.setImageResource(recomecar ? R.drawable.st_ic_do_inicio : R.drawable.st_ic_ep_anterior);
+            epAnterior.setContentDescription(getString(recomecar ? R.string.st_recomecar_descricao : R.string.st_episodio_anterior));
+            ((TextView) findViewById(R.id.st_rep_rotulo_ep_anterior)).setText(recomecar ? R.string.st_recomecar : R.string.st_ep_anterior);
+        }
         if (clipe) {
-            ((TextView) findViewById(R.id.st_rep_rotulo_cap_anterior)).setText(R.string.st_video_anterior);
+            ImageButton videoAnterior = findViewById(R.id.st_rep_cap_anterior);
+            videoAnterior.setImageResource(recomecar ? R.drawable.st_ic_do_inicio : R.drawable.st_ic_cap_anterior);
+            ((TextView) findViewById(R.id.st_rep_rotulo_cap_anterior)).setText(recomecar ? R.string.st_recomecar : R.string.st_video_anterior);
             ((TextView) findViewById(R.id.st_rep_rotulo_cap_proximo)).setText(R.string.st_proximo_video);
-            findViewById(R.id.st_rep_cap_anterior).setContentDescription(getString(R.string.st_video_anterior));
+            videoAnterior.setContentDescription(getString(recomecar ? R.string.st_recomecar_descricao : R.string.st_video_anterior));
             findViewById(R.id.st_rep_cap_proximo).setContentDescription(getString(R.string.st_proximo_video));
         }
     }

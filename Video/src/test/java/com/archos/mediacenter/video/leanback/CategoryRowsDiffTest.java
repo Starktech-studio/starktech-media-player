@@ -17,6 +17,7 @@ package com.archos.mediacenter.video.leanback;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import android.app.Application;
 import android.database.MatrixCursor;
 
 import org.junit.Test;
@@ -25,7 +26,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
+@Config(application = Application.class, manifest = Config.NONE)
 public class CategoryRowsDiffTest {
 
     private static MatrixCursor categories(Object[]... rows) {

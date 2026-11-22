@@ -38,6 +38,7 @@ import br.com.starktechstudio.mediaplayer.dados.Modelo.DadosTecnicos;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.PessoaElenco;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Titulo;
 import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
+import br.com.starktechstudio.mediaplayer.motor.QuadrosDeCapitulo;
 
 /**
  * Detalhe do filme ou do show no tablet (tablet-detalhe.dc.html): Biblioteca (voltar), as estrelas
@@ -57,6 +58,9 @@ public class DetalheTabletActivity extends AppCompatActivity {
     private Titulo titulo;
     private List<Capitulo> capitulos = Collections.emptyList();
     private Aba abaAtiva;
+    /** Prévias dos capítulos sendo feitas (2.0.1); paradas ao sair da tela ou da aba. */
+    @Nullable
+    private QuadrosDeCapitulo.Pedido quadros;
 
     private View capa;
     private TextView tipo;
@@ -140,7 +144,14 @@ public class DetalheTabletActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         repositorio.deixarDeOuvir(aoMudarBiblioteca);
+        // Para de fazer as prévias dos capítulos (no player, disputariam o motor com o vídeo); na volta, continua
+        pararQuadros();
         super.onPause();
+    }
+
+    private void pararQuadros() {
+        if (quadros != null) quadros.cancelar();
+        quadros = null;
     }
 
     /**
@@ -240,6 +251,7 @@ public class DetalheTabletActivity extends AppCompatActivity {
 
     private void mostrarAba(Aba aba) {
         abaAtiva = aba;
+        pararQuadros();
         abaCapitulos.setSelected(aba == Aba.CAPITULOS);
         abaDados.setSelected(aba == Aba.DADOS);
         abaElenco.setSelected(aba == Aba.ELENCO);
@@ -250,13 +262,17 @@ public class DetalheTabletActivity extends AppCompatActivity {
             case CAPITULOS: {
                 int atual = PecasDetalhe.capituloAtual(capitulos, titulo);
                 List<View> itens = new ArrayList<>();
+                List<CapituloAdapter.Item> itensCapitulos = new ArrayList<>();
                 for (Capitulo c : capitulos) {
                     CapituloAdapter.Item item = CapituloAdapter.Item.criar(conteudoAba, false,
                             escolhido -> Navegacao.abrirReproducao(this, id, escolhido.numero));
-                    item.vincular(c, atual);
+                    // Prévia (2.0.1): o quadro do começo do capítulo, feito fora da tela
+                    item.vincular(c, atual, id);
                     itens.add(item.itemView);
+                    itensCapitulos.add(item);
                 }
                 Grade.preencher(conteudoAba, itens, 2, espacoH, espacoV);
+                quadros = CapituloAdapter.pedirQuadros(this, id, capitulos, titulo.duracaoSegundos, itensCapitulos);
                 break;
             }
             case DADOS: {

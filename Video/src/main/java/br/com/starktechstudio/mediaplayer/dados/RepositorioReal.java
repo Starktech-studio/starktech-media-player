@@ -137,6 +137,13 @@ public final class RepositorioReal implements RepositorioBiblioteca {
     private final ExecutorService agora = Executors.newSingleThreadExecutor(r -> new Thread(r, "StarkTechLerAgora"));
     private final Set<String> lendoAgora = ConcurrentHashMap.newKeySet();
     private final Set<String> quadrosPedidos = ConcurrentHashMap.newKeySet();
+    /**
+     * Quadros dos episódios da Série aberta (2.0.1): à parte, para uma série grande (ou do servidor) não segurar a
+     * leitura de um vídeo aberto no Detalhe, que é a fila {@link #agora}.
+     */
+    private final ExecutorService filaDeQuadros = Executors.newSingleThreadExecutor(r -> new Thread(r, "StarkTechQuadrosSerie"));
+    /** Quadros da Série entre um aviso e outro (cada aviso refaz o retrato). */
+    private static final int QUADROS_POR_AVISO = 4;
     private final Set<String> artigosPedidos = ConcurrentHashMap.newKeySet();
     /** Quantos saltos seguir nas pastas juntadas (A em B, B em C); o limite também corta volta sem fim. */
     private static final int MAXIMO_JUNTADOS = 8;
@@ -402,9 +409,10 @@ public final class RepositorioReal implements RepositorioBiblioteca {
             e.idSerie = chave;
             e.temporada = v.temporada;
             e.numero = v.episodio;
-            e.nome = doEpisodio != null && temTexto(doEpisodio.nomeEpisodio) ? doEpisodio.nomeEpisodio
-                    : v.titulo != null ? v.titulo : "Episódio " + v.episodio;
             e.arquivo = new File(v.caminho).getName();
+            // 2.0.1: sem nome do TMDB nem no arquivo, o nome do arquivo sem a extensão (não "Episódio N")
+            e.nome = doEpisodio != null && temTexto(doEpisodio.nomeEpisodio) ? doEpisodio.nomeEpisodio
+                    : Classificador.nomeDoEpisodio(v.titulo, e.arquivo);
             e.duracaoSegundos = (int) (v.duracaoMs / 1000);
             if (e.duracaoSegundos <= 0 && doEpisodio != null) e.duracaoSegundos = doEpisodio.duracaoMin * 60;
             e.duracaoMin = Math.max(e.duracaoSegundos > 0 ? 1 : 0, Math.round(e.duracaoSegundos / 60f));
@@ -486,7 +494,9 @@ public final class RepositorioReal implements RepositorioBiblioteca {
 
     /**
      * A série da coletânea: o número de cada episódio vem do nome do arquivo e, sem ele, da ordem alfabética
-     * ({@link Classificador#numerarEpisodios}); o nome, o que vem depois do número ou, sem ele, o do desenho.
+     * ({@link Classificador#numerarEpisodios}); o nome, o editado à mão no desenho, o que vem depois do número ou,
+     * sem ele, o nome do arquivo sem a extensão (2.0.1: não o título do desenho no TMDB, que podia ser o da série
+     * em todos); a imagem, o quadro do vídeo ({@link #lerQuadrosDaSerie}).
      */
     private void montarColetaneaComoSerie(Retrato r, String id, List<Titulo> desenhos) {
         List<String> arquivos = new ArrayList<>();
@@ -503,7 +513,7 @@ public final class RepositorioReal implements RepositorioBiblioteca {
             e.idSerie = id;
             e.temporada = 1;
             e.numero = numeros[i];
-            e.nome = doNome.nome != null && !d.editadosAMao.contains(Campo.TITULO) ? doNome.nome : d.titulo;
+            e.nome = d.editadosAMao.contains(Campo.TITULO) ? d.titulo : Classificador.nomeDoEpisodio(doNome.nome, arquivos.get(i));
             e.arquivo = arquivos.get(i);
             e.duracaoSegundos = d.duracaoSegundos;
             e.duracaoMin = d.duracaoMin;
@@ -1371,6 +1381,32 @@ public final class RepositorioReal implements RepositorioBiblioteca {
             } finally {
                 lendoAgora.remove(id);
             }
+        });
+    }
+
+    @Override
+    public void lerQuadrosDaSerie(String idSerie) {
+        List<Temporada> temporadas = idSerie == null ? null : retrato.temporadas.get(idSerie);
+        if (temporadas == null) return;
+        List<String> faltam = new ArrayList<>();
+        for (Temporada temporada : temporadas) {
+            for (Episodio e : temporada.episodios) {
+                if (e.miniatura == null && quadrosPedidos.add(e.id)) faltam.add(e.id);
+            }
+        }
+        if (faltam.isEmpty()) return;
+        filaDeQuadros.execute(() -> {
+            int feitos = 0;
+            for (String id : faltam) {
+                try {
+                    // HD fora ou servidor longe: tenta de novo quando a tela abrir outra vez
+                    if (!arquivos.disponivel(id)) quadrosPedidos.remove(id);
+                    else if (Varredura.quadroAgora(app, id) && ++feitos % QUADROS_POR_AVISO == 0) reconstruirENotificar();
+                } catch (RuntimeException e) {
+                    // fica o número do episódio
+                }
+            }
+            if (feitos % QUADROS_POR_AVISO != 0) reconstruirENotificar();
         });
     }
 
@@ -2376,12 +2412,20 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         return a.situacao == Acervo.ERRO && System.currentTimeMillis() - a.buscado > NOVA_TENTATIVA_MS;
     }
 
-    /** Caminhos com fundo (filme, desenho, show, stand-up) ou imagem do episódio do TMDB: não precisam de quadro. */
+    /**
+     * Caminhos com fundo (filme, desenho, show, stand-up) ou imagem do episódio do TMDB: não precisam de quadro. O
+     * episódio que ficou sem imagem precisa (2.0.1): o desenho da coletânea mostrada como série tem o fundo do TMDB,
+     * mas o cartão do episódio mostra o quadro dele.
+     */
     private Set<String> comImagemDoTmdb() {
         Set<String> caminhos = new HashSet<>();
         for (Acervo.Tmdb t : acervo.tmdb().values()) {
             if (t.situacao != Acervo.ACHADO || Acervo.ehSerie(t.chave)) continue;
             if (existe(t.fundo) != null || existe(t.miniatura) != null) caminhos.add(t.chave);
+        }
+        Retrato r = retrato;
+        if (r != null) {
+            for (Episodio e : r.episodios.values()) if (e.miniatura == null) caminhos.remove(e.caminho);
         }
         return caminhos;
     }

@@ -62,6 +62,8 @@ public class SerieTabletActivity extends AppCompatActivity {
     private Button principal;
     private LinearLayout abasTemporada;
     private LinearLayout episodios;
+    /** Cartões da temporada mostrada: os quadros que chegam com a tela aberta entram neles (2.0.1). */
+    private final List<CartaoEpisodio> mostrados = new ArrayList<>();
     private Episodio proximo;
 
     @Override
@@ -116,7 +118,19 @@ public class SerieTabletActivity extends AppCompatActivity {
         super.onResume();
         // Volta do player ou de Editar: o estado (assistido, posição) pode ter mudado
         carregar();
+        repositorio.ouvir(aoMudarBiblioteca);
+        // Episódio sem imagem: o quadro do vídeo vem agora, fora da tela (2.0.1)
+        if (!isFinishing()) repositorio.lerQuadrosDaSerie(id);
     }
+
+    @Override
+    protected void onPause() {
+        repositorio.deixarDeOuvir(aoMudarBiblioteca);
+        super.onPause();
+    }
+
+    /** Quadro novo com a tela aberta: só a imagem dos cartões muda, sem refazer a grade. */
+    private final Runnable aoMudarBiblioteca = () -> CartaoEpisodio.atualizarImagens(mostrados, repositorio);
 
     private void carregar() {
         serie = repositorio.titulo(id);
@@ -222,10 +236,12 @@ public class SerieTabletActivity extends AppCompatActivity {
             abasTemporada.getChildAt(i).setSelected(i == indice);
         }
         List<View> cartoes = new ArrayList<>();
+        mostrados.clear();
         for (Episodio e : temporadas.get(indice).episodios) {
             CartaoEpisodio cartao = CartaoEpisodio.criar(episodios, false,
                     escolhido -> Navegacao.abrirReproducao(this, escolhido.id, Navegacao.DE_ONDE_PAROU));
             cartao.vincular(e);
+            mostrados.add(cartao);
             cartoes.add(cartao.itemView);
         }
         Resources res = getResources();

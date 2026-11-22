@@ -171,6 +171,8 @@ public class DetalheTvActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         repositorio.deixarDeOuvir(aoMudarBiblioteca);
+        // Para de fazer as prévias dos capítulos (no player, disputariam o motor com o vídeo); na volta, continua
+        adapterCapitulos.pararQuadros();
         super.onPause();
     }
 
@@ -245,6 +247,8 @@ public class DetalheTvActivity extends AppCompatActivity {
 
         secaoCapitulos.setVisibility(capitulos.isEmpty() ? View.GONE : View.VISIBLE);
         capitulosSub.setText(getString(R.string.st_capitulos_lidos, capitulos.size(), PecasDetalhe.extensao(titulo.arquivo)));
+        // Prévia de cada capítulo (2.0.1): o quadro do começo dele, feito fora da tela
+        adapterCapitulos.definirVideo(this, id, titulo.duracaoSegundos, true);
         adapterCapitulos.atualizar(capitulos, PecasDetalhe.capituloAtual(capitulos, titulo));
     }
 

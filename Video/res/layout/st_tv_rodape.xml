@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
 <!--
-     Rodapé do Início da TV (Main.dc.html): linha #1e293b, logo StarkTech (72 px = 36 dp, D5),
+     Rodapé do Início da TV (Main.dc.html): linha #1e293b, símbolo atual da StarkTech (lobo, INSTITUCIONAL\MARCA\DIGITAL; 36 dp),
      "StarkTech Studio®", "StarkTech Media Player · versão …" (versão lida do pacote) e o site.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -31,7 +31,7 @@
             android:layout_width="@dimen/st_tv_logo_rodape"
             android:layout_height="@dimen/st_tv_logo_rodape"
             android:contentDescription="@string/st_logo"
-            android:src="@drawable/st_logo" />
+            android:src="@drawable/st_marca_simbolo" />
 
         <LinearLayout
             android:layout_width="0dp"

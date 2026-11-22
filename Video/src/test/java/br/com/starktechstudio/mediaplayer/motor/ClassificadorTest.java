@@ -20,7 +20,8 @@ import java.util.List;
 
 /**
  * Filmes, séries (D4: temporada e episódio), shows, não identificados, varredura e montagem das séries;
- * desenhos com episódios e coletânea de desenhos (1.8.0, D7 a D9 do plano 009).
+ * desenhos com episódios e coletânea de desenhos (1.8.0, D7 a D9 do plano 009); nome do episódio sem nome
+ * próprio (2.0.1).
  */
 public class ClassificadorTest {
 
@@ -302,6 +303,29 @@ public class ClassificadorTest {
         // O número do nome vale; os sem número vêm depois do maior, em ordem alfabética
         List<String> arquivos = Arrays.asList("02 - O ovo.mkv", "Zebra.mkv", "01 - A flauta.mkv", "Abelha.mkv");
         assertArrayEquals(new int[]{2, 4, 1, 3}, Classificador.numerarEpisodios(arquivos));
+    }
+
+    @Test
+    public void nomeDoEpisodio_semNomeProprioONomeDoArquivo() {
+        // 2.0.1: sem nome próprio, o nome do arquivo sem a extensão (não o da série repetido)
+        assertEquals("As Aventuras das Babás Smurf",
+                Classificador.nomeDoEpisodio(null, "As Aventuras das Babás Smurf.mp4"));
+        assertEquals("vazio conta como sem nome", "As Aventuras das Babás Smurf",
+                Classificador.nomeDoEpisodio("  ", "As Aventuras das Babás Smurf.mp4"));
+        // Limpo como os outros nomes tirados do arquivo: ponto e sublinhado viram espaço quando não há espaço
+        assertEquals("A Flauta Magica", Classificador.nomeDoEpisodio(null, "A.Flauta_Magica.mkv"));
+        assertEquals("só o número", "01", Classificador.nomeDoEpisodio(null, "01.mkv"));
+        assertEquals("sem extensão", "Natal", Classificador.nomeDoEpisodio(null, "Natal"));
+        assertEquals("", Classificador.nomeDoEpisodio(null, null));
+    }
+
+    @Test
+    public void nomeDoEpisodio_oProprioVale() {
+        // Do TMDB, editado à mão ou o que vem depois do número no nome do arquivo
+        assertEquals("O Ovo de Ouro", Classificador.nomeDoEpisodio("O Ovo de Ouro", "Os Smurfs S01E02.mkv"));
+        assertEquals("sem espaço sobrando", "A flauta", Classificador.nomeDoEpisodio(" A flauta ", "01 - A flauta.mkv"));
+        assertEquals("A flauta", Classificador.nomeDoEpisodio(Classificador.numeroNoNome("01 - A flauta.mkv").nome,
+                "01 - A flauta.mkv"));
     }
 
     private static void criar(File raiz, String relativo) throws IOException {

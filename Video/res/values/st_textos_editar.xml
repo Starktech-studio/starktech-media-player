@@ -64,6 +64,7 @@
     <string name="st_tmdb_buscando_dados">Buscando no TMDB os dados de %1$s…</string>
     <string name="st_restaurar_pendente">Restaurar original · salve para confirmar</string>
     <string name="st_salvando">Salvando…</string>
+    <string name="st_edicao_salva">Alterações salvas</string>
     <string name="st_imagem_nao_baixou">Não deu para baixar a imagem do TMDB.</string>
     <string name="st_ajuda_tmdb">Não achou? Mude o nome ou acrescente o ano. Ao selecionar, título, sinopse, capa e fundo são trocados — os campos editados à mão ficam como estão.</string>
 </resources>

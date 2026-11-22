@@ -5,7 +5,8 @@
      + degradê), topo só com a marca e o relógio (2.0), capa e informações com a
      descrição da série (até 3 linhas), botão do próximo episódio, Editar e Favoritar, temporadas e
      a grade de episódios (2 colunas).
-     Medidas: px do HTML / 2. O desenho tem 1280 px: a página rola até o episódio em foco.
+     Medidas: px do HTML / 2. O desenho tem 1280 px: a página rola até o episódio em foco e, com o foco
+     nos botões, nas temporadas ou no que couber com a página no alto, volta ao alto (RolagemPaginaTv, 2.0.1).
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -18,7 +19,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <ScrollView
+    <br.com.starktechstudio.mediaplayer.tv.RolagemPaginaTv
         android:id="@+id/st_serie_rolagem"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -229,5 +230,5 @@
                     android:orientation="vertical" />
             </LinearLayout>
         </FrameLayout>
-    </ScrollView>
+    </br.com.starktechstudio.mediaplayer.tv.RolagemPaginaTv>
 </FrameLayout>

@@ -41,6 +41,14 @@ public final class PecasReproducao {
         return r.linhaEpisodio;
     }
 
+    /**
+     * Episódio e vídeo de música sem anterior (1º episódio da série, 1º vídeo da sequência): o botão do anterior
+     * só volta ao começo, e se chama "Recomeçar", com o ícone de voltar ao início (2.0.1).
+     */
+    public static boolean recomecar(Reproducao r) {
+        return r.trocaDeVideo() && r.videoAnterior() == null;
+    }
+
     /** "04 · A memória" (aviso de troca de capítulo). */
     public static String nomeCapitulo(Context contexto, Capitulo c) {
         return contexto.getString(R.string.st_capitulo_curto, c.numero, c.nome);

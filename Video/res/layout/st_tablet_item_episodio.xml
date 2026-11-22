@@ -2,7 +2,8 @@
 <!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
 <!--
      Episódio na Série do tablet (CartaoEpisodio): o cartão da TV (tv-serie.dc.html) nas medidas
-     do tablet (D12). Toque abre o player no episódio.
+     do tablet (D12), com a prévia no lugar do número e só a duração embaixo (2.0.1). Toque abre o
+     player no episódio.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"

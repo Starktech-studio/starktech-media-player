@@ -7,10 +7,6 @@ import android.animation.PropertyValuesHolder;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.drawable.GradientDrawable;
-import android.text.SpannableStringBuilder;
-import android.text.Spanned;
-import android.text.style.RelativeSizeSpan;
-import android.text.style.SuperscriptSpan;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -60,7 +56,9 @@ public final class PainelMarcaTv {
         FrameLayout marca = new FrameLayout(contexto);
         marca.setClipChildren(false);
         int ladoBrilho = Medidas.px(contexto, 320);
-        int ladoLogo = Medidas.px(contexto, 150);
+        // Logo atual da StarkTech (INSTITUCIONAL\MARCA\DIGITAL, vertical para fundo escuro, 640 × 437), com o nome
+        int larguraLogo = Medidas.px(contexto, 280);
+        int alturaLogo = Math.round(larguraLogo * 437f / 640f);
         brilho = new View(contexto);
         int azul = ContextCompat.getColor(contexto, R.color.st_azul_botao);
         GradientDrawable degrade = new GradientDrawable();
@@ -74,27 +72,18 @@ public final class PainelMarcaTv {
         brilho.setAlpha(0.75f);
         marca.addView(brilho, new FrameLayout.LayoutParams(ladoBrilho, ladoBrilho, Gravity.CENTER));
         ImageView logo = new ImageView(contexto);
-        logo.setImageResource(R.drawable.st_logo);
+        logo.setImageResource(R.drawable.st_marca_vertical);
+        logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
         logo.setContentDescription(contexto.getString(R.string.st_logo));
-        marca.addView(logo, new FrameLayout.LayoutParams(ladoLogo, ladoLogo, Gravity.CENTER));
+        marca.addView(logo, new FrameLayout.LayoutParams(larguraLogo, alturaLogo, Gravity.CENTER));
         painel.addView(marca, new LinearLayout.LayoutParams(ladoBrilho, ladoBrilho));
 
-        // "StarkTech Studio®" (® menor, sobrescrito) e "StarkTech Media Player · versão X", como no rodapé do Início
-        SpannableStringBuilder empresa = new SpannableStringBuilder(contexto.getString(R.string.st_rodape_empresa));
-        int inicio = empresa.length();
-        empresa.append(contexto.getString(R.string.st_rodape_registrada));
-        empresa.setSpan(new SuperscriptSpan(), inicio, empresa.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        empresa.setSpan(new RelativeSizeSpan(0.55f), inicio, empresa.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        TextView nome = Textos.novo(contexto, empresa, R.font.st_inter_black, 34, R.color.st_texto);
-        nome.setGravity(Gravity.CENTER_HORIZONTAL);
-        LinearLayout.LayoutParams lpNome = centrado();
-        lpNome.topMargin = -Medidas.px(contexto, 56);
-        painel.addView(nome, lpNome);
+        // O nome da empresa já vem na logo; embaixo, "StarkTech Media Player · versão X", como no rodapé do Início
         TextView app = Textos.novo(contexto, contexto.getString(R.string.st_rodape_versao, versaoInstalada),
                 R.font.st_inter_semibold, 19, R.color.st_texto_apagado);
         app.setGravity(Gravity.CENTER_HORIZONTAL);
         LinearLayout.LayoutParams lpApp = centrado();
-        lpApp.topMargin = Medidas.px(contexto, 8);
+        lpApp.topMargin = -Medidas.px(contexto, 40);
         painel.addView(app, lpApp);
 
         LinearLayout.LayoutParams lpCartao = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
