@@ -86,4 +86,7 @@
     <color name="st_origem_aparelho">#60A5FA</color>
     <color name="st_origem_aparelho_14">#2460A5FA</color>
     <color name="st_origem_aparelho_50">#8060A5FA</color>
+
+    <!-- Puxador do volume extra (2.1): trilho apagado, visível no cartão escuro e no item em foco (branco) -->
+    <color name="st_apagado_40">#6694A3B8</color>
 </resources>

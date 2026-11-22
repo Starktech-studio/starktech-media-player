@@ -1,4 +1,5 @@
 // Copyright 2017 Archos SA
+// Modificado por StarkTech Studio em 2026
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -43,6 +44,47 @@ public class LibAvos {
 
     public static void setAudioRouteListener(AudioRouteListener listener) {
         sAudioRouteListener = listener;
+    }
+
+    // StarkTech (2.1): o motor não informa a sessão de áudio dele (getAudioSessionId fica -1); a do AudioTrack que ele
+    // abriu, e a codificação (PCM ou o áudio direto para o receptor), servem ao equalizador e ao volume extra do player.
+    // Tudo na thread da tela; 0 = nenhum AudioTrack do motor aberto.
+    public interface AudioTrackListener { void onAudioTrackChanged(); }
+    private static final java.util.List<AudioTrackListener> sAudioTrackListeners =
+            new java.util.concurrent.CopyOnWriteArrayList<>();
+    private static int sObservedSessionId;
+    private static int sObservedEncoding;
+
+    public static void addAudioTrackListener(AudioTrackListener listener) {
+        if (listener != null && !sAudioTrackListeners.contains(listener)) sAudioTrackListeners.add(listener);
+    }
+
+    public static void removeAudioTrackListener(AudioTrackListener listener) {
+        sAudioTrackListeners.remove(listener);
+    }
+
+    public static int getObservedAudioSessionId() { return sObservedSessionId; }
+
+    /** AudioFormat.ENCODING_* do AudioTrack aberto; 0 = nenhum. */
+    public static int getObservedAudioEncoding() { return sObservedEncoding; }
+
+    private static void publishAudioTrack(android.media.AudioTrack track) {
+        int session = 0;
+        int encoding = 0;
+        if (track != null) {
+            try {
+                session = Math.max(0, track.getAudioSessionId());
+                encoding = track.getAudioFormat();
+            } catch (RuntimeException ignored) { }
+        }
+        if (session == sObservedSessionId && encoding == sObservedEncoding) return;
+        sObservedSessionId = session;
+        sObservedEncoding = encoding;
+        for (AudioTrackListener listener : sAudioTrackListeners) {
+            try {
+                listener.onAudioTrackChanged();
+            } catch (RuntimeException ignored) { }
+        }
     }
 
     // Called on the main thread by the application. Null means no route proof yet.
@@ -103,6 +145,7 @@ public class LibAvos {
                 } catch (RuntimeException ignored) { }
             }
             sObservedTrack = track;
+            publishAudioTrack(track);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 sRoutingListener = AudioRoutingApi24.createListener();
             } else {
@@ -144,6 +187,7 @@ public class LibAvos {
             sObservedTrack = null;
             sRoutingListener = null;
             sRoutedDevice = null;
+            publishAudioTrack(null);
         });
     }
 

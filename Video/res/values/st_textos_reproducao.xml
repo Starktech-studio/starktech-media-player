@@ -71,4 +71,12 @@
     <string name="st_volume">Volume %1$d%%</string>
     <!-- 2.0: vídeo do servidor em casa -->
     <string name="st_servidor_fora_ao_abrir">Servidor em casa fora de alcance. Confira se ele está ligado e na mesma rede.</string>
+
+    <!-- Efeitos no painel de Áudio do player (2.1, plano 011): valem na hora e ficam guardados -->
+    <string name="st_rep_efeitos">Efeitos</string>
+    <string name="st_rep_nivel_volume_extra">Nível do volume extra, %1$d%%</string>
+    <string name="st_efeitos_audio_direto">Sem efeito com o áudio direto para o receptor</string>
+    <string name="st_efeitos_sem_sessao">Sem efeito neste vídeo neste aparelho</string>
+    <string name="st_equalizador_falhou">O equalizador não ligou neste vídeo</string>
+    <string name="st_volume_extra_falhou">O volume extra não ligou neste vídeo</string>
 </resources>

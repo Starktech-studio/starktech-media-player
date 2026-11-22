@@ -37,6 +37,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import br.com.starktechstudio.mediaplayer.comum.Preferencias;
 import br.com.starktechstudio.mediaplayer.dados.ModeloMusicas.Musica;
 import br.com.starktechstudio.mediaplayer.motor.ArquivosDaBiblioteca;
+import br.com.starktechstudio.mediaplayer.motor.EfeitosDeAudio;
 
 /**
  * Player de música (1.5): um só no app, com o {@link MediaPlayer} do Android (os formatos das pastas de
@@ -47,6 +48,9 @@ import br.com.starktechstudio.mediaplayer.motor.ArquivosDaBiblioteca;
  * <p>2.0: música do servidor em casa toca a cópia baixada ({@link Downloads}) se houver; senão pelo proxy do Nova
  * ({@code StreamOverHttp}, http em 127.0.0.1, sem baixar), fechado ao trocar de música. Servidor fora de alcance
  * e música não baixada: pula na hora.
+ *
+ * <p>2.1: equalizador e volume extra ({@link EfeitosDeAudio}) na sessão de áudio do player, que fica a mesma entre as
+ * músicas (o player é reaproveitado com {@code reset}); soltos com ele. Sem tela de áudio aqui: valem as Configurações.
  */
 public final class Tocador {
 
@@ -67,6 +71,9 @@ public final class Tocador {
     private final AudioManager audio;
     private final MediaSessionCompat sessao;
     private MediaPlayer player;
+    /** Equalizador e volume extra (2.1) na sessão do {@link #player}; nulo sem player. */
+    @Nullable
+    private EfeitosDeAudio efeitos;
     /** Proxy da música do servidor que está aberta; um por vez. */
     @Nullable
     private StreamOverHttp proxy;
@@ -436,6 +443,7 @@ public final class Tocador {
     private void aoPreparar() {
         preparado = true;
         errosSeguidos = 0;
+        ligarEfeitos();
         if (posicaoPedidaMs > 0) player.seekTo(posicaoPedidaMs);
         if (querTocando && pedirFoco()) {
             player.start();
@@ -503,8 +511,23 @@ public final class Tocador {
         proxy = null;
     }
 
+    /** Na sessão do player, que é a mesma entre as músicas: cria uma vez e, nas seguintes, só confere (2.1). */
+    private void ligarEfeitos() {
+        if (player == null) return;
+        if (efeitos == null) efeitos = new EfeitosDeAudio(app);
+        try {
+            efeitos.usarSessao(player.getAudioSessionId(), false);
+        } catch (IllegalStateException e) {
+            // player já solto: os efeitos vão com ele
+        }
+    }
+
     private void soltarPlayer() {
         preparado = false;
+        if (efeitos != null) {
+            efeitos.soltar();
+            efeitos = null;
+        }
         if (player != null) {
             try {
                 player.release();

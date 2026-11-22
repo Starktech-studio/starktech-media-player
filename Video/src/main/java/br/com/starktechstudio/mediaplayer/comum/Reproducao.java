@@ -22,6 +22,8 @@ import com.archos.mediacenter.video.player.SubtitleManager;
 import com.archos.mediacenter.video.player.SurfaceController;
 import com.archos.mediacenter.video.utils.VideoMetadata;
 import com.archos.medialib.IMediaMetadataRetriever;
+import com.archos.medialib.IMediaPlayer;
+import com.archos.medialib.LibAvos;
 import com.archos.medialib.MediaFactory;
 
 import java.io.File;
@@ -46,6 +48,7 @@ import br.com.starktechstudio.mediaplayer.dados.RepositorioReal;
 import br.com.starktechstudio.mediaplayer.motor.ArquivosDaBiblioteca;
 import br.com.starktechstudio.mediaplayer.motor.Capitulos;
 import br.com.starktechstudio.mediaplayer.motor.CapitulosDoArquivo;
+import br.com.starktechstudio.mediaplayer.motor.EfeitosDeAudio;
 import br.com.starktechstudio.mediaplayer.motor.Faixas;
 import br.com.starktechstudio.mediaplayer.motor.LegendaExterna;
 import br.com.starktechstudio.mediaplayer.motor.LegendasNoIndice;
@@ -66,6 +69,9 @@ import br.com.starktechstudio.mediaplayer.musica.Tocador;
  * <p>2.0: o vídeo do servidor em casa abre pelo endereço {@code smb://} ({@link ArquivosDaBiblioteca}; o Nova toca pelo
  * proxy local, sem baixar). A legenda ao lado dele vem pela cópia prévia do Nova ({@link #trazerLegendasDoServidor}), no
  * lugar do índice de mídia; os capítulos, só pelo motor. Servidor fora de alcance ao abrir: aviso e não abre.
+ *
+ * <p>2.1: equalizador e volume extra ({@link EfeitosDeAudio}) na sessão de áudio do vídeo, conferida ao abrir, ao trocar
+ * a faixa de áudio e a cada AudioTrack novo do motor do Nova ({@link #conferirSessaoDeAudio}); soltos no {@link #liberar}.
  */
 public final class Reproducao implements Player.Listener {
 
@@ -186,6 +192,11 @@ public final class Reproducao implements Player.Listener {
     private int atrasoLegendaMs;
     /** Vídeo de música (1.5.1). */
     private boolean clipe;
+    /** Equalizador e volume extra (2.1), do {@link #ligar} ao {@link #liberar}. */
+    @Nullable
+    private EfeitosDeAudio efeitos;
+    /** O motor do Nova abriu, trocou ou fechou o AudioTrack (outra faixa, outro formato): a sessão de áudio muda. */
+    private final LibAvos.AudioTrackListener aoMudarSaidaDeAudio = this::conferirSessaoDeAudio;
 
     /** O motor não virou faixa (arquivo que ele não entende): avisa e apaga a cópia. */
     private final Runnable desistirDaLegenda = new Runnable() {
@@ -368,6 +379,9 @@ public final class Reproducao implements Player.Listener {
         Tocador.pausarSeTocando();
         player = new Player(tela, tela.getWindow(), superficie, false);
         player.setListener(this);
+        // 2.1: os efeitos entram quando a sessão de áudio aparecer (ao abrir ou no AudioTrack do motor)
+        efeitos = new EfeitosDeAudio(contexto);
+        LibAvos.addAudioTrackListener(aoMudarSaidaDeAudio);
         // Antes de abrir: a primeira legenda já sai na forma escolhida, com o atraso guardado do título
         aplicarEstiloDaLegenda();
         atrasoLegendaMs = repositorio.atrasoLegenda(id);
@@ -553,10 +567,15 @@ public final class Reproducao implements Player.Listener {
         salvar();
     }
 
-    /** Tela fechou: solta o motor. */
+    /** Tela fechou: solta os efeitos e o motor. */
     public void liberar() {
         relogio.removeCallbacksAndMessages(null);
         if (naTela == this) naTela = null;
+        LibAvos.removeAudioTrackListener(aoMudarSaidaDeAudio);
+        if (efeitos != null) {
+            efeitos.soltar();
+            efeitos = null;
+        }
         if (player != null) {
             player.setListener(null);
             player.releasePlayer();
@@ -1004,6 +1023,43 @@ public final class Reproducao implements Player.Listener {
         if (ouvinte != null) ouvinte.aoMudar();
     }
 
+    // ---- Equalizador e volume extra (2.1) ----
+
+    /**
+     * A sessão de áudio do vídeo para os efeitos: a do player do Android ou, no motor do Nova (que não informa a dele), a
+     * do AudioTrack que ele abriu, vista pelo {@link LibAvos}; AudioTrack que não é PCM = áudio direto para o receptor.
+     */
+    private void conferirSessaoDeAudio() {
+        if (efeitos == null || player == null) return;
+        int sessao = player.getAudioSessionId();
+        boolean direto = false;
+        if (sessao <= 0 && player.getType() == IMediaPlayer.TYPE_AVOS) {
+            sessao = LibAvos.getObservedAudioSessionId();
+            direto = sessao > 0 && EfeitosDeAudio.ehAudioDireto(LibAvos.getObservedAudioEncoding());
+        }
+        efeitos.usarSessao(sessao, direto);
+    }
+
+    /** Para o painel de Áudio: o que os efeitos fazem neste vídeo. */
+    public EfeitosDeAudio.Situacao situacaoDosEfeitos() {
+        conferirSessaoDeAudio();
+        return efeitos == null ? EfeitosDeAudio.Situacao.SEM_SESSAO : efeitos.situacao();
+    }
+
+    /** O vídeo abriu e tem som: sem sessão, aí sim os efeitos não chegam a ele. */
+    public boolean temAudio() {
+        VideoMetadata meta = faixasDoArquivo;
+        return pronto && meta != null && meta.getAudioTrackNb() > 0;
+    }
+
+    public boolean equalizadorFalhou() {
+        return efeitos != null && efeitos.equalizadorFalhou();
+    }
+
+    public boolean volumeExtraFalhou() {
+        return efeitos != null && efeitos.volumeExtraFalhou();
+    }
+
     // ---- Player.Listener ----
 
     @Override
@@ -1034,6 +1090,7 @@ public final class Reproducao implements Player.Listener {
             else usarCapitulos(doPlayer);
         }
         aplicarPreferencias();
+        conferirSessaoDeAudio();
         // O atraso vale depois de aberto (antes, o motor só guarda para a próxima abertura)
         if (atrasoLegendaMs != 0) player.setSubtitleDelay(atrasoLegendaMs);
         if (rodando && querTocando && !terminou) player.start(PlayerController.STATE_NORMAL);
@@ -1136,6 +1193,8 @@ public final class Reproducao implements Player.Listener {
     public void onAudioMetadataUpdated(VideoMetadata vMetadata, int currentAudio) {
         faixasDoArquivo = vMetadata;
         audioAtual = currentAudio;
+        // Outra faixa pode vir noutro AudioTrack (o LibAvos avisa quando ele abrir); o player do Android, aqui mesmo
+        conferirSessaoDeAudio();
     }
 
     @Override

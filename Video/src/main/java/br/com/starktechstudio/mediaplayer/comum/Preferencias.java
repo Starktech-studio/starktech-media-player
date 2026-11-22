@@ -15,13 +15,15 @@ import com.archos.mediacenter.video.utils.VideoPreferencesCommon;
 import java.io.File;
 
 import br.com.starktechstudio.mediaplayer.motor.ArquivosDoAparelho;
+import br.com.starktechstudio.mediaplayer.motor.EfeitosDeAudio;
 
 /**
  * Configurações (D16), salvas no aparelho. As da StarkTech ficam em arquivo próprio
  * ("st_preferencias"), sem tocar nas preferências do Nova; as que o motor do Nova já lê são gravadas
  * nas chaves dele, no formato dele ({@link Item#doMotor}). Cada uma tem uma lista curta de valores:
  * com dois, OK / toque troca; com mais, Configurações abre um seletor. Quem usa: {@link Reproducao} (áudio, legenda, retomar, próximo episódio),
- * os players, o Início da TV e o repositório.
+ * os players, o Início da TV, o repositório e, desde a 2.1, {@link EfeitosDeAudio} (equalizador e volume extra, que
+ * ouvem as mudanças por {@link #ouvir}).
  */
 public final class Preferencias {
 
@@ -46,6 +48,10 @@ public final class Preferencias {
         TEMPO_CONTROLES("tempo_controles", 1, R.string.st_valor_3_s, R.string.st_valor_5_s, R.string.st_valor_10_s),
         /** Ao terminar um episódio, abre o seguinte; desligado de fábrica. */
         PROXIMO_EPISODIO("proximo_episodio", 0, R.string.st_valor_desligado, R.string.st_valor_ligado),
+        /** Equalizador nos vídeos e nas músicas (2.1); desligado de fábrica. O estilo: {@link Preferencias#estiloEqualizador}. */
+        EQUALIZADOR("equalizador", 0, R.string.st_valor_desligado, R.string.st_valor_ligado),
+        /** Volume extra nos vídeos e nas músicas (2.1); desligado de fábrica. O nível: {@link Preferencias#nivelVolumeExtra}. */
+        VOLUME_EXTRA("volume_extra", 0, R.string.st_valor_desligado, R.string.st_valor_ligado),
         /** Só na TV. */
         PREVIA_VIDEO("previa_video", 0, R.string.st_valor_ligada, R.string.st_valor_desligada),
         /** Só na TV: {@link Preferencias#trocaNovidadesMs}. */
@@ -225,6 +231,66 @@ public final class Preferencias {
 
     public static void definirZoomPlayer(Context contexto, int zoom) {
         arquivo(contexto).edit().putInt(CHAVE_ZOOM_PLAYER, zoom).apply();
+    }
+
+    // ---- Equalizador e volume extra (2.1, motor/EfeitosDeAudio) ----
+
+    private static final String CHAVE_ESTILO_EQUALIZADOR = "estilo_equalizador";
+    private static final String CHAVE_NIVEL_VOLUME_EXTRA = "volume_extra_nivel";
+
+    public static boolean equalizadorLigado(Context contexto) {
+        return indice(contexto, Item.EQUALIZADOR) == 1;
+    }
+
+    public static void definirEqualizador(Context contexto, boolean ligado) {
+        gravar(contexto, Item.EQUALIZADOR, ligado ? 1 : 0);
+    }
+
+    /** O estilo escolhido, pelo nome que o aparelho dá a ele ({@code Equalizer.getPresetName}); nulo = nenhum ainda. */
+    @Nullable
+    public static String estiloEqualizador(Context contexto) {
+        return arquivo(contexto).getString(CHAVE_ESTILO_EQUALIZADOR, null);
+    }
+
+    public static void definirEstiloEqualizador(Context contexto, String original) {
+        arquivo(contexto).edit().putString(CHAVE_ESTILO_EQUALIZADOR, original).apply();
+    }
+
+    public static boolean volumeExtraLigado(Context contexto) {
+        return indice(contexto, Item.VOLUME_EXTRA) == 1;
+    }
+
+    public static void definirVolumeExtra(Context contexto, boolean ligado) {
+        gravar(contexto, Item.VOLUME_EXTRA, ligado ? 1 : 0);
+    }
+
+    /** Nível do volume extra, em % (100 a 200, de 10 em 10; {@link EfeitosDeAudio#NIVEL_PADRAO} de fábrica). */
+    public static int nivelVolumeExtra(Context contexto) {
+        return EfeitosDeAudio.limitarNivel(arquivo(contexto).getInt(CHAVE_NIVEL_VOLUME_EXTRA, EfeitosDeAudio.NIVEL_PADRAO));
+    }
+
+    public static void definirNivelVolumeExtra(Context contexto, int nivel) {
+        arquivo(contexto).edit().putInt(CHAVE_NIVEL_VOLUME_EXTRA, EfeitosDeAudio.limitarNivel(nivel)).apply();
+    }
+
+    /** "Áudio direto para o receiver" ligado (a opção só aparece na TV): Dolby e DTS saem sem passar pelos efeitos. */
+    public static boolean audioDiretoLigado(Context contexto) {
+        return indice(contexto, Item.AUDIO_DIRETO) == 1;
+    }
+
+    /** As chaves que mudam os efeitos de áudio; nula (as preferências foram limpas) também conta. */
+    public static boolean ehDosEfeitos(@Nullable String chave) {
+        return chave == null || chave.equals(Item.EQUALIZADOR.chave) || chave.equals(Item.VOLUME_EXTRA.chave)
+                || chave.equals(CHAVE_ESTILO_EQUALIZADOR) || chave.equals(CHAVE_NIVEL_VOLUME_EXTRA);
+    }
+
+    /** Avisado na thread da tela quando uma configuração da StarkTech muda (quem chama guarda a referência). */
+    public static void ouvir(Context contexto, SharedPreferences.OnSharedPreferenceChangeListener ouvinte) {
+        arquivo(contexto).registerOnSharedPreferenceChangeListener(ouvinte);
+    }
+
+    public static void deixarDeOuvir(Context contexto, SharedPreferences.OnSharedPreferenceChangeListener ouvinte) {
+        arquivo(contexto).unregisterOnSharedPreferenceChangeListener(ouvinte);
     }
 
     /** A aba aparece no nav? Início e Ajustes, sempre; as outras, pela escolha em Configurações &gt; Navegação. */

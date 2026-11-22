@@ -46,6 +46,7 @@ import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 import br.com.starktechstudio.mediaplayer.motor.ArquivosDoAparelho;
 import br.com.starktechstudio.mediaplayer.motor.Atualizador;
 import br.com.starktechstudio.mediaplayer.motor.Cache;
+import br.com.starktechstudio.mediaplayer.motor.EfeitosDeAudio;
 import br.com.starktechstudio.mediaplayer.musica.Downloads;
 import br.com.starktechstudio.mediaplayer.tv.PainelMarcaTv;
 
@@ -54,7 +55,8 @@ import br.com.starktechstudio.mediaplayer.tv.PainelMarcaTv;
  * Lista em grupos com título (ajuste de 21/11/2026): no topo, em destaque, Biblioteca de mídia (Pastas da biblioteca,
  * cada servidor em casa com Conectado / Fora de alcance, Adicionar servidor e a seção Biblioteca); depois, em ordem
  * alfabética, Aparência e navegação (Início, só na TV, Navegação e Shows), Músicas (só fora da TV), Reprodução
- * (Legendas, Player e Séries) e Sistema (App). Cada seção abre a própria subtela; nos grupos, as seções em ordem
+ * (Equalizador, Legendas, Player, Séries e Volume extra, os dois da 2.1 com {@link EfeitosDeAudio}) e Sistema (App).
+ * Cada seção abre a própria subtela; nos grupos, as seções em ordem
  * alfabética, e as opções também. Voltar retorna da subtela à lista, com o foco da TV na seção de onde veio; no tablet
  * há também o botão Voltar. Opção de dois valores: OK ou toque troca na hora; com mais valores, abre um seletor em
  * janela. O que só existe na TV não aparece no tablet (D12). TV: tela aberta pelo botão do topo, com o painel da marca
@@ -144,6 +146,26 @@ public class ConfiguracoesFragment extends Fragment {
     /** Adicionar servidor: o foco da TV vem para cá quando o servidor em foco sai da lista. */
     private View adicionarServidor;
     private final Runnable aoMudarBiblioteca = this::mostrarServidores;
+    /**
+     * Equalizador e volume extra (2.1): o liga/desliga de cada um e a linha que depende dele (Estilo, Nível), que fica
+     * apagada e sem foco com o efeito desligado. Nulos até a seção ser montada.
+     */
+    @Nullable
+    private LinearLayout linhaEqualizador;
+    @Nullable
+    private TextView valorEqualizador;
+    @Nullable
+    private LinearLayout linhaEstilo;
+    @Nullable
+    private TextView valorEstilo;
+    @Nullable
+    private LinearLayout linhaVolumeExtra;
+    @Nullable
+    private TextView valorVolumeExtra;
+    @Nullable
+    private LinearLayout linhaNivel;
+    @Nullable
+    private PuxadorNivel puxador;
     /** TV: logo, versão instalada e novidades, à direita da lista. */
     @Nullable
     private PainelMarcaTv painelMarca;
@@ -283,6 +305,7 @@ public class ConfiguracoesFragment extends Fragment {
         // Volta do Adicionar ou do Editar servidor; o estado (Conectado / Fora de alcance) chega pelo aviso da biblioteca
         RepositorioBiblioteca.atual(contexto).ouvir(aoMudarBiblioteca);
         mostrarServidores();
+        mostrarEfeitos();
         if (painelMarca != null) painelMarca.ligar();
     }
 
@@ -307,6 +330,7 @@ public class ConfiguracoesFragment extends Fragment {
         secoes.clear();
         definirApp();
         definirBiblioteca();
+        definirEqualizador();
         if (tv) definirInicio();
         definirLegendas();
         if (!tv) definirMusicas();
@@ -314,6 +338,7 @@ public class ConfiguracoesFragment extends Fragment {
         definirPlayer();
         definirSeries();
         definirShows();
+        definirVolumeExtra();
 
         Collator ordem = Collator.getInstance(Locale.forLanguageTag("pt-BR"));
         // A ordem das seções é a da lista: o grupo (Biblioteca de mídia primeiro) e, nele, o nome
@@ -478,6 +503,8 @@ public class ConfiguracoesFragment extends Fragment {
             alvo.requestFocus(View.FOCUS_DOWN);
         }
         mostrarAberta();
+        // Áudio direto pode ter mudado no Player: o aviso do Equalizador e do Volume extra acompanha
+        if (indice >= 0) mostrarEfeitos();
     }
 
     /** Só a lista ou só a subtela aberta à vista, com o título e a dica de cada uma. */
@@ -748,6 +775,159 @@ public class ConfiguracoesFragment extends Fragment {
         Secao secao = secao(Grupo.APARENCIA, R.drawable.st_ic_shows, R.string.st_cfg_grupo_shows, R.string.st_cfg_grupo_shows_dica);
         opcaoValor(secao, R.drawable.st_ic_shows, R.string.st_cfg_shows_por_grupo, R.string.st_cfg_shows_por_grupo_dica,
                 Preferencias.Item.SHOWS_POR_GRUPO);
+    }
+
+    // ---- Equalizador e volume extra (2.1) ----
+
+    /**
+     * Equalizador (2.1, vídeos e músicas): o liga/desliga e, embaixo, o Estilo (os do aparelho, em ordem alfabética, no
+     * seletor). Uma opção só, para o Estilo ficar sempre abaixo do liga/desliga.
+     */
+    private void definirEqualizador() {
+        Secao secao = secao(Grupo.REPRODUCAO, R.drawable.st_ic_equalizador, R.string.st_cfg_grupo_equalizador,
+                R.string.st_cfg_grupo_equalizador_dica);
+        opcao(secao, R.string.st_cfg_equalizador, this::equalizador);
+    }
+
+    /** Volume extra (2.1, vídeos e músicas): o liga/desliga e, embaixo, o Nível no puxador, de 100 a 200 %. */
+    private void definirVolumeExtra() {
+        Secao secao = secao(Grupo.REPRODUCAO, R.drawable.st_ic_volume_extra, R.string.st_cfg_grupo_volume_extra,
+                R.string.st_cfg_grupo_volume_extra_dica);
+        opcao(secao, R.string.st_cfg_volume_extra, this::volumeExtra);
+    }
+
+    private void equalizador(LinearLayout corpo) {
+        Context contexto = corpo.getContext();
+        linhaEqualizador = linha(corpo, R.drawable.st_ic_equalizador, R.string.st_cfg_equalizador, R.string.st_cfg_equalizador_dica);
+        valorEqualizador = adicionarValor(linhaEqualizador, "");
+        linhaEqualizador.setOnClickListener(v -> {
+            if (!EfeitosDeAudio.temEqualizador(contexto)) {
+                Toast.makeText(contexto, R.string.st_equalizador_sem_suporte, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Preferencias.definirEqualizador(contexto, !Preferencias.equalizadorLigado(contexto));
+            mostrarEfeitos();
+        });
+
+        linhaEstilo = linha(corpo, R.drawable.st_ic_equalizador, R.string.st_cfg_estilo_equalizador, R.string.st_cfg_estilo_equalizador_dica);
+        valorEstilo = adicionarValor(linhaEstilo, "");
+        valorEstilo.setEllipsize(TextUtils.TruncateAt.END);
+        valorEstilo.setMaxWidth(Medidas.px(contexto, 360));
+        adicionarSeta(linhaEstilo);
+        linhaEstilo.setOnClickListener(v -> escolherEstilo());
+        mostrarEfeitos();
+    }
+
+    /** O seletor com os estilos do aparelho; a escolha vale na hora, também no que está tocando. */
+    private void escolherEstilo() {
+        Context contexto = requireContext();
+        List<EfeitosDeAudio.Estilo> estilos = EfeitosDeAudio.estilos(contexto);
+        if (estilos.isEmpty()) return;
+        EfeitosDeAudio.Estilo atual = EfeitosDeAudio.estiloAtual(contexto);
+        String[] nomes = new String[estilos.size()];
+        int marcado = -1;
+        for (int i = 0; i < nomes.length; i++) {
+            nomes[i] = estilos.get(i).nome;
+            if (atual != null && estilos.get(i).original.equals(atual.original)) marcado = i;
+        }
+        abrirSeletor(getString(R.string.st_cfg_estilo_equalizador), nomes, marcado, escolhido -> {
+            Preferencias.definirEstiloEqualizador(contexto, estilos.get(escolhido).original);
+            mostrarEfeitos();
+        });
+    }
+
+    /**
+     * O puxador fica na própria linha do Nível, à direita. TV: o foco é da linha (o realce das outras), e ← → mudam
+     * 10 %; tablet: tocar ou arrastar no trilho (a linha não reage ao toque).
+     */
+    private void volumeExtra(LinearLayout corpo) {
+        Context contexto = corpo.getContext();
+        linhaVolumeExtra = linha(corpo, R.drawable.st_ic_volume_extra, R.string.st_cfg_volume_extra, R.string.st_cfg_volume_extra_dica);
+        valorVolumeExtra = adicionarValor(linhaVolumeExtra, "");
+        linhaVolumeExtra.setOnClickListener(v -> {
+            if (!EfeitosDeAudio.temVolumeExtra(contexto)) {
+                Toast.makeText(contexto, R.string.st_volume_extra_sem_suporte, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Preferencias.definirVolumeExtra(contexto, !Preferencias.volumeExtraLigado(contexto));
+            mostrarEfeitos();
+        });
+
+        LinearLayout nivel = linha(corpo, R.drawable.st_ic_volume_extra, R.string.st_cfg_nivel_volume_extra,
+                tv ? R.string.st_cfg_nivel_volume_extra_dica_tv : R.string.st_cfg_nivel_volume_extra_dica_tablet);
+        linhaNivel = nivel;
+        puxador = new PuxadorNivel(contexto, Preferencias.nivelVolumeExtra(contexto), false, novo -> {
+            Preferencias.definirNivelVolumeExtra(contexto, novo);
+            nivel.setContentDescription(getString(R.string.st_cfg_nivel_volume_extra) + ", " + getString(R.string.st_porcento, novo));
+        });
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        lp.setMarginStart(Medidas.px(contexto, 22));
+        nivel.addView(puxador.view, lp);
+        nivel.setContentDescription(getString(R.string.st_cfg_nivel_volume_extra) + ", " + getString(R.string.st_porcento, puxador.nivel()));
+        if (tv) puxador.ligarTeclas(nivel);
+        else nivel.setClickable(false);
+        mostrarEfeitos();
+    }
+
+    /**
+     * Valores, dicas e o que fica apagado, conforme o aparelho e as preferências: sem o efeito, o liga/desliga fica
+     * apagado, com a dica de sem suporte (OK ou toque só avisa); desligado, o Estilo e o Nível ficam apagados e sem
+     * foco. Com o áudio direto ligado (TV), a dica do liga/desliga avisa em âmbar que os vídeos com Dolby ou DTS ficam
+     * sem efeito.
+     */
+    private void mostrarEfeitos() {
+        if (getContext() == null) return;
+        Context contexto = requireContext();
+        boolean direto = Preferencias.audioDiretoLigado(contexto);
+        if (linhaEqualizador != null && valorEqualizador != null && linhaEstilo != null && valorEstilo != null) {
+            boolean tem = EfeitosDeAudio.temEqualizador(contexto);
+            boolean ligado = tem && Preferencias.equalizadorLigado(contexto);
+            valorEqualizador.setText(ligado ? R.string.st_valor_ligado : R.string.st_valor_desligado);
+            linhaEqualizador.setAlpha(tem ? 1f : 0.4f);
+            mostrarDica(linhaEqualizador, !tem ? R.string.st_equalizador_sem_suporte
+                    : direto ? R.string.st_cfg_efeitos_audio_direto : R.string.st_cfg_equalizador_dica, tem && direto);
+            linhaEqualizador.setContentDescription(getString(R.string.st_cfg_equalizador) + ", " + valorEqualizador.getText());
+
+            EfeitosDeAudio.Estilo estilo = EfeitosDeAudio.estiloAtual(contexto);
+            valorEstilo.setText(estilo == null ? "" : estilo.nome);
+            linhaEstilo.setVisibility(tem ? View.VISIBLE : View.GONE);
+            habilitarLinha(linhaEstilo, ligado);
+            mostrarDica(linhaEstilo, ligado ? R.string.st_cfg_estilo_equalizador_dica : R.string.st_cfg_estilo_desligado_dica, false);
+            linhaEstilo.setContentDescription(getString(R.string.st_cfg_estilo_equalizador) + ", " + valorEstilo.getText());
+        }
+        if (linhaVolumeExtra != null && valorVolumeExtra != null && linhaNivel != null && puxador != null) {
+            boolean tem = EfeitosDeAudio.temVolumeExtra(contexto);
+            boolean ligado = tem && Preferencias.volumeExtraLigado(contexto);
+            valorVolumeExtra.setText(ligado ? R.string.st_valor_ligado : R.string.st_valor_desligado);
+            linhaVolumeExtra.setAlpha(tem ? 1f : 0.4f);
+            mostrarDica(linhaVolumeExtra, !tem ? R.string.st_volume_extra_sem_suporte
+                    : direto ? R.string.st_cfg_efeitos_audio_direto : R.string.st_cfg_volume_extra_dica, tem && direto);
+            linhaVolumeExtra.setContentDescription(getString(R.string.st_cfg_volume_extra) + ", " + valorVolumeExtra.getText());
+
+            puxador.definir(Preferencias.nivelVolumeExtra(contexto));
+            linhaNivel.setVisibility(tem ? View.VISIBLE : View.GONE);
+            habilitarLinha(linhaNivel, ligado);
+            puxador.habilitar(ligado);
+            // A linha inteira já fica apagada: o puxador, dentro dela, não apaga de novo
+            puxador.view.setAlpha(1f);
+            mostrarDica(linhaNivel, ligado ? (tv ? R.string.st_cfg_nivel_volume_extra_dica_tv : R.string.st_cfg_nivel_volume_extra_dica_tablet)
+                    : R.string.st_cfg_nivel_desligado_dica, false);
+        }
+    }
+
+    /** Linha que depende de outra ligada: apagada e sem foco nem toque enquanto ela está desligada. */
+    private void habilitarLinha(LinearLayout linha, boolean ligada) {
+        linha.setAlpha(ligada ? 1f : 0.4f);
+        linha.setFocusable(ligada);
+        // No tablet, a linha do Nível nunca reage ao toque: quem recebe é o puxador
+        linha.setClickable(ligada && (tv || linha != linhaNivel));
+    }
+
+    /** Troca a dica da linha ({@link #linha}: o segundo texto); {@code aviso} em âmbar. */
+    private static void mostrarDica(LinearLayout linha, @StringRes int texto, boolean aviso) {
+        TextView dica = (TextView) ((LinearLayout) linha.getChildAt(1)).getChildAt(1);
+        dica.setText(texto);
+        dica.setTextColor(ContextCompat.getColor(linha.getContext(), aviso ? R.color.st_aviso_claro : R.color.st_texto_apagado));
     }
 
     // ---- Versão ----

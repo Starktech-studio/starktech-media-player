@@ -1073,6 +1073,21 @@ public class Player implements IPlayerControl,
             return mMediaPlayer.getType();
     }
 
+    /**
+     * StarkTech (2.1): a sessão de áudio do player aberto, para o equalizador e o volume extra; 0 = nenhuma ou ainda não.
+     * O motor do Nova não informa a do AudioTrack dele (o nativo devolve -1): fica 0 aqui, sem a chamada ao nativo, e quem
+     * usa procura em {@code LibAvos.getObservedAudioSessionId}.
+     */
+    public int getAudioSessionId() {
+        IMediaPlayer player = mMediaPlayer;
+        if (player == null || player.getType() == IMediaPlayer.TYPE_AVOS) return 0;
+        try {
+            return Math.max(0, player.getAudioSessionId());
+        } catch (RuntimeException e) {
+            return 0;
+        }
+    }
+
     public VideoMetadata getVideoMetadata() {
         return mVideoMetadata;
     }

@@ -67,4 +67,54 @@ public final class OpcaoMenu {
         opcoes.addView(item, lp);
         return item;
     }
+
+    /**
+     * Opção com o valor à direita (2.1: Equalizador e Volume extra no painel de Áudio, "Ligado" / "Desligado"), no mesmo
+     * padrão e com o mesmo realce: em foco ou tocada, fundo branco e ícone, nome e valor escuros. OK ou toque faz a ação;
+     * quem chama decide se o painel fecha. Devolve o texto do valor, para trocar; a linha é o pai dele.
+     */
+    public static TextView adicionarComValor(LinearLayout opcoes, @DrawableRes int icone, CharSequence texto, CharSequence valor,
+                                             Runnable acao) {
+        Context contexto = opcoes.getContext();
+        boolean tv = Aparelho.ehTv(contexto);
+        Resources res = contexto.getResources();
+        LinearLayout linha = new LinearLayout(contexto);
+        linha.setOrientation(LinearLayout.HORIZONTAL);
+        linha.setGravity(Gravity.CENTER_VERTICAL);
+        linha.setBackgroundResource(R.drawable.st_item_menu);
+        int padding = res.getDimensionPixelSize(tv ? R.dimen.st_tv_menu_item_padding : R.dimen.st_tablet_menu_item_padding);
+        linha.setPadding(padding, 0, padding, 0);
+        linha.setFocusable(true);
+        linha.setClickable(true);
+        linha.setOnClickListener(v -> acao.run());
+
+        TextView nome = adicionar(opcoes, icone, texto, acao);
+        opcoes.removeView(nome);
+        nome.setBackground(null);
+        nome.setPadding(0, 0, 0, 0);
+        nome.setFocusable(false);
+        nome.setClickable(false);
+        nome.setDuplicateParentStateEnabled(true);
+        linha.addView(nome, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f));
+
+        TextView direita = new TextView(contexto);
+        direita.setText(valor);
+        direita.setTypeface(ResourcesCompat.getFont(contexto, R.font.st_inter_black));
+        direita.setIncludeFontPadding(false);
+        direita.setSingleLine(true);
+        direita.setTextSize(TypedValue.COMPLEX_UNIT_PX, res.getDimension(tv ? R.dimen.st_tv_texto_menu_item : R.dimen.st_tablet_texto_menu_item));
+        direita.setTextColor(ContextCompat.getColorStateList(contexto, R.color.st_cor_item_menu));
+        direita.setDuplicateParentStateEnabled(true);
+        LinearLayout.LayoutParams lpValor = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lpValor.setMarginStart(padding);
+        linha.addView(direita, lpValor);
+
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                res.getDimensionPixelSize(tv ? R.dimen.st_tv_menu_item_altura : R.dimen.st_tablet_menu_item_altura));
+        if (opcoes.getChildCount() > 0) {
+            lp.topMargin = res.getDimensionPixelSize(tv ? R.dimen.st_tv_menu_item_espaco : R.dimen.st_tablet_menu_item_espaco);
+        }
+        opcoes.addView(linha, lp);
+        return direita;
+    }
 }
