@@ -39,11 +39,15 @@ import android.database.sqlite.SQLiteOpenHelper;
  *
  * <p>Versão 8 (1.5.1, só acrescenta): {@code album}, o texto da Wikipédia de cada álbum de Músicas (resumo,
  * descrição, situação e quando buscou), pela chave do álbum.
+ *
+ * <p>Versão 9 (2.0, só acrescenta): {@code servidor}, o servidor em casa (IP, compartilhamento, usuário e a
+ * senha cifrada pelo {@link CofreDeSenhas}; {@link Servidores}); {@code baixada}, as músicas do servidor
+ * baixadas para o aparelho (caminho no servidor, caminho local, tamanho e situação; {@code musica.Downloads}).
  */
 public final class BancoStarkTech extends SQLiteOpenHelper {
 
     public static final String NOME = "starktech.db";
-    private static final int VERSAO = 8;
+    private static final int VERSAO = 9;
 
     static final String EDICAO = "edicao";
     static final String CHAVE = "chave";
@@ -66,6 +70,8 @@ public final class BancoStarkTech extends SQLiteOpenHelper {
     static final String PLAYLIST = "playlist";
     static final String PLAYLIST_MUSICA = "playlist_musica";
     static final String ALBUM = "album";
+    static final String SERVIDOR = "servidor";
+    public static final String BAIXADA = "baixada";
 
     private static BancoStarkTech instancia;
 
@@ -88,6 +94,7 @@ public final class BancoStarkTech extends SQLiteOpenHelper {
         criarVersao5(banco);
         criarVersao7(banco);
         criarVersao8(banco);
+        criarVersao9(banco);
     }
 
     @Override
@@ -99,6 +106,24 @@ public final class BancoStarkTech extends SQLiteOpenHelper {
         if (versaoAntiga < 6) criarVersao6(banco);
         if (versaoAntiga < 7) criarVersao7(banco);
         if (versaoAntiga < 8) criarVersao8(banco);
+        if (versaoAntiga < 9) criarVersao9(banco);
+    }
+
+    /** Versão 9 (2.0): o servidor em casa e as músicas baixadas dele. */
+    static void criarVersao9(SQLiteDatabase banco) {
+        banco.execSQL("CREATE TABLE " + SERVIDOR + " ("
+                + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                + "ip TEXT NOT NULL, "
+                + "compartilhamento TEXT NOT NULL, "
+                + "usuario TEXT, "
+                + "senha BLOB, "
+                + "criado INTEGER NOT NULL)");
+        banco.execSQL("CREATE TABLE " + BAIXADA + " ("
+                + "caminho TEXT PRIMARY KEY NOT NULL, "
+                + "local TEXT NOT NULL, "
+                + "tamanho INTEGER NOT NULL DEFAULT 0, "
+                + "situacao INTEGER NOT NULL, "
+                + "alterado INTEGER NOT NULL)");
     }
 
     /** Versão 8 (1.5.1): o texto da Wikipédia dos álbuns de Músicas. */

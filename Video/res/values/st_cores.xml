@@ -78,4 +78,12 @@
     <color name="st_veu_0">#00020617</color>
     <color name="st_cartao_94">#F00F172A</color>
     <color name="st_azul_55">#8C3B82F6</color>
+
+    <!-- Origem do arquivo (2.0, D16): Servidor = st_ciano; Baixada em verde; Aparelho em azul claro -->
+    <color name="st_origem_baixada">#22C55E</color>
+    <color name="st_origem_baixada_14">#2422C55E</color>
+    <color name="st_origem_baixada_50">#8022C55E</color>
+    <color name="st_origem_aparelho">#60A5FA</color>
+    <color name="st_origem_aparelho_14">#2460A5FA</color>
+    <color name="st_origem_aparelho_50">#8060A5FA</color>
 </resources>

@@ -149,3 +149,5 @@ Levantadas pela árvore de dependências do build e pelo POM de cada uma no cach
 | Apache-1.1 | Jakarta ORO | `st_lic_oro.txt` |
 
 CDDL: o código da biblioteca não foi alterado, então basta o aviso e o texto. Servlet API: vale a opção CDDL-1.1.
+
+2.0 (plano 010, 22/11/2026): jcifs-ng e smbj, que já vinham no APK pelo `FileCoreLibrary` do Nova, passam a servir também as telas da StarkTech (servidor em casa: listar, ler, tocar e baixar, por `RawListerFactory`, `FileEditorFactory` e o proxy do Nova). Mesma ligação, sem alteração no código delas e sem biblioteca nova: avisos e obrigações continuam os desta seção e do §3.

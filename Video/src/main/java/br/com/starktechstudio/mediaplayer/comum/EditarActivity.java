@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.Layout;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.method.ArrowKeyMovementMethod;
 import android.text.method.KeyListener;
@@ -79,6 +80,8 @@ import br.com.starktechstudio.mediaplayer.motor.ImagemDoAparelho;
  * as fotos do fanart.tv e da Wikipédia entram nas opções da capa, e "Buscar artista" troca o artista: com
  * um que já está na biblioteca, os shows dos dois ficam juntos ("Queen + Adam Lambert" em "Queen"). O artista
  * escolhido aparece na hora (nome, foto como capa nova e as fotos dele nas opções); só o Salvar grava.
+ * Coletânea de desenhos (ajuste de 22/11/2026): "Mostrar como" — Como filmes (o padrão) ou Como série
+ * (episódios), que a transforma numa série com os desenhos como episódios; vale no Salvar.
  */
 public class EditarActivity extends AppCompatActivity {
 
@@ -160,6 +163,11 @@ public class EditarActivity extends AppCompatActivity {
     /** O que o Salvar grava é "voltar ao TMDB", não o nome da caixa. */
     private boolean coletaneaDoTmdb;
     private ActivityResultLauncher<Intent> escolherColetanea;
+    /** Coletânea de desenhos: "Como filmes" e "Como série (episódios)"; vazia nos outros. */
+    private final List<TextView> segmentosExibicao = new ArrayList<>();
+    private boolean comoSerie;
+    /** A forma da coletânea mudou nesta tela; só vale no Salvar. */
+    private boolean exibicaoMexida;
     private TextView avisoPendente;
     private ActivityResultLauncher<Intent> buscaTmdb;
     /** Imagens copiadas nesta tela: as que não forem salvas são apagadas ao sair. */
@@ -238,7 +246,8 @@ public class EditarActivity extends AppCompatActivity {
             finish();
             return;
         }
-        capaAgrupada = inicial.ehColetanea() || inicial.ehArtista();
+        // Pelo id: a coletânea de desenhos "Como série" é uma série, mas o Editar dela é o da coletânea
+        capaAgrupada = Acervo.ehColetanea(inicial.id) || inicial.ehArtista();
         ehArtista = inicial.ehArtista();
         setContentView(tv ? R.layout.st_tv_editar : R.layout.st_tablet_editar);
         if (!tv) BordasSistema.aplicar(findViewById(R.id.st_editar_corpo), true, true, true, true);
@@ -268,6 +277,7 @@ public class EditarActivity extends AppCompatActivity {
             fundoMexido = false;
             coletaneaMexida = false;
             coletaneaDoTmdb = false;
+            exibicaoMexida = false;
             carregar();
             mostrarPendente();
         });
@@ -414,6 +424,8 @@ public class EditarActivity extends AppCompatActivity {
         if (caixaColetanea != null && !coletaneaMexida) caixaColetanea.setText(t.colecaoNome == null ? "" : t.colecaoNome);
         carregando = false;
         if (!mexidos.contains(Campo.TIPO)) marcarTipo(t.tipo == null ? Tipo.FILME : t.tipo);
+        // Restaurar original volta a "Como filmes"
+        if (!segmentosExibicao.isEmpty() && !exibicaoMexida) marcarExibicao(!restaurar && repositorio.coletaneaComoSerie(id));
         // "Atual" é o que está salvo; a prévia aparece como "nova"
         capaSalva = salvo.referenciaCapa();
         fundoSalvo = salvo.referenciaFundo();
@@ -435,13 +447,17 @@ public class EditarActivity extends AppCompatActivity {
         for (Map.Entry<Campo, EditText> item : campos.entrySet()) {
             if (!pendente || mexidos.contains(item.getKey())) valores.put(item.getKey(), item.getValue().getText().toString());
         }
-        if (!pendente || mexidos.contains(Campo.TIPO)) valores.put(Campo.TIPO, tipo.name());
+        // Coletânea e artista não têm o Tipo na tela: não grava (a coletânea muda entre filmes e série pela escolha, não pelo tipo)
+        if (!capaAgrupada && (!pendente || mexidos.contains(Campo.TIPO))) valores.put(Campo.TIPO, tipo.name());
         // Coletânea só vale em filme e, desde a 1.8.0 (D9), em desenho: "" tira dela; null volta ao que o TMDB diz
         final boolean gravarColetanea = caixaColetanea != null && coletaneaMexida && temColetanea(tipo);
         final String coletanea = gravarColetanea && !coletaneaDoTmdb ? caixaColetanea.getText().toString() : null;
         final String artista = artistaEscolhido;
         final String fotoDoArtista = fotoDoArtistaEscolhido;
-        if (!pendente && !capaMexida && !fundoMexido && artista == null) {
+        // A forma da coletânea refaz a biblioteca: fora da tela, como o TMDB
+        final boolean gravarExibicao = exibicaoMexida;
+        final boolean serie = comoSerie;
+        if (!pendente && !capaMexida && !fundoMexido && artista == null && !gravarExibicao) {
             repositorio.salvarEdicao(id, valores);
             if (gravarColetanea) repositorio.definirColetanea(id, coletanea);
             salvou = true;
@@ -470,6 +486,8 @@ public class EditarActivity extends AppCompatActivity {
                 String capaDoEscolhido = novaCapa != null ? novaCapa : fotoDoArtista == null ? null : "url:" + fotoDoArtista;
                 baixou = repositorio.definirArtista(id, artista, capaDoEscolhido, novoFundo);
             }
+            // Por último: a coletânea passa a ser série (ou volta a filmes) com o nome, a capa e o fundo já gravados
+            if (gravarExibicao) repositorio.definirColetaneaComoSerie(id, serie);
             final boolean imagens = baixou;
             runOnUiThread(() -> {
                 if (!trocou) Toast.makeText(this, R.string.st_tmdb_sem_rede, Toast.LENGTH_LONG).show();
@@ -558,6 +576,7 @@ public class EditarActivity extends AppCompatActivity {
 
         if (capaAgrupada) {
             linha(alvo, 0, espacoH, campo(Campo.TITULO, R.string.st_campo_nome, false));
+            if (Acervo.ehColetaneaDeDesenho(id)) linha(alvo, espacoV, espacoH, exibicaoSegmentada());
             return;
         }
         linha(alvo, 0, espacoH, campo(Campo.TITULO, R.string.st_campo_titulo, false), campo(Campo.TITULO_ORIGINAL, R.string.st_campo_titulo_original, false));
@@ -825,18 +844,7 @@ public class EditarActivity extends AppCompatActivity {
         Tipo[] tipos = {Tipo.FILME, Tipo.SERIE, Tipo.DESENHO, Tipo.SHOW, Tipo.STANDUP};
         for (int i = 0; i < tipos.length; i++) {
             final Tipo opcao = tipos[i];
-            TextView segmento = new TextView(this);
-            segmento.setText(PecasDetalhe.rotuloTipo(opcao));
-            segmento.setSingleLine(true);
-            segmento.setTypeface(ResourcesCompat.getFont(this, R.font.st_inter_extrabold));
-            segmento.setTextSize(TypedValue.COMPLEX_UNIT_PX, res.getDimension(tv ? R.dimen.st_tv_texto_botao : R.dimen.st_tablet_texto_botao));
-            segmento.setTextColor(ContextCompat.getColorStateList(this, R.color.st_cor_segmento));
-            segmento.setBackgroundResource(R.drawable.st_segmento);
-            segmento.setGravity(Gravity.CENTER);
-            segmento.setFocusable(true);
-            segmento.setClickable(true);
-            segmento.setTag(opcao);
-            if (tv) segmento.setForeground(ContextCompat.getDrawable(this, R.drawable.st_foco_tv));
+            TextView segmento = segmento(PecasDetalhe.rotuloTipo(opcao), opcao);
             segmento.setOnClickListener(v -> {
                 mexidos.add(Campo.TIPO);
                 marcarTipo(opcao);
@@ -850,6 +858,66 @@ public class EditarActivity extends AppCompatActivity {
         lp.topMargin = folga;
         celula.addView(grupo, lp);
         return celula;
+    }
+
+    /** Uma opção do segmentado (Tipo, Mostrar como): a escolhida em branco; na TV, o anel de foco. */
+    private TextView segmento(@StringRes int texto, Object tag) {
+        Resources res = getResources();
+        TextView segmento = new TextView(this);
+        segmento.setText(texto);
+        segmento.setSingleLine(true);
+        segmento.setTypeface(ResourcesCompat.getFont(this, R.font.st_inter_extrabold));
+        segmento.setTextSize(TypedValue.COMPLEX_UNIT_PX, res.getDimension(tv ? R.dimen.st_tv_texto_botao : R.dimen.st_tablet_texto_botao));
+        segmento.setTextColor(ContextCompat.getColorStateList(this, R.color.st_cor_segmento));
+        segmento.setBackgroundResource(R.drawable.st_segmento);
+        segmento.setGravity(Gravity.CENTER);
+        segmento.setFocusable(true);
+        segmento.setClickable(true);
+        segmento.setTag(tag);
+        if (tv) segmento.setForeground(ContextCompat.getDrawable(this, R.drawable.st_foco_tv));
+        return segmento;
+    }
+
+    /**
+     * Coletânea de desenhos (ajuste de 22/11/2026), "Mostrar como", no visual do Tipo e em ordem alfabética:
+     * Como filmes (o padrão) · Como série (episódios).
+     */
+    private View exibicaoSegmentada() {
+        Resources res = getResources();
+        LinearLayout celula = new LinearLayout(this);
+        celula.setOrientation(LinearLayout.VERTICAL);
+        celula.addView(rotulo(R.string.st_campo_exibicao));
+
+        LinearLayout grupo = new LinearLayout(this);
+        grupo.setOrientation(LinearLayout.HORIZONTAL);
+        grupo.setBackgroundResource(R.drawable.st_campo_texto);
+        int folga = res.getDimensionPixelSize(tv ? R.dimen.st_tv_detalhe_dados_rotulo_espaco : R.dimen.st_tablet_dados_rotulo_espaco);
+        grupo.setPadding(folga, folga, folga, folga);
+        int altura = res.getDimensionPixelSize(tv ? R.dimen.st_tv_segmento_altura : R.dimen.st_tablet_segmento_altura);
+        int[] textos = {R.string.st_exibicao_filmes, R.string.st_exibicao_serie};
+        for (int i = 0; i < textos.length; i++) {
+            final boolean serie = i == 1;
+            TextView segmento = segmento(textos[i], serie);
+            // Tablet em pé: a coluna fica estreita para "Como série (episódios)"
+            segmento.setEllipsize(TextUtils.TruncateAt.END);
+            segmento.setOnClickListener(v -> {
+                exibicaoMexida = true;
+                marcarExibicao(serie);
+            });
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, altura, 1f);
+            if (i > 0) lp.setMarginStart(folga);
+            grupo.addView(segmento, lp);
+            segmentosExibicao.add(segmento);
+        }
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.topMargin = folga;
+        celula.addView(grupo, lp);
+        return celula;
+    }
+
+    private void marcarExibicao(boolean serie) {
+        comoSerie = serie;
+        for (TextView segmento : segmentosExibicao) segmento.setSelected(Boolean.valueOf(serie).equals(segmento.getTag()));
     }
 
     private void marcarTipo(Tipo novo) {

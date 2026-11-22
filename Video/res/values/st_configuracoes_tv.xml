@@ -3,9 +3,31 @@
 <!-- Configurações em seções e forma da legenda (plano 004, etapa 10; D8, D12). Só pt-BR (D4). -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:locale="pt-BR">
 
+    <!-- Grupos da lista (ajuste de 21/11/2026): Biblioteca de mídia em destaque no topo; os outros em ordem alfabética.
+         O grupo Músicas usa st_cfg_grupo_musicas -->
+    <string name="st_cfg_titulo_biblioteca_midia">Biblioteca de mídia</string>
+    <string name="st_cfg_titulo_biblioteca_midia_dica">Onde estão os vídeos e as músicas: as pastas e o servidor em casa</string>
+    <string name="st_cfg_titulo_aparencia">Aparência e navegação</string>
+    <string name="st_cfg_titulo_reproducao">Reprodução</string>
+    <string name="st_cfg_titulo_sistema">Sistema</string>
+    <string name="st_cfg_adicionar_servidor_dica">Vídeos e músicas de um computador da rede de casa, pelo Samba</string>
+
+    <!-- Painel da marca da TV (ajuste de 21/11/2026): as novidades valem só para a versão abaixo; outra versão mostra
+         st_versao_sem_novidades. A cada versão publicada, trocar as duas -->
+    <string name="st_cfg_novidades_versao" translatable="false">2.0.0</string>
+    <string-array name="st_cfg_novidades">
+        <item>Servidor em casa pelo Samba</item>
+        <item>Vídeos tocam pela rede</item>
+        <item>Baixar músicas para ouvir sem rede, no tablet e no celular</item>
+        <item>Selo de origem nas músicas</item>
+        <item>Configurações organizadas em seções</item>
+        <item>Detalhes sem o menu no topo</item>
+        <item>Tempo total nos detalhes de Músicas</item>
+    </string-array>
+
     <!-- Seções -->
     <string name="st_cfg_grupo_biblioteca">Biblioteca</string>
-    <string name="st_cfg_grupo_biblioteca_dica">Pastas, atualização e imagens</string>
+    <string name="st_cfg_grupo_biblioteca_dica">Atualização e pasta de imagens</string>
     <string name="st_cfg_grupo_legendas">Legendas</string>
     <string name="st_cfg_grupo_legendas_dica">Idioma, tamanho e forma. Legenda ASS mantém o estilo do arquivo e só segue o tamanho</string>
     <string name="st_cfg_grupo_player">Player</string>
@@ -20,6 +42,20 @@
     <string name="st_cfg_grupo_app_dica">Uso, créditos e versão</string>
     <string name="st_cfg_grupo_navegacao">Navegação</string>
     <string name="st_cfg_grupo_navegacao_dica">Quais abas aparecem no menu</string>
+    <string name="st_cfg_grupo_musicas">Músicas</string>
+    <string name="st_cfg_grupo_musicas_dica">Downloads do servidor em casa</string>
+    <string name="st_cfg_onde_baixar">Onde baixar</string>
+    <string name="st_cfg_onde_baixar_dica">Pasta Music/StarkTech Media Player. Fica depois de desinstalar o app</string>
+    <string name="st_cfg_espaco_baixadas">Espaço das baixadas</string>
+    <string name="st_cfg_espaco_baixadas_dica">As músicas baixadas do servidor em casa</string>
+    <string name="st_cfg_remover_baixadas">Remover todas as baixadas</string>
+    <string name="st_cfg_remover_baixadas_dica">As cópias saem do aparelho; as músicas continuam no servidor</string>
+    <string name="st_cfg_remover_baixadas_titulo">Remover todas as baixadas?</string>
+    <string name="st_cfg_baixadas_removidas">Baixadas removidas</string>
+    <plurals name="st_cfg_n_baixadas">
+        <item quantity="one">%2$s · %1$d música</item>
+        <item quantity="other">%2$s · %1$d músicas</item>
+    </plurals>
     <string name="st_cfg_navegacao_dica">Mostra ou esconde a aba no menu</string>
 
     <!-- Biblioteca -->

@@ -2,12 +2,15 @@
 
 package br.com.starktechstudio.mediaplayer.motor;
 
+import android.media.MediaDataSource;
 import android.media.MediaMetadataRetriever;
 
 import androidx.annotation.Nullable;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,6 +19,9 @@ import java.util.regex.Pattern;
  * duração, lidos pelo Android ({@link MediaMetadataRetriever}), e a capa gravada no arquivo. O que a
  * tag não traz vem do nome: "Artista / Álbum / 01 - Faixa.mp3" dentro da pasta de Músicas; arquivo
  * solto, "Artista - Faixa.mp3".
+ *
+ * <p>2.0: a música do servidor em casa é lida por trechos ({@link MediaDataSource} sobre a leitura do Nova a
+ * partir de um ponto), sem baixar o arquivo; a capa gravada só é pedida quando a pasta não tem imagem.
  */
 public final class TagsMusica {
 
@@ -53,17 +59,7 @@ public final class TagsMusica {
         MediaMetadataRetriever leitor = new MediaMetadataRetriever();
         try {
             leitor.setDataSource(arquivo.getAbsolutePath());
-            tags.titulo = limpo(leitor.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE));
-            tags.artista = limpo(leitor.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST));
-            tags.artistaAlbum = limpo(leitor.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST));
-            tags.album = limpo(leitor.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM));
-            tags.faixa = numero(leitor.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CD_TRACK_NUMBER));
-            tags.disco = numero(leitor.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DISC_NUMBER));
-            tags.ano = ano(leitor.extractMetadata(MediaMetadataRetriever.METADATA_KEY_YEAR));
-            if (tags.ano == null) tags.ano = ano(leitor.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE));
-            tags.genero = limpo(leitor.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE));
-            tags.duracaoMs = numeroLongo(leitor.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
-            tags.capa = leitor.getEmbeddedPicture();
+            lerTags(leitor, tags, true);
         } catch (RuntimeException e) {
             // arquivo que o Android não abre: fica só o que vem do nome
         } finally {
@@ -75,6 +71,109 @@ public final class TagsMusica {
         }
         completar(tags, relativo);
         return tags;
+    }
+
+    /**
+     * Música do servidor em casa (2.0), lida por trechos; {@code comCapa} false = sem a capa gravada (a pasta tem
+     * imagem, que vale antes).
+     */
+    public static Tags lerDoServidor(ArquivosDaBiblioteca arquivos, String caminho, long tamanho, String relativo, boolean comCapa) {
+        Tags tags = new Tags();
+        MediaMetadataRetriever leitor = new MediaMetadataRetriever();
+        FonteDoServidor fonte = new FonteDoServidor(arquivos, caminho, tamanho);
+        try {
+            leitor.setDataSource(fonte);
+            lerTags(leitor, tags, comCapa);
+        } catch (RuntimeException e) {
+            // servidor saiu no meio ou arquivo que o Android não abre: fica só o que vem do nome
+        } finally {
+            try {
+                leitor.release();
+            } catch (IOException | RuntimeException e) {
+                // nada a fazer
+            }
+            fonte.close();
+        }
+        completar(tags, relativo);
+        return tags;
+    }
+
+    private static void lerTags(MediaMetadataRetriever leitor, Tags tags, boolean comCapa) {
+        tags.titulo = limpo(leitor.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE));
+        tags.artista = limpo(leitor.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST));
+        tags.artistaAlbum = limpo(leitor.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST));
+        tags.album = limpo(leitor.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM));
+        tags.faixa = numero(leitor.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CD_TRACK_NUMBER));
+        tags.disco = numero(leitor.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DISC_NUMBER));
+        tags.ano = ano(leitor.extractMetadata(MediaMetadataRetriever.METADATA_KEY_YEAR));
+        if (tags.ano == null) tags.ano = ano(leitor.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE));
+        tags.genero = limpo(leitor.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE));
+        tags.duracaoMs = numeroLongo(leitor.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
+        if (comCapa) tags.capa = leitor.getEmbeddedPicture();
+    }
+
+    /**
+     * O arquivo do servidor por trechos: mantém uma leitura aberta e só abre outra quando o leitor pula para
+     * trás ou para longe (cada abertura é um pedido ao servidor).
+     */
+    static final class FonteDoServidor extends MediaDataSource {
+        /** Pulo para a frente até aqui: lê e descarta em vez de abrir de novo. */
+        private static final long PULO_SEM_REABRIR = 256 * 1024L;
+        private static final int BUFFER = 64 * 1024;
+
+        private final ArquivosDaBiblioteca arquivos;
+        private final String caminho;
+        private final long tamanho;
+        private InputStream entrada;
+        private long posicao;
+
+        FonteDoServidor(ArquivosDaBiblioteca arquivos, String caminho, long tamanho) {
+            this.arquivos = arquivos;
+            this.caminho = caminho;
+            this.tamanho = tamanho;
+        }
+
+        @Override
+        public synchronized int readAt(long ponto, byte[] destino, int inicio, int quantos) throws IOException {
+            if (quantos <= 0) return 0;
+            if (tamanho > 0 && ponto >= tamanho) return -1;
+            if (entrada == null || ponto < posicao || ponto - posicao > PULO_SEM_REABRIR) {
+                fechar();
+                entrada = new BufferedInputStream(arquivos.abrir(caminho, ponto), BUFFER);
+                posicao = ponto;
+            }
+            while (posicao < ponto) {
+                long pulados = entrada.skip(ponto - posicao);
+                if (pulados <= 0) {
+                    if (entrada.read() < 0) return -1;
+                    pulados = 1;
+                }
+                posicao += pulados;
+            }
+            int lidos = entrada.read(destino, inicio, quantos);
+            if (lidos > 0) posicao += lidos;
+            return lidos;
+        }
+
+        @Override
+        public long getSize() {
+            return tamanho > 0 ? tamanho : -1;
+        }
+
+        @Override
+        public synchronized void close() {
+            fechar();
+        }
+
+        private void fechar() {
+            if (entrada == null) return;
+            try {
+                entrada.close();
+            } catch (IOException e) {
+                // nada a fazer
+            }
+            entrada = null;
+        }
     }
 
     /**

@@ -2,6 +2,7 @@
 
 package br.com.starktechstudio.mediaplayer.motor;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -267,6 +268,40 @@ public class ClassificadorTest {
 
         long shows = itens.stream().filter(i -> i.tipo == Classificador.Tipo.SHOW).count();
         assertEquals("a subpasta cadastrada fica com o tipo dela", 1, shows);
+    }
+
+    @Test
+    public void coletaneaComoSerie_numeroDoNomeDoArquivo() {
+        assertEquals("número na frente", 3, Classificador.numeroNoNome("03 - A flauta mágica.mkv").numero);
+        assertEquals("A flauta mágica", Classificador.numeroNoNome("03 - A flauta mágica.mkv").nome);
+        assertEquals("S01E02", 2, Classificador.numeroNoNome("Os Smurfs S01E02.mkv").numero);
+        assertEquals("1x05", 5, Classificador.numeroNoNome("Os Smurfs 1x05 - O ovo.mp4").numero);
+        assertEquals("O ovo", Classificador.numeroNoNome("Os Smurfs 1x05 - O ovo.mp4").nome);
+        assertEquals("E07", 7, Classificador.numeroNoNome("Os.Smurfs.E07.mkv").numero);
+        assertEquals("Ep 2", 2, Classificador.numeroNoNome("Os Smurfs Ep 2.mkv").numero);
+        assertEquals("Episódio 12", 12, Classificador.numeroNoNome("Os Smurfs - Episódio 12.mkv").numero);
+        assertEquals("Parte 4", 4, Classificador.numeroNoNome("Os Smurfs Parte 4.avi").numero);
+        assertEquals("sem número", -1, Classificador.numeroNoNome("Os Smurfs e a Flauta Mágica.mkv").numero);
+        assertEquals("o ano não é número de episódio", -1, Classificador.numeroNoNome("1983 - Os Smurfs.mkv").numero);
+        assertEquals("o número no meio do título também não", -1, Classificador.numeroNoNome("Os Smurfs 2 (2013).mkv").numero);
+    }
+
+    @Test
+    public void coletaneaComoSerie_semNumeroPelaOrdemAlfabetica() {
+        // Na ordem em que chegam (por ano, como na coletânea), numerados pela ordem alfabética dos arquivos
+        List<String> arquivos = Arrays.asList("Smurfs - O Pântano.mkv", "Os Smurfs e a Flauta Mágica.mkv",
+                "Smurfs - A Aldeia Perdida.mkv", "os smurfs - natal.mkv");
+        assertArrayEquals(new int[]{4, 1, 3, 2}, Classificador.numerarEpisodios(arquivos));
+        // Acento e maiúscula não mudam a ordem
+        assertArrayEquals(new int[]{2, 1}, Classificador.numerarEpisodios(Arrays.asList("Érica.mkv", "abelha.mkv")));
+        assertArrayEquals(new int[0], Classificador.numerarEpisodios(Arrays.<String>asList()));
+    }
+
+    @Test
+    public void coletaneaComoSerie_comNumeroOsSemNumeroDepois() {
+        // O número do nome vale; os sem número vêm depois do maior, em ordem alfabética
+        List<String> arquivos = Arrays.asList("02 - O ovo.mkv", "Zebra.mkv", "01 - A flauta.mkv", "Abelha.mkv");
+        assertArrayEquals(new int[]{2, 4, 1, 3}, Classificador.numerarEpisodios(arquivos));
     }
 
     private static void criar(File raiz, String relativo) throws IOException {

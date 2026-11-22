@@ -52,6 +52,8 @@
     <!-- Used for scanning and trakt -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" android:minSdkVersion="34"/>
+    <!-- StarkTech 2.0: músicas do servidor em casa baixadas em segundo plano (ServicoDownload, D13) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" android:minSdkVersion="34"/>
 
     <!--<uses-permission android:name="android.permission.WRITE_SETTINGS" />-->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
@@ -234,6 +236,11 @@
             android:name="br.com.starktechstudio.mediaplayer.musica.ServicoMusica"
             android:exported="false"
             android:foregroundServiceType="mediaPlayback" />
+        <!-- Downloads das músicas do servidor em casa (2.0, D13): notificação com o progresso e Cancelar -->
+        <service
+            android:name="br.com.starktechstudio.mediaplayer.musica.ServicoDownload"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
         <!-- Legenda rápida (1.5): atraso e tamanho, sobre o player -->
         <activity
             android:name="br.com.starktechstudio.mediaplayer.comum.AjusteLegendaActivity"
@@ -259,6 +266,12 @@
             android:name="br.com.starktechstudio.mediaplayer.comum.NavegadorPastasActivity"
             android:exported="false"
             android:theme="@style/Theme.StarkTech.Menu" />
+        <!-- Adicionar e Editar servidor em casa (2.0, D6) -->
+        <activity
+            android:name="br.com.starktechstudio.mediaplayer.comum.ServidorActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StarkTech.Menu"
+            android:windowSoftInputMode="adjustResize|stateHidden" />
         <activity
             android:name="br.com.starktechstudio.mediaplayer.tablet.SinopseActivity"
             android:exported="false"
@@ -318,7 +331,7 @@
             android:screenOrientation="sensorLandscape"
             android:theme="@style/Theme.StarkTech.Tablet" />
 
-        <!-- Coletânea e artista: a tela comum é a do tablet; a da TV acrescenta o topo com as pílulas -->
+        <!-- Coletânea e artista: a tela comum é a do tablet; a da TV, com o topo só com a marca e o relógio (2.0) -->
         <activity
             android:name="br.com.starktechstudio.mediaplayer.comum.ColetaneaArtistaActivity"
             android:exported="false"

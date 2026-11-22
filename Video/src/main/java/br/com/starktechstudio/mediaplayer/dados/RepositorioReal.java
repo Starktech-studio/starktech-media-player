@@ -64,6 +64,7 @@ import br.com.starktechstudio.mediaplayer.dados.Modelo.TipoPasta;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Titulo;
 import br.com.starktechstudio.mediaplayer.motor.Acervo;
 import br.com.starktechstudio.mediaplayer.motor.AcervoMusicas;
+import br.com.starktechstudio.mediaplayer.motor.ArquivosDaBiblioteca;
 import br.com.starktechstudio.mediaplayer.motor.ArquivosDoAparelho;
 import br.com.starktechstudio.mediaplayer.motor.BuscaArtista;
 import br.com.starktechstudio.mediaplayer.motor.BuscaTmdb;
@@ -72,10 +73,13 @@ import br.com.starktechstudio.mediaplayer.motor.Classificador;
 import br.com.starktechstudio.mediaplayer.motor.Edicoes;
 import br.com.starktechstudio.mediaplayer.motor.Faixas;
 import br.com.starktechstudio.mediaplayer.motor.ImagemDoAparelho;
+import br.com.starktechstudio.mediaplayer.motor.EstadoServidor;
 import br.com.starktechstudio.mediaplayer.motor.Pastas;
+import br.com.starktechstudio.mediaplayer.motor.Servidores;
 import br.com.starktechstudio.mediaplayer.motor.Varredura;
 import br.com.starktechstudio.mediaplayer.motor.VarreduraMusicas;
 import br.com.starktechstudio.mediaplayer.motor.WikipediaArtista;
+import br.com.starktechstudio.mediaplayer.musica.Downloads;
 
 /**
  * Biblioteca real (F3): as pastas escolhidas em Pastas ({@link Pastas}), varridas e classificadas
@@ -87,6 +91,11 @@ import br.com.starktechstudio.mediaplayer.motor.WikipediaArtista;
  * entram na hora da leitura. Varredura e TMDB rodam numa thread só, em ordem (lista das pastas, TMDB,
  * leitura dos arquivos, quadros), ao abrir o app, em "Atualizar biblioteca", ao mudar uma pasta e ao
  * ligar um HD; HD desligado esconde os títulos dele.
+ *
+ * <p>2.0: servidor em casa ({@link Servidores}) com as pastas em {@code servidor:<id>/…}, lidas pela camada dos
+ * arquivos ({@link ArquivosDaBiblioteca}); ligado ou não pelo estado guardado ({@link EstadoServidor}), sem rede
+ * na tela. Servidor fora esconde os títulos dele, como o HD; quando volta, varre (D8). Voltar ao app antes de
+ * 30 min do último olhar no servidor varre só o aparelho.
  */
 public final class RepositorioReal implements RepositorioBiblioteca {
 
@@ -102,6 +111,8 @@ public final class RepositorioReal implements RepositorioBiblioteca {
     private static final int VARREDURAS_DE_NOVO = 3;
     /** Voltar ao app varre de novo se o HD mudou ou se a última varredura foi há mais que isto. */
     private static final long CONFERIR_MS = 60 * 1000L;
+    /** D8: voltar ao app só varre o servidor em casa depois disto da última vez. */
+    private static final long CONFERIR_SERVIDOR_MS = 30 * 60 * 1000L;
     private static final int DESTAQUES = 5;
     private static final String LOG = "StarkTechVarredura";
     private static final int RECENTES = 15;
@@ -117,6 +128,9 @@ public final class RepositorioReal implements RepositorioBiblioteca {
     private final Acervo acervo;
     private final Pastas pastas;
     private final Edicoes edicoes;
+    private final Servidores servidores;
+    private final EstadoServidor estadoServidor;
+    private final ArquivosDaBiblioteca arquivos;
     private final Map<String, Acervo.Estado> estados;
     private final ExecutorService trabalho = Executors.newSingleThreadExecutor(r -> new Thread(r, "StarkTechBiblioteca"));
     /** Leitura de um vídeo aberto na tela, sem esperar a fila da varredura. */
@@ -155,6 +169,12 @@ public final class RepositorioReal implements RepositorioBiblioteca {
     private int varredurasDeNovo;
     private int atualizadosNaRodada;
     private volatile long ultimaVarredura;
+    /** Última rodada que olhou o servidor em casa (D8). */
+    private volatile long ultimaVarreduraServidor;
+    /** A próxima rodada deixa o servidor como está (voltar ao app antes de 30 min). */
+    private volatile boolean pularServidor;
+    /** A rodada ainda vai listar o servidor: o aviso de que ele voltou não pede outra. */
+    private volatile boolean vaiListarServidor;
     /** Andamento da atualização: passo (0 TMDB, 1 leitura, 2 quadros) e quanto dele já foi. */
     private volatile int passo;
     private volatile int feitosNoPasso;
@@ -181,10 +201,19 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         acervo = Acervo.de(app);
         pastas = Pastas.de(app);
         edicoes = Edicoes.de(app);
+        servidores = Servidores.de(app);
+        // A senha de cada servidor vai para a memória do Nova antes de qualquer leitura
+        servidores.entregarTodas();
+        estadoServidor = EstadoServidor.de(app);
+        arquivos = ArquivosDaBiblioteca.de(app);
         apelidos = edicoes.doCampo(Edicoes.Campo.ARTISTA);
         estados = new ConcurrentHashMap<>(acervo.estados());
         retrato = montar();
         ouvirHd();
+        ouvirServidor();
+        // D10: ao abrir, as músicas baixadas são reconhecidas de volta; a fila que parou continua
+        Downloads.de(app).reconhecer();
+        Downloads.de(app).retomar();
     }
 
     // =====================================================================
@@ -210,9 +239,15 @@ public final class RepositorioReal implements RepositorioBiblioteca {
     private Set<String> pastasMontadas() {
         Set<String> montadas = new HashSet<>();
         for (Pastas.Pasta p : pastas.lista()) {
-            if (new File(p.caminho).isDirectory()) montadas.add(p.caminho);
+            if (pastaLigada(p.caminho)) montadas.add(p.caminho);
         }
         return montadas;
+    }
+
+    /** Do aparelho: a pasta abre; do servidor: o estado guardado (sem rede). */
+    private boolean pastaLigada(String pasta) {
+        if (ArquivosDaBiblioteca.local(pasta)) return new File(pasta).isDirectory();
+        return estadoServidor.conectado(Servidores.idDo(pasta)) && servidores.doCaminho(pasta) != null;
     }
 
     private Retrato montar() {
@@ -271,6 +306,7 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         for (Map.Entry<String, List<Acervo.Video>> serie : porSerie.entrySet()) {
             montarSerie(r, serie.getKey(), serie.getValue());
         }
+        montarColetaneasComoSerie(r);
         return r;
     }
 
@@ -333,7 +369,20 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         t.chaveNome = Acervo.chaveNome(v);
         t.artista = v.artista;
         t.grupo = v.grupo;
+        t.origem = origemDoArquivo(v.caminho);
         return t;
+    }
+
+    /** D16: servidor em casa ou aparelho (vídeo não é baixado). */
+    private static ModeloMusicas.Origem origemDoArquivo(String caminho) {
+        return ArquivosDaBiblioteca.local(caminho) ? ModeloMusicas.Origem.APARELHO : ModeloMusicas.Origem.SERVIDOR;
+    }
+
+    /** D16: a origem da maioria (série: os episódios; coletânea e artista: os títulos). */
+    private static ModeloMusicas.Origem origemDaMaioria(List<Titulo> titulos) {
+        int servidor = 0;
+        for (Titulo t : titulos) if (t.origem == ModeloMusicas.Origem.SERVIDOR) servidor++;
+        return ModeloMusicas.daMaioria(titulos.size() - servidor, 0, servidor);
     }
 
     private void montarSerie(Retrato r, String chave, List<Acervo.Video> episodiosDaSerie) {
@@ -343,7 +392,9 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         long adicionado = 0;
         long modificado = 0;
         long somaDuracao = 0;
+        int doServidor = 0;
         for (Acervo.Video v : episodiosDaSerie) {
+            if (!ArquivosDaBiblioteca.local(v.caminho)) doServidor++;
             Acervo.Tmdb doEpisodio = achado(r.tmdb.get(v.caminho));
             Episodio e = new Episodio();
             e.id = v.caminho;
@@ -396,6 +447,7 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         t.generos = dados != null && dados.generos != null ? dados.generos : "";
         t.genero = primeiro(t.generos);
         t.qualidade = qualidade(primeiro);
+        t.origem = ModeloMusicas.daMaioria(episodiosDaSerie.size() - doServidor, 0, doServidor);
         t.sinopse = dados != null && dados.sinopse != null ? dados.sinopse : "";
         int cor = corDe(chave);
         t.corCapa = cor;
@@ -415,6 +467,87 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         r.titulos.put(chave, t);
         for (Temporada temporada : temporadas) {
             for (Episodio e : temporada.episodios) e.nomeSerie = t.titulo;
+        }
+    }
+
+    /**
+     * Coletâneas de desenhos "Como série (episódios)" (ajuste de 22/11/2026): os desenhos dela saem da aba como
+     * filmes e viram os episódios de uma série de desenho (Temporada 1), com o id da coletânea — o nome, a capa,
+     * o fundo e o favorito dela continuam valendo. Só com 2 ou mais desenhos, como a capa da coletânea.
+     */
+    private void montarColetaneasComoSerie(Retrato r) {
+        Map<String, String> escolhas = edicoes.doCampo(Edicoes.Campo.EXIBICAO);
+        if (escolhas.isEmpty()) return;
+        for (Map.Entry<String, List<Titulo>> grupo : porColetanea(doTipo(r, Tipo.DESENHO)).entrySet()) {
+            if (!Edicoes.COMO_SERIE.equals(escolhas.get(grupo.getKey())) || grupo.getValue().size() < FILMES_NA_COLETANEA) continue;
+            montarColetaneaComoSerie(r, grupo.getKey(), grupo.getValue());
+        }
+    }
+
+    /**
+     * A série da coletânea: o número de cada episódio vem do nome do arquivo e, sem ele, da ordem alfabética
+     * ({@link Classificador#numerarEpisodios}); o nome, o que vem depois do número ou, sem ele, o do desenho.
+     */
+    private void montarColetaneaComoSerie(Retrato r, String id, List<Titulo> desenhos) {
+        List<String> arquivos = new ArrayList<>();
+        for (Titulo d : desenhos) arquivos.add(new File(d.caminho).getName());
+        int[] numeros = Classificador.numerarEpisodios(arquivos);
+        List<Episodio> episodios = new ArrayList<>();
+        long somaDuracao = 0;
+        for (int i = 0; i < desenhos.size(); i++) {
+            Titulo d = desenhos.get(i);
+            Classificador.NumeroNoNome doNome = Classificador.numeroNoNome(arquivos.get(i));
+            Episodio e = new Episodio();
+            e.id = d.id;
+            e.caminho = d.caminho;
+            e.idSerie = id;
+            e.temporada = 1;
+            e.numero = numeros[i];
+            e.nome = doNome.nome != null && !d.editadosAMao.contains(Campo.TITULO) ? doNome.nome : d.titulo;
+            e.arquivo = arquivos.get(i);
+            e.duracaoSegundos = d.duracaoSegundos;
+            e.duracaoMin = d.duracaoMin;
+            e.corMiniatura = CORES[(e.numero + CORES.length - 1) % 4];
+            e.miniatura = d.quadro;
+            episodios.add(e);
+            somaDuracao += e.duracaoSegundos;
+        }
+        Collator alfabetica = collator();
+        Collections.sort(episodios, (a, b) -> {
+            int c = Integer.compare(a.numero, b.numero);
+            return c != 0 ? c : alfabetica.compare(a.arquivo, b.arquivo);
+        });
+
+        Titulo primeiro = desenhos.get(0);
+        Titulo t = capaVazia(id, Tipo.SERIE, primeiro.colecaoNome);
+        t.desenho = true;
+        t.colecaoNome = primeiro.colecaoNome;
+        t.ano = primeiro.ano;
+        t.generos = primeiro.generos;
+        t.genero = primeiro.genero;
+        t.qualidade = primeiro.qualidade;
+        t.duracaoSegundos = (int) (somaDuracao / desenhos.size());
+        t.duracaoMin = Math.max(t.duracaoSegundos > 0 ? 1 : 0, Math.round(t.duracaoSegundos / 60f));
+        t.numeroTemporadas = 1;
+        t.numeroEpisodios = episodios.size();
+        t.quadro = primeiro.quadro;
+        for (Titulo d : desenhos) {
+            if (t.capaTmdb == null) t.capaTmdb = d.colecaoCapa;
+            if (t.fundoTmdb == null) t.fundoTmdb = d.colecaoFundo;
+            t.adicionado = Math.max(t.adicionado, d.adicionado);
+            t.modificado = Math.max(t.modificado, d.modificado);
+            r.titulos.remove(d.id);
+        }
+        if (t.capaTmdb == null) t.capaTmdb = primeiro.imagemCapa();
+        if (t.fundoTmdb == null) t.fundoTmdb = primeiro.imagemFundo();
+        t.origem = origemDaMaioria(desenhos);
+        r.titulos.put(id, t);
+        r.temporadas.put(id, Collections.singletonList(new Temporada(1, episodios)));
+        // O nome que vale (o editado na coletânea), para o player e o Continuar assistindo
+        String nomeDaSerie = comEstado(r, t).titulo;
+        for (Episodio e : episodios) {
+            e.nomeSerie = nomeDaSerie;
+            r.episodios.put(e.id, e);
         }
     }
 
@@ -663,7 +796,7 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         if (!quadrosPedidos.add(id)) return;
         agora.execute(() -> {
             try {
-                if (!new File(id).isFile()) quadrosPedidos.remove(id);
+                if (!arquivos.disponivel(id)) quadrosPedidos.remove(id);
                 else if (Varredura.quadroAgora(app, id)) reconstruirENotificar();
             } catch (RuntimeException e) {
                 // fica a capa ou o bloco de cor
@@ -783,8 +916,13 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         return Acervo.ehColetaneaDeDesenho(id) ? Tipo.DESENHO : Tipo.FILME;
     }
 
-    /** Capa de coletânea ou de artista; nula se não existe (coletânea com menos de 2, artista sem show). */
+    /**
+     * Capa de coletânea ou de artista; nula se não existe (coletânea com menos de 2, artista sem show). A coletânea
+     * de desenhos "Como série" é a série montada no retrato ({@link #montarColetaneasComoSerie}).
+     */
     private Titulo capaMontada(Retrato r, String id, boolean comEdicao) {
+        Titulo comoSerie = r.titulos.get(id);
+        if (comoSerie != null) return comEstado(r, comoSerie, comEdicao);
         if (Acervo.ehColetanea(id)) {
             List<Titulo> filmes = porColetanea(doTipo(r, tipoDaColetanea(id))).get(id);
             return filmes == null || filmes.size() < FILMES_NA_COLETANEA ? null : capaDeColetanea(r, id, filmes, comEdicao);
@@ -858,6 +996,7 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         }
         if (t.capaTmdb == null) t.capaTmdb = primeiro.imagemCapa();
         if (t.fundoTmdb == null) t.fundoTmdb = primeiro.imagemFundo();
+        t.origem = origemDaMaioria(filmes);
         return comEstado(r, t, comEdicao);
     }
 
@@ -872,7 +1011,7 @@ public final class RepositorioReal implements RepositorioBiblioteca {
 
     /**
      * Aba Desenhos (1.8.0, D7 e D9), em ordem alfabética: os filmes de desenho soltos, as capas das coletâneas
-     * de desenhos e os desenhos com episódios (séries da pasta Desenhos).
+     * de desenhos e os desenhos com episódios (séries da pasta Desenhos e coletâneas "Como série").
      */
     @Override
     public List<Titulo> desenhos() {
@@ -913,6 +1052,10 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         for (Tipo tipo : new Tipo[]{Tipo.FILME, Tipo.DESENHO}) {
             for (List<Titulo> grupo : porColetanea(doTipo(retrato, tipo)).values()) unicos.add(grupo.get(0).colecaoNome);
         }
+        // As de desenhos mostradas como série (ajuste de 22/11/2026): os desenhos dela viraram episódios
+        for (Titulo t : retrato.titulos.values()) {
+            if (t.tipo == Tipo.SERIE && Acervo.ehColetanea(t.id) && t.colecaoNome != null) unicos.add(t.colecaoNome);
+        }
         List<String> nomes = new ArrayList<>(unicos);
         Collections.sort(nomes, collator());
         return nomes;
@@ -922,7 +1065,30 @@ public final class RepositorioReal implements RepositorioBiblioteca {
     public void definirColetanea(String idFilme, String nome) {
         if (idFilme == null) return;
         edicoes.salvar(idFilme, nomeComum(idFilme), Edicoes.Campo.COLECAO, nome == null ? null : nome.trim());
-        notificar();
+        avisarDaEdicao();
+    }
+
+    @Override
+    public boolean coletaneaComoSerie(String idColetanea) {
+        return Acervo.ehColetaneaDeDesenho(idColetanea)
+                && Edicoes.COMO_SERIE.equals(edicoes.ler(idColetanea).get(Edicoes.Campo.EXIBICAO));
+    }
+
+    @Override
+    public void definirColetaneaComoSerie(String idColetanea, boolean comoSerie) {
+        if (!Acervo.ehColetaneaDeDesenho(idColetanea) || comoSerie == coletaneaComoSerie(idColetanea)) return;
+        edicoes.salvar(idColetanea, Edicoes.Campo.EXIBICAO, comoSerie ? Edicoes.COMO_SERIE : null);
+        // Na hora: a tela que volta (a da coletânea ou a da série) já lê a outra forma
+        reconstruirENotificar();
+    }
+
+    /**
+     * Edição que pode mudar quem está numa coletânea mostrada como série (a coletânea, o tipo, o nome): com
+     * alguma assim, refaz o retrato fora da tela antes de avisar; sem nenhuma, só avisa.
+     */
+    private void avisarDaEdicao() {
+        if (edicoes.doCampo(Edicoes.Campo.EXIBICAO).isEmpty()) notificar();
+        else agora.execute(this::reconstruirENotificar);
     }
 
     /** Os shows do artista ({@code id} de {@link Acervo#chaveArtista}). */
@@ -942,6 +1108,7 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         t.numeroShows = shows.size();
         t.todosAssistidos = true;
         for (Titulo show : shows) t.todosAssistidos &= show.assistido;
+        t.origem = origemDaMaioria(shows);
         Acervo.Artista dados = r.artistas.get(id);
         if (dados != null) {
             t.capaTmdb = existe(dados.foto);
@@ -1083,7 +1250,9 @@ public final class RepositorioReal implements RepositorioBiblioteca {
                 + (idiomas.size() > LEGENDAS_NO_RESUMO ? "  +" + (idiomas.size() - LEGENDAS_NO_RESUMO) : "");
         String capitulos = v.capitulos.vazio() ? "Sem capítulos" : v.capitulos.quantidade() + (temNome(v.capitulos) ? ", com nome" : "");
         Pastas.Pasta pasta = r.pastas.get(v.pasta);
-        String origem = pasta != null && pasta.origem == Pastas.Origem.HD_EXTERNO ? "HD externo (USB)" : "Armazenamento interno";
+        // D16: o texto completo da origem
+        String origem = pasta == null ? "Memória interna" : pasta.origem == Pastas.Origem.SERVIDOR ? "Servidor em casa"
+                : pasta.origem == Pastas.Origem.HD_EXTERNO ? "HD externo" : "Memória interna";
 
         List<String> chips = new ArrayList<>();
         List<String> curtos = new ArrayList<>();
@@ -1484,12 +1653,14 @@ public final class RepositorioReal implements RepositorioBiblioteca {
             if (Acervo.ehSerie(idTitulo)) apagarEpisodiosDoTmdb(idTitulo);
             atualizarBiblioteca();
         }
-        notificar();
+        avisarDaEdicao();
     }
 
     @Override
     public void restaurarOriginal(String idTitulo) {
         if (Acervo.ehArtista(idTitulo)) desfazerJuntados(idTitulo);
+        // Coletânea "Como série" (ajuste de 22/11/2026): a escolha sai junto, e o retrato muda
+        boolean refazer = coletaneaComoSerie(idTitulo);
         // Vídeo com nome em comum: corta também a herança, só dele (D13)
         edicoes.restaurarOriginal(idTitulo, nomeComum(idTitulo));
         apelidos = edicoes.doCampo(Edicoes.Campo.ARTISTA);
@@ -1499,6 +1670,8 @@ public final class RepositorioReal implements RepositorioBiblioteca {
             if (Acervo.ehSerie(idTitulo)) apagarEpisodiosDoTmdb(idTitulo);
             reconstruir();
             atualizarBiblioteca();
+        } else if (refazer) {
+            reconstruirENotificar();
         } else {
             notificar();
         }
@@ -1562,11 +1735,12 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         for (Pastas.Pasta p : pastas.lista()) {
             Pasta m = new Pasta();
             m.id = p.caminho;
-            m.nome = p.nome();
-            m.origem = p.origem == Pastas.Origem.HD_EXTERNO ? Origem.HD_EXTERNO : Origem.INTERNO;
+            m.nome = nomeDaPasta(p);
+            m.origem = origemDoModelo(p.origem);
             m.caminho = exibirPasta(p);
             m.tipo = tipoPasta(p.tipo);
             m.reconhecidaPeloNome = p.tipo != null && !p.escolhido;
+            m.aoAlcance = pastaLigada(p.caminho);
             int[] conta = r.contagem.get(p.caminho);
             if (conta != null) {
                 m.videos = conta[0];
@@ -1602,6 +1776,89 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         return ArquivosDoAparelho.podeLerVideos(app);
     }
 
+    /** Nome da pasta; a raiz do compartilhamento do servidor leva o nome dele. */
+    private String nomeDaPasta(Pastas.Pasta p) {
+        if (!ArquivosDaBiblioteca.local(p.caminho) && Servidores.relativo(p.caminho).isEmpty()) {
+            Servidores.Servidor s = servidores.doCaminho(p.caminho);
+            return s == null ? p.nome() : s.compartilhamento;
+        }
+        return p.nome();
+    }
+
+    private static Origem origemDoModelo(Pastas.Origem origem) {
+        return origem == Pastas.Origem.HD_EXTERNO ? Origem.HD_EXTERNO
+                : origem == Pastas.Origem.SERVIDOR ? Origem.SERVIDOR : Origem.INTERNO;
+    }
+
+    // ---- Servidor em casa (2.0) ----
+
+    @Override
+    public List<Modelo.Servidor> servidores() {
+        List<Modelo.Servidor> lista = new ArrayList<>();
+        for (Servidores.Servidor s : servidores.lista()) lista.add(servidorDoModelo(s));
+        return lista;
+    }
+
+    private Modelo.Servidor servidorDoModelo(Servidores.Servidor s) {
+        Modelo.Servidor m = new Modelo.Servidor();
+        m.id = s.id;
+        m.ip = s.ip;
+        m.compartilhamento = s.compartilhamento;
+        m.usuario = s.usuario;
+        m.conectado = estadoServidor.conectado(s.id);
+        m.precisaDaSenha = servidores.precisaDaSenha(s.id);
+        m.raiz = s.raiz();
+        return m;
+    }
+
+    @Override
+    public boolean servidorConectado() {
+        return estadoServidor.algumConectado();
+    }
+
+    @Override
+    public boolean temServidor() {
+        return !servidores.lista().isEmpty();
+    }
+
+    @Override
+    @Nullable
+    public Modelo.Servidor salvarServidor(long id, String ip, String compartilhamento, String usuario, @Nullable String senha) {
+        Servidores.Servidor s = id < 0 ? servidores.adicionar(ip, compartilhamento, usuario, senha)
+                : servidores.editar(id, ip, compartilhamento, usuario, senha);
+        if (s == null) return null;
+        // Quem cadastra acabou de entrar no servidor: está ao alcance
+        estadoServidor.conferir();
+        // D10: as músicas já baixadas voltam a valer pelo caminho e pelo tamanho
+        Downloads.de(app).reconhecer();
+        notificar();
+        return servidorDoModelo(s);
+    }
+
+    @Override
+    public void removerServidor(long id) {
+        pastas.removerDoServidor(id);
+        servidores.remover(id);
+        estadoServidor.esquecer(id);
+        // Sem servidor, a origem some das capas e dos detalhes já, antes do fim da varredura (D16)
+        notificar();
+        atualizarBiblioteca();
+    }
+
+    /** Servidor que volta: varre (D8); que sai: some com os títulos dele, como o HD. */
+    private void ouvirServidor() {
+        estadoServidor.ouvir((idServidor, conectado) -> {
+            if (conectado) {
+                mostrarResultado = true;
+                if (!vaiListarServidor) atualizarBiblioteca();
+            } else {
+                trabalho.execute(RepositorioReal.this::reconstruirENotificar);
+            }
+            RepositorioMusicas.de(app).recarregar();
+        });
+        estadoServidor.conferir();
+    }
+
     @Override
     public void definirTipoPasta(String idPasta, TipoPasta tipo) {
         Pastas.Tipo novo = tipo == TipoPasta.FILMES ? Pastas.Tipo.FILMES : tipo == TipoPasta.SERIES ? Pastas.Tipo.SERIES
@@ -1617,13 +1874,17 @@ public final class RepositorioReal implements RepositorioBiblioteca {
     }
 
     @Override
-    public void adicionarPasta(Origem origem, String caminho) {
-        Pastas.Pasta nova = pastas.adicionar(caminho, origem == Origem.HD_EXTERNO ? Pastas.Origem.HD_EXTERNO : Pastas.Origem.INTERNO);
+    public boolean adicionarPasta(Origem origem, String caminho) {
+        Pastas.Pasta nova = pastas.adicionar(caminho, origem == Origem.HD_EXTERNO ? Pastas.Origem.HD_EXTERNO
+                : origem == Origem.SERVIDOR ? Pastas.Origem.SERVIDOR : Pastas.Origem.INTERNO);
+        // A pasta de downloads de Músicas não entra (duplicaria as músicas do servidor)
+        if (nova == null) return false;
         // Pasta reconhecida pelo nome como TV Shows ou Stand-up: a aba, desligada de fábrica, passa a aparecer
         if (nova.tipo == Pastas.Tipo.TVSHOWS) Preferencias.escolher(app, Preferencias.Item.NAV_TVSHOWS, 0);
         if (nova.tipo == Pastas.Tipo.STANDUP) Preferencias.escolher(app, Preferencias.Item.NAV_STANDUP, 0);
         if (nova.tipo == Pastas.Tipo.MUSICAS) Preferencias.escolher(app, Preferencias.Item.NAV_MUSICAS, 0);
         atualizarBiblioteca();
+        return true;
     }
 
     /** A varredura tira os vídeos da pasta que saiu (mesmo com o HD desligado). */
@@ -1661,8 +1922,9 @@ public final class RepositorioReal implements RepositorioBiblioteca {
 
     @Override
     public void definirAssistido(String id, boolean assistido) {
-        if (Acervo.ehSerie(id)) {
-            List<Temporada> temporadas = retrato.temporadas.get(id);
+        List<Temporada> temporadas = id == null ? null : retrato.temporadas.get(id);
+        // A coletânea "Como série" (ajuste de 22/11/2026) também é série: marca os episódios
+        if (Acervo.ehSerie(id) || temporadas != null) {
             if (temporadas == null) return;
             for (Temporada temporada : temporadas) {
                 for (Episodio ep : temporada.episodios) marcarAssistido(ep.id, assistido);
@@ -1711,6 +1973,12 @@ public final class RepositorioReal implements RepositorioBiblioteca {
 
     @Override
     public void atualizarBiblioteca() {
+        // Pedido de fora (abrir o app, Atualizar, salvar pastas, servidor que volta): com o servidor
+        pularServidor = false;
+        iniciarAtualizacao();
+    }
+
+    private void iniciarAtualizacao() {
         synchronized (this) {
             if (emAndamento) {
                 repetir = true;
@@ -1729,8 +1997,18 @@ public final class RepositorioReal implements RepositorioBiblioteca {
                 }
                 try {
                     boolean pode = ArquivosDoAparelho.podeLerVideos(app);
+                    // D8: voltar ao app antes de 30 min deixa o servidor como está
+                    boolean comServidor = !pularServidor;
+                    pularServidor = false;
+                    vaiListarServidor = comServidor;
+                    if (comServidor) estadoServidor.conferirEEsperar();
                     andar(0, 0, 0);
-                    if (pode) deNovo = Varredura.listar(app, this::reconstruirENotificar);
+                    try {
+                        if (pode) deNovo = Varredura.listar(app, this::reconstruirENotificar, comServidor);
+                    } finally {
+                        vaiListarServidor = false;
+                    }
+                    if (comServidor) ultimaVarreduraServidor = SystemClock.elapsedRealtime();
                     // O TMDB vem antes de ler os arquivos: só precisa do nome, e a leitura num HD USB
                     // leva minutos (esperar por ela fazia o Atualizar parecer parado)
                     boolean tudo = buscarTudo;
@@ -1741,7 +2019,9 @@ public final class RepositorioReal implements RepositorioBiblioteca {
                     // Músicas (1.5): depois do TMDB e antes das fotos de artista, que também são as delas
                     if (ArquivosDoAparelho.podeLerMusicas(app)) {
                         RepositorioMusicas musicas = RepositorioMusicas.de(app);
-                        if (VarreduraMusicas.atualizar(app, musicas::recarregar)) deNovo = true;
+                        if (VarreduraMusicas.atualizar(app, musicas::recarregar, comServidor)) deNovo = true;
+                        // D10: a baixada que o servidor ainda tem volta a valer
+                        Downloads.de(app).reconhecer();
                         musicas.recarregar();
                     }
                     pedirArtistas(tudo);
@@ -1794,7 +2074,9 @@ public final class RepositorioReal implements RepositorioBiblioteca {
      */
     private void indexarPastas() {
         agora.execute(() -> {
-            Set<String> montadas = pastasMontadas();
+            // O índice do Android só vale para o aparelho (o servidor é lido pela listagem)
+            Set<String> montadas = new HashSet<>();
+            for (String pasta : pastasMontadas()) if (ArquivosDaBiblioteca.local(pasta)) montadas.add(pasta);
             if (montadas.isEmpty()) return;
             try {
                 MediaScannerConnection.scanFile(app, montadas.toArray(new String[0]), null,
@@ -1852,6 +2134,10 @@ public final class RepositorioReal implements RepositorioBiblioteca {
     @Override
     public void conferirBiblioteca() {
         // Na fila da varredura: se houver uma em andamento, confere depois dela (e ela já conta)
+        // O servidor em casa também: se mudou, o aviso dele cuida (varre ao voltar, esconde ao sair)
+        estadoServidor.conferir();
+        // Fila de downloads parada (Android 15+, tempo do serviço) continua com o app à frente
+        Downloads.de(app).retomar();
         trabalho.execute(() -> {
             boolean hdMudou = !pastasMontadas().equals(retrato.montadas);
             if (!Preferencias.atualizarAoAbrir(app)) {
@@ -1860,8 +2146,14 @@ public final class RepositorioReal implements RepositorioBiblioteca {
                 return;
             }
             if (hdMudou || SystemClock.elapsedRealtime() - ultimaVarredura >= CONFERIR_MS) {
+                // D8: o servidor só entra se já faz 30 min da última vez
+                if (!hdMudou && SystemClock.elapsedRealtime() - ultimaVarreduraServidor < CONFERIR_SERVIDOR_MS) {
+                    synchronized (this) {
+                        if (!emAndamento) pularServidor = true;
+                    }
+                }
                 indexarPastas();
-                atualizarBiblioteca();
+                iniciarAtualizacao();
             }
         });
     }
@@ -1881,7 +2173,7 @@ public final class RepositorioReal implements RepositorioBiblioteca {
         int vistos = 0;
         for (Acervo.Video v : videos) {
             andar(0, vistos++, videos.size());
-            if (!new File(v.pasta).isDirectory()) continue; // HD desligado: fica para quando ligar
+            if (!pastaLigada(v.pasta)) continue; // HD desligado ou servidor fora: fica para quando ligar
             try {
                 if (buscarDoVideo(busca, v, tmdb, seriesFeitas, tudo) && ++feitos % 5 == 0) reconstruirENotificar();
             } catch (RuntimeException e) {
@@ -2003,7 +2295,7 @@ public final class RepositorioReal implements RepositorioBiblioteca {
             // Artistas dos Shows e, da 1.5 em diante, os das Músicas: a mesma foto vale nas duas abas
             List<String> nomes = new ArrayList<>();
             for (Acervo.Video v : acervo.videos()) {
-                if (v.tipo != Classificador.Tipo.SHOW || !temTexto(v.artista) || !new File(v.pasta).isDirectory()) continue;
+                if (v.tipo != Classificador.Tipo.SHOW || !temTexto(v.artista) || !pastaLigada(v.pasta)) continue;
                 // Pasta juntada a outro artista no Editar: quem precisa de capa é ele
                 nomes.add(artistaFinal(v.artista));
             }
@@ -2172,6 +2464,16 @@ public final class RepositorioReal implements RepositorioBiblioteca {
     }
 
     private String exibir(Pastas.Origem origem, String pasta, String caminho) {
+        if (!ArquivosDaBiblioteca.local(caminho)) {
+            // "Servidor / midias / Filmes / Nome.mkv": o compartilhamento e o caminho dentro dele
+            Servidores.Servidor s = servidores.doCaminho(caminho);
+            StringBuilder texto = new StringBuilder("Servidor");
+            if (s != null) texto.append(" / ").append(s.compartilhamento);
+            for (String parte : Servidores.relativo(caminho).split("/")) {
+                if (!parte.isEmpty()) texto.append(" / ").append(parte);
+            }
+            return texto.toString();
+        }
         String prefixo = origem == Pastas.Origem.HD_EXTERNO ? "HD" : "Interno";
         String base = pasta;
         ArquivosDoAparelho.Raiz raiz = ArquivosDoAparelho.raizDe(app, pasta);

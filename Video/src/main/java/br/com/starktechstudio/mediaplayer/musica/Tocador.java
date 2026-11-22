@@ -11,6 +11,7 @@ import android.graphics.BitmapFactory;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
@@ -26,18 +27,26 @@ import androidx.media.AudioAttributesCompat;
 import androidx.media.AudioFocusRequestCompat;
 import androidx.media.AudioManagerCompat;
 
+import com.archos.filecorelibrary.StreamOverHttp;
+
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import br.com.starktechstudio.mediaplayer.comum.Preferencias;
 import br.com.starktechstudio.mediaplayer.dados.ModeloMusicas.Musica;
+import br.com.starktechstudio.mediaplayer.motor.ArquivosDaBiblioteca;
 
 /**
  * Player de música (1.5): um só no app, com o {@link MediaPlayer} do Android (os formatos das pastas de
  * Músicas), a {@link Fila}, o foco de áudio (outro app tocando pausa ou abaixa), a pausa ao tirar o fone e a
  * sessão de mídia, que leva os botões do fone, do controle e da notificação. Tocando, o
  * {@link ServicoMusica} mantém o app vivo fora da tela, com a notificação. Tudo na thread da tela.
+ *
+ * <p>2.0: música do servidor em casa toca a cópia baixada ({@link Downloads}) se houver; senão pelo proxy do Nova
+ * ({@code StreamOverHttp}, http em 127.0.0.1, sem baixar), fechado ao trocar de música. Servidor fora de alcance
+ * e música não baixada: pula na hora.
  */
 public final class Tocador {
 
@@ -58,6 +67,9 @@ public final class Tocador {
     private final AudioManager audio;
     private final MediaSessionCompat sessao;
     private MediaPlayer player;
+    /** Proxy da música do servidor que está aberta; um por vez. */
+    @Nullable
+    private StreamOverHttp proxy;
     private boolean preparado;
     private boolean querTocando;
     private boolean perdeuFocoAgora;
@@ -406,8 +418,11 @@ public final class Tocador {
         } else {
             player.reset();
         }
+        fecharProxy();
         try {
-            player.setDataSource(m.id);
+            String fonte = fonte(m);
+            if (fonte == null) throw new IOException("servidor fora de alcance");
+            player.setDataSource(fonte);
             player.prepareAsync();
         } catch (IOException | RuntimeException e) {
             Log.w(LOG, "não abriu " + m.id, e);
@@ -461,6 +476,33 @@ public final class Tocador {
         abrir(tocar);
     }
 
+    /**
+     * De onde tocar: a música do aparelho; do servidor, a cópia baixada que ainda está lá ou o proxy local sobre o
+     * endereço smb (sem usuário nem senha dentro). Nula = servidor fora de alcance e sem cópia: pula.
+     */
+    @Nullable
+    private String fonte(Musica m) throws IOException {
+        if (ArquivosDaBiblioteca.local(m.id)) return m.id;
+        String local = Downloads.de(app).local(m.id);
+        if (local != null && new File(local).isFile()) return local;
+        ArquivosDaBiblioteca arquivos = ArquivosDaBiblioteca.de(app);
+        if (!arquivos.servidorAoAlcance(m.id)) return null;
+        Uri endereco = arquivos.uri(m.id);
+        if (endereco == null) return null;
+        proxy = new StreamOverHttp(endereco, null, StreamOverHttp.ReadMode.PLAYBACK);
+        return proxy.getEncodedUri(ArquivosDaBiblioteca.nome(m.id)).toString();
+    }
+
+    private void fecharProxy() {
+        if (proxy == null) return;
+        try {
+            proxy.close();
+        } catch (RuntimeException e) {
+            // já fechado
+        }
+        proxy = null;
+    }
+
     private void soltarPlayer() {
         preparado = false;
         if (player != null) {
@@ -471,6 +513,7 @@ public final class Tocador {
             }
             player = null;
         }
+        fecharProxy();
     }
 
     // ---- Foco, fone e sessão ----

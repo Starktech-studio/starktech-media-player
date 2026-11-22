@@ -23,16 +23,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import br.com.starktechstudio.mediaplayer.dados.ModeloMusicas;
 import br.com.starktechstudio.mediaplayer.dados.ModeloMusicas.Musica;
 import br.com.starktechstudio.mediaplayer.dados.ModeloMusicas.Playlist;
 import br.com.starktechstudio.mediaplayer.dados.RepositorioMusicas;
+import br.com.starktechstudio.mediaplayer.musica.Downloads;
 import br.com.starktechstudio.mediaplayer.musica.Tocador;
 
 /**
  * Painéis de Músicas (1.5), no padrão do Menu da capa ({@link OpcaoMenu}): o menu da música (tocar a
  * seguir, pôr na fila, adicionar à playlist, ir para o álbum ou o artista; numa playlist, subir, descer e
  * tirar), a escolha da playlist (com Nova playlist), a confirmação de apagar uma playlist e a fila do Tocando
- * agora. OK ou toque escolhe e fecha.
+ * agora. OK ou toque escolhe e fecha. 2.0 (D12): no tablet e no celular, Baixar a música do servidor em casa ou
+ * Remover download da baixada; na TV, não.
  */
 public class MenuMusicaActivity extends AppCompatActivity {
 
@@ -161,6 +164,7 @@ public class MenuMusicaActivity extends AppCompatActivity {
             abrirEscolherPlaylist(this, ids);
             finish();
         });
+        if (!tv) baixarOuRemover(m, opcoes);
 
         long idPlaylist = getIntent().getLongExtra(EXTRA_PLAYLIST, -1);
         Playlist playlist = idPlaylist < 0 ? null : repositorio.playlist(idPlaylist);
@@ -201,6 +205,22 @@ public class MenuMusicaActivity extends AppCompatActivity {
             });
         }
         return primeira;
+    }
+
+    /** Do servidor: Baixar (se não está na fila) ou, baixada, Remover download (a música segue no servidor). */
+    private void baixarOuRemover(Musica m, LinearLayout opcoes) {
+        Downloads downloads = Downloads.de(this);
+        if (m.origem == ModeloMusicas.Origem.BAIXADA) {
+            OpcaoMenu.adicionar(opcoes, R.drawable.st_ic_lixeira, getString(R.string.st_musicas_remover_download), () -> {
+                downloads.remover(Collections.singletonList(m.id));
+                avisar(getString(R.string.st_musicas_download_removido));
+            });
+        } else if (m.origem == ModeloMusicas.Origem.SERVIDOR && !downloads.naFila(m.id)) {
+            OpcaoMenu.adicionar(opcoes, R.drawable.st_ic_baixar, getString(R.string.st_musicas_baixar), () -> {
+                int entraram = downloads.baixar(Collections.singletonList(m.id));
+                avisar(getResources().getQuantityString(R.plurals.st_musicas_n_na_fila, entraram, entraram));
+            });
+        }
     }
 
     private TextView escolherPlaylist(TextView titulo, TextView dica, LinearLayout opcoes) {

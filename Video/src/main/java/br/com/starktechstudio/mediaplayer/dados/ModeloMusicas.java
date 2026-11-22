@@ -16,6 +16,76 @@ public final class ModeloMusicas {
 
     private ModeloMusicas() {}
 
+    /**
+     * De onde toca (2.0, D16): o aparelho (HD externo ou memória interna), o servidor em casa ou a cópia baixada
+     * dele. A baixada que o servidor também tem conta como baixada.
+     */
+    public enum Origem { APARELHO, BAIXADA, SERVIDOR }
+
+    /** Origem da coleção: a da maioria das faixas (empate: baixada, servidor, aparelho); vazia = aparelho. */
+    public static Origem daMaioria(List<Musica> musicas) {
+        int baixadas = 0;
+        int servidor = 0;
+        int aparelho = 0;
+        for (Musica m : musicas) {
+            if (m.origem == Origem.BAIXADA) baixadas++;
+            else if (m.origem == Origem.SERVIDOR) servidor++;
+            else aparelho++;
+        }
+        return daMaioria(aparelho, baixadas, servidor);
+    }
+
+    /** A da maioria pelas contagens (empate: baixada, servidor, aparelho); tudo zero = aparelho. Vale para vídeos. */
+    public static Origem daMaioria(int aparelho, int baixadas, int servidor) {
+        if (baixadas > 0 && baixadas >= servidor && baixadas >= aparelho) return Origem.BAIXADA;
+        if (servidor > 0 && servidor >= aparelho) return Origem.SERVIDOR;
+        return Origem.APARELHO;
+    }
+
+    /**
+     * A origem que a capa ou o detalhe mostra (D16, ajuste de 21/11/2026): só com algum servidor cadastrado; sem
+     * ele, tudo é do aparelho e nada aparece (nula).
+     */
+    @Nullable
+    public static Origem origemAMostrar(@Nullable Origem origem, boolean temServidor) {
+        return temServidor ? origem : null;
+    }
+
+    /** true = alguma faixa tem cópia no aparelho (filtro "Só baixadas", D14). */
+    public static boolean temBaixada(List<Musica> musicas) {
+        for (Musica m : musicas) if (m.origem == Origem.BAIXADA) return true;
+        return false;
+    }
+
+    /**
+     * Tempo de tudo o que a coleção tem, músicas e vídeos (ajuste de 21/11/2026: selo do álbum e da playlist). A
+     * duração que não se sabe (0) conta 0.
+     */
+    public static long duracaoTotalMs(List<Musica> itens) {
+        long total = 0;
+        for (Musica m : itens) total += Math.max(0, m.duracaoMs);
+        return total;
+    }
+
+    /**
+     * "15 min"; de 60 min em diante, "1 h 15 min" ou, na hora cheia, "2 h". Minutos arredondados, com 1 min no
+     * mínimo quando há algum tempo; 0 ou menos, "0 min" (quem mostra esconde o selo).
+     */
+    public static String textoDaDuracao(long ms) {
+        if (ms <= 0) return "0 min";
+        long minutos = Math.max(1, Math.round(ms / 60000.0));
+        if (minutos < 60) return minutos + " min";
+        long resto = minutos % 60;
+        return resto == 0 ? (minutos / 60) + " h" : (minutos / 60) + " h " + resto + " min";
+    }
+
+    /** Só as baixadas, na mesma ordem. */
+    public static List<Musica> soBaixadas(List<Musica> musicas) {
+        List<Musica> lista = new ArrayList<>();
+        for (Musica m : musicas) if (m.origem == Origem.BAIXADA) lista.add(m);
+        return lista;
+    }
+
     /** Uma música ou um vídeo de música ({@link #video}); {@link #id} é o caminho do arquivo. */
     public static final class Musica {
         public String id;
@@ -36,6 +106,8 @@ public final class ModeloMusicas {
         /** 1.7: vídeo já começado (segundos) e assistido, para a barrinha do card. */
         public int posicaoSegundos;
         public boolean assistido;
+        /** 2.0 (D16): de onde toca. */
+        public Origem origem = Origem.APARELHO;
     }
 
     public static final class Album {
@@ -64,11 +136,11 @@ public final class ModeloMusicas {
         @Nullable
         public String descricao;
         public final List<Musica> musicas = new ArrayList<>();
+        /** 2.0 (D16): a origem da maioria das faixas. */
+        public Origem origem = Origem.APARELHO;
 
         public long duracaoMs() {
-            long total = 0;
-            for (Musica m : musicas) total += m.duracaoMs;
-            return total;
+            return duracaoTotalMs(musicas);
         }
     }
 
@@ -107,5 +179,7 @@ public final class ModeloMusicas {
         @Nullable
         public String capa;
         public int cor;
+        /** 2.0 (D16): a origem da maioria das faixas. */
+        public Origem origem = Origem.APARELHO;
     }
 }

@@ -93,7 +93,9 @@ public class LinhasMusicaAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         for (int i = 0; i < a.size(); i++) {
             Musica x = a.get(i);
             Musica y = b.get(i);
-            if (!x.id.equals(y.id) || !eq(x.titulo, y.titulo) || !eq(x.artista, y.artista) || !eq(x.capa, y.capa)) return false;
+            // 2.0: a origem também (baixou ou removeu o download: o menu da música muda)
+            if (!x.id.equals(y.id) || !eq(x.titulo, y.titulo) || !eq(x.artista, y.artista) || !eq(x.capa, y.capa)
+                    || x.origem != y.origem) return false;
         }
         return true;
     }

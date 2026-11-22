@@ -25,6 +25,7 @@ import com.archos.mediacenter.video.R;
 
 import java.util.Locale;
 
+import br.com.starktechstudio.mediaplayer.dados.ModeloMusicas;
 import br.com.starktechstudio.mediaplayer.dados.ModeloMusicas.Album;
 import br.com.starktechstudio.mediaplayer.dados.ModeloMusicas.Musica;
 
@@ -128,11 +129,9 @@ public final class PecasMusica {
                 : String.format(Locale.ROOT, "%d:%02d", minutos, resto);
     }
 
-    /** "1 h 12 min" ou "42 min" (duração do álbum ou da playlist). */
+    /** "1 h 12 min", "2 h" ou "42 min" (selo de tempo do álbum e da playlist): {@link ModeloMusicas#textoDaDuracao}. */
     public static String duracaoLonga(long ms) {
-        long minutos = Math.max(1, Math.round(ms / 60000.0));
-        return minutos >= 60 ? String.format(Locale.ROOT, "%d h %d min", minutos / 60, minutos % 60)
-                : String.format(Locale.ROOT, "%d min", minutos);
+        return ModeloMusicas.textoDaDuracao(ms);
     }
 
     public static String artista(Context contexto, @Nullable String nome) {

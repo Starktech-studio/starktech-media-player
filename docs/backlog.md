@@ -14,8 +14,7 @@
 | # | Item | Versão | Origem |
 |---|---|---|---|
 | 1 | Refazer os prints do README: os de hoje ainda mostram Pastas no nav e não têm o relógio | — | Versão 1.1 (09/11/2026) |
-| 2 | Servidor próprio da StarkTech: guardar as músicas (e depois os vídeos) num servidor nosso, de onde o app baixa e toca. Só registro: o servidor ainda vai ser montado | 2.0 | Gustavo, 09/11/2026 |
-| 3 | Músicas, depois da 1.5: busca dentro de Músicas, capa pela internet, letras, equalizador e importar playlists `.m3u` (fora do plano 005) | — | Plano 005 (09/11/2026) |
+| 2 | Músicas, depois da 1.5: busca dentro de Músicas, capa pela internet, letras, equalizador e importar playlists `.m3u` (fora do plano 005) | — | Plano 005 (09/11/2026) |
 
 A 1.5.0 (Músicas com motor, legenda rápida no player e limpar o cache) é o plano 005, publicada em 10/11/2026; falta testar na TV e no tablet. A 1.5.1 (vídeos em Músicas e a ordem do nav) é o plano 006, publicada em 12/11/2026; falta testar na TV e no tablet. A 1.6.0 (aleatório guardado e nos vídeos, troca de capa, discos, anterior e próximo vídeo) é o plano 007, publicada em 13/11/2026; falta testar na TV e no tablet. A 1.7.0 (artistas em linhas, página do artista com abas Músicas e Vídeos, cards de vídeo, Aleatório no player, anterior em dois toques) é o plano 008, publicada em 13/11/2026; falta testar na TV e no tablet.
 

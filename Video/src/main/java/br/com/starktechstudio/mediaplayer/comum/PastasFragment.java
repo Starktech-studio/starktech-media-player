@@ -29,7 +29,6 @@ import androidx.fragment.app.Fragment;
 
 import com.archos.mediacenter.video.R;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -38,6 +37,7 @@ import java.util.Map;
 import java.util.Set;
 
 import br.com.starktechstudio.mediaplayer.comum.Navegacao.Aba;
+import br.com.starktechstudio.mediaplayer.dados.Modelo;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Origem;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Pasta;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.TipoPasta;
@@ -52,6 +52,10 @@ import br.com.starktechstudio.mediaplayer.dados.RepositorioMusicas;
  * ou Ignorar (marcado em verde / laranja e gravado no Salvar, que varre de novo), e Remover;
  * "Não identificados" com Revisar; painel "Como organizar". Montada no código, medidas do desenho
  * da TV ({@link Medidas}).
+ *
+ * <p>2.0: Adicionar servidor, ao lado de Adicionar pasta ({@link ServidorActivity}); cada servidor em casa é um grupo
+ * "Servidor em casa" com o IP e o compartilhamento, Conectado / Fora de alcance (estado guardado, sem rede), Editar e
+ * Remover servidor; as pastas dele, como as do HD, com o tipo e Remover.
  */
 public class PastasFragment extends Fragment {
 
@@ -68,6 +72,7 @@ public class PastasFragment extends Fragment {
     private final Map<String, TipoPasta> pendentes = new LinkedHashMap<>();
     private Button salvar;
     private Button adicionar;
+    private Button adicionarServidor;
     private IndicadorAtualizacao indicador;
     /** A próxima linha montada é a primeira da lista (TV: ↑ dela vai para Adicionar pasta). */
     private boolean primeiraLinha;
@@ -203,6 +208,15 @@ public class PastasFragment extends Fragment {
         LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) adicionar.getLayoutParams();
         lp.setMarginStart(Medidas.px(contexto, 14));
         linha.addView(adicionar, lp);
+        // 2.0 (D6): servidor em casa, ao lado de Adicionar pasta; TV: → dele fica nele
+        adicionarServidor = botao(contexto, R.string.st_adicionar_servidor, R.drawable.st_ic_servidor, false);
+        adicionarServidor.setId(View.generateViewId());
+        adicionarServidor.setNextFocusRightId(adicionarServidor.getId());
+        adicionarServidor.setNextFocusDownId(R.id.st_pastas_primeira);
+        adicionarServidor.setOnClickListener(v -> ServidorActivity.abrirNovo(requireActivity()));
+        LinearLayout.LayoutParams lpServidor = (LinearLayout.LayoutParams) adicionarServidor.getLayoutParams();
+        lpServidor.setMarginStart(Medidas.px(contexto, 14));
+        linha.addView(adicionarServidor, lpServidor);
         return linha;
     }
 
@@ -266,6 +280,9 @@ public class PastasFragment extends Fragment {
         primeiraLinha = true;
         grupo(contexto, Origem.HD_EXTERNO, pastas, hd, false);
         grupo(contexto, Origem.INTERNO, pastas, true, lista.getChildCount() > 0);
+        for (Modelo.Servidor servidor : repositorio.servidores()) {
+            grupoServidor(contexto, servidor, pastas, lista.getChildCount() > 0);
+        }
         naoIdentificados(contexto);
 
         if (marca != null) {
@@ -300,11 +317,87 @@ public class PastasFragment extends Fragment {
         for (Pasta p : doGrupo) {
             View linha = linha(contexto, p);
             // HD desligado (ou outro HD no lugar): a pasta fica apagada
-            linha.setAlpha(disponivel && new File(p.id).isDirectory() ? 1f : 0.5f);
+            linha.setAlpha(disponivel && p.aoAlcance ? 1f : 0.5f);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             lp.topMargin = Medidas.px(contexto, 12);
             lista.addView(linha, lp);
         }
+    }
+
+    /**
+     * Servidor em casa (2.0): "Servidor em casa", a situação pelo estado guardado (Conectado, Fora de alcance ou, com a
+     * senha que não abriu neste aparelho, Digite a senha de novo), o IP e o compartilhamento, Editar e Remover servidor;
+     * embaixo, as pastas dele.
+     */
+    private void grupoServidor(Context contexto, Modelo.Servidor servidor, List<Pasta> pastas, boolean espacoAntes) {
+        LinearLayout cabeca = new LinearLayout(contexto);
+        cabeca.setOrientation(LinearLayout.HORIZONTAL);
+        cabeca.setGravity(Gravity.CENTER_VERTICAL);
+        cabeca.addView(Textos.rotulo(contexto, getString(R.string.st_servidor_em_casa), 14));
+        boolean ligado = servidor.conectado && !servidor.precisaDaSenha;
+        TextView situacao = Textos.novo(contexto, getString(servidor.precisaDaSenha ? R.string.st_servidor_digite_a_senha
+                        : servidor.conectado ? R.string.st_conectado : R.string.st_servidor_fora_de_alcance),
+                R.font.st_inter_extrabold, 16, servidor.precisaDaSenha ? R.color.st_aviso_claro
+                        : ligado ? R.color.st_selo_hd_texto : R.color.st_selo_sem_hd_texto);
+        situacao.setCompoundDrawablePadding(Medidas.px(contexto, 6));
+        Icones.noTexto(situacao, R.drawable.st_ic_servidor, Medidas.px(contexto, 18));
+        LinearLayout.LayoutParams lpSituacao = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lpSituacao.setMarginStart(Medidas.px(contexto, 14));
+        cabeca.addView(situacao, lpSituacao);
+        TextView endereco = Textos.novo(contexto, getString(R.string.st_servidor_linha, servidor.ip, servidor.compartilhamento),
+                R.font.st_inter_semibold, 16, R.color.st_texto_apagado);
+        endereco.setSingleLine(true);
+        endereco.setEllipsize(TextUtils.TruncateAt.END);
+        LinearLayout.LayoutParams lpEndereco = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        lpEndereco.setMarginStart(Medidas.px(contexto, 14));
+        cabeca.addView(endereco, lpEndereco);
+
+        // TV: com o servidor no alto da lista, ↓ dos botões do alto cai em Editar
+        final boolean primeira = primeiraLinha;
+        primeiraLinha = false;
+        TextView editar = segmento(contexto, getString(R.string.st_editar_servidor), R.color.st_texto_secundario,
+                "servidor:" + servidor.id + ":editar", () -> ServidorActivity.abrirEditar(requireActivity(), servidor.id));
+        if (primeira) {
+            editar.setId(R.id.st_pastas_primeira);
+            editar.setNextFocusUpId(R.id.st_pastas_adicionar);
+        }
+        cabeca.addView(editar, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, Medidas.px(contexto, 48)));
+        TextView remover = segmento(contexto, getString(R.string.st_remover_servidor), R.color.st_selo_sem_hd_texto,
+                "servidor:" + servidor.id + ":remover", () -> ServidorActivity.abrirRemover(requireActivity(), servidor.id));
+        remover.setId(View.generateViewId());
+        remover.setNextFocusRightId(remover.getId());
+        if (primeira) remover.setNextFocusUpId(R.id.st_pastas_adicionar);
+        LinearLayout.LayoutParams lpRemover = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, Medidas.px(contexto, 48));
+        lpRemover.setMarginStart(Medidas.px(contexto, 4));
+        cabeca.addView(remover, lpRemover);
+        LinearLayout.LayoutParams lpCabeca = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lpCabeca.topMargin = espacoAntes ? Medidas.px(contexto, 24) : 0;
+        lista.addView(cabeca, lpCabeca);
+
+        String raiz = servidor.raiz;
+        for (Pasta p : pastas) {
+            if (p.origem != Origem.SERVIDOR || !(p.id.equals(raiz) || p.id.startsWith(raiz + "/"))) continue;
+            View linha = linha(contexto, p);
+            linha.setAlpha(ligado && p.aoAlcance ? 1f : 0.5f);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.topMargin = Medidas.px(contexto, 12);
+            lista.addView(linha, lp);
+        }
+    }
+
+    /** Botão pequeno do cabeçalho do servidor, no visual do Remover das pastas (48 px, Inter 800). */
+    private TextView segmento(Context contexto, String texto, int cor, String marca, Runnable acao) {
+        TextView botao = Textos.novo(contexto, texto, R.font.st_inter_extrabold, 17, cor);
+        botao.setBackgroundResource(R.drawable.st_segmento);
+        botao.setGravity(Gravity.CENTER);
+        botao.setSingleLine(true);
+        botao.setPadding(Medidas.px(contexto, 15), 0, Medidas.px(contexto, 15), 0);
+        botao.setFocusable(true);
+        botao.setClickable(true);
+        botao.setTag(marca);
+        if (tv) botao.setForeground(ContextCompat.getDrawable(contexto, R.drawable.st_foco_tv));
+        botao.setOnClickListener(v -> acao.run());
+        return botao;
     }
 
     /** Uma pasta: ícone, nome + selo, caminho e contagem, e o tipo (Filmes, Séries, Shows, Ignorar). */

@@ -3,6 +3,7 @@
 package br.com.starktechstudio.mediaplayer.motor;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -10,6 +11,7 @@ import static org.junit.Assert.assertTrue;
 import android.app.Application;
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import androidx.test.core.app.ApplicationProvider;
@@ -23,8 +25,17 @@ import org.robolectric.annotation.Config;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
-/** Banco v3 sobre um banco v2 (só em arquivo de teste): não perde posição nem edição, e os dados novos entram. */
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+
+/**
+ * Banco v3 sobre um banco v2 (só em arquivo de teste): não perde posição nem edição, e os dados novos entram. 2.0:
+ * a v9 só acrescenta as tabelas do servidor em casa e das músicas baixadas.
+ */
 @RunWith(RobolectricTestRunner.class)
 @Config(application = Application.class, manifest = Config.NONE, sdk = 34)
 public class BancoStarkTechMigracaoTest {
@@ -212,5 +223,58 @@ public class BancoStarkTechMigracaoTest {
         assertEquals(Acervo.PENDENTE, acervo.artistas().get(Acervo.chaveArtista("Coldplay")).situacao);
         assertEquals(Acervo.ACHADO, acervo.artistas().get(Acervo.chaveArtista("Muse")).situacao);
         assertEquals("a foto antiga fica até achar outra", "/Queen.jpg", acervo.artistas().get(Acervo.chaveArtista("Queen")).foto);
+    }
+
+    @Test
+    public void versao9_servidorEBaixadas_semPerderOQueHavia() throws Exception {
+        BancoStarkTech banco = bancoMigrado();
+        assertEquals("o que veio da v2 fica", 1234, new Acervo(banco).estados().get(FILME).posicao);
+
+        KeyGenerator gerador = KeyGenerator.getInstance("AES");
+        gerador.init(256);
+        SecretKey chave = gerador.generateKey();
+        List<String> entregues = new ArrayList<>();
+        Servidores servidores = new Servidores(banco, new CofreDeSenhas(criar -> chave),
+                (alvo, usuario, senha) -> entregues.add(alvo + "|" + usuario + "|" + senha));
+        Servidores.Servidor salvo = servidores.adicionar("192.168.0.10", "midia", "gustavo", "senha-de-teste");
+        assertNotNull(salvo);
+        assertEquals("servidor:" + salvo.id, salvo.raiz());
+        assertEquals("a senha vai para a memória do Nova", "smb://192.168.0.10|gustavo|senha-de-teste", entregues.get(0));
+
+        try (Cursor c = banco.getReadableDatabase().query(BancoStarkTech.SERVIDOR, new String[]{"senha"}, null, null, null, null, null)) {
+            assertTrue(c.moveToFirst());
+            byte[] guardada = c.getBlob(0);
+            assertFalse("a senha fica cifrada", new String(guardada, StandardCharsets.ISO_8859_1).contains("senha-de-teste"));
+        }
+
+        // Abrir de novo o app: a senha decifrada vai para o Nova
+        entregues.clear();
+        Servidores deNovo = new Servidores(banco, new CofreDeSenhas(criar -> chave),
+                (alvo, usuario, senha) -> entregues.add(alvo + "|" + usuario + "|" + senha));
+        deNovo.entregarTodas();
+        assertEquals(1, deNovo.lista().size());
+        assertEquals("smb://192.168.0.10|gustavo|senha-de-teste", entregues.get(0));
+        assertFalse(deNovo.precisaDaSenha(salvo.id));
+
+        // Noutro aparelho (backup sem a chave do Keystore): pede a senha de novo
+        Servidores semChave = new Servidores(banco, new CofreDeSenhas(criar -> null), (alvo, usuario, senha) -> { });
+        semChave.entregarTodas();
+        assertTrue(semChave.precisaDaSenha(salvo.id));
+
+        ContentValues baixada = new ContentValues();
+        baixada.put("caminho", "servidor:1/Musicas/Queen/01.mp3");
+        baixada.put("local", "/storage/emulated/0/Music/StarkTech Media Player/Queen/01.mp3");
+        baixada.put("tamanho", 1234L);
+        baixada.put("situacao", 1);
+        baixada.put("alterado", 1000L);
+        banco.getWritableDatabase().insertOrThrow(BancoStarkTech.BAIXADA, null, baixada);
+        try (Cursor c = banco.getReadableDatabase().query(BancoStarkTech.BAIXADA, new String[]{"local", "tamanho"},
+                "caminho = ?", new String[]{"servidor:1/Musicas/Queen/01.mp3"}, null, null, null)) {
+            assertTrue(c.moveToFirst());
+            assertEquals(1234L, c.getLong(1));
+        }
+
+        semChave.remover(salvo.id);
+        assertTrue(new Servidores(banco, new CofreDeSenhas(criar -> chave), (alvo, usuario, senha) -> { }).lista().isEmpty());
     }
 }

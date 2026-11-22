@@ -32,10 +32,14 @@ import br.com.starktechstudio.mediaplayer.dados.ModeloMusicas.Playlist;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Titulo;
 import br.com.starktechstudio.mediaplayer.motor.Acervo;
 import br.com.starktechstudio.mediaplayer.motor.AcervoMusicas;
+import br.com.starktechstudio.mediaplayer.motor.ArquivosDaBiblioteca;
 import br.com.starktechstudio.mediaplayer.motor.CapasMusica;
 import br.com.starktechstudio.mediaplayer.motor.Discografia;
 import br.com.starktechstudio.mediaplayer.motor.Edicoes;
+import br.com.starktechstudio.mediaplayer.motor.EstadoServidor;
 import br.com.starktechstudio.mediaplayer.motor.Pastas;
+import br.com.starktechstudio.mediaplayer.motor.Servidores;
+import br.com.starktechstudio.mediaplayer.musica.Downloads;
 
 /**
  * Músicas para as telas (1.5): artistas, álbuns e faixas, montados das músicas lidas pela
@@ -47,6 +51,9 @@ import br.com.starktechstudio.mediaplayer.motor.Pastas;
  * como álbuns em vídeo (pela subpasta) e como os vídeos soltos de cada artista; o artista conta músicas e
  * vídeos. O texto da Wikipédia dos álbuns (banco v8) e o do artista vão para as telas. Músicas e vídeos do HD
  * desligado ficam de fora até ligar.
+ *
+ * <p>2.0: músicas do servidor em casa. Servidor fora de alcance (D9): só as baixadas aparecem. Cada música leva a
+ * origem (D16: aparelho, servidor ou baixada) e cada coleção, a da maioria das faixas.
  */
 public final class RepositorioMusicas {
 
@@ -100,6 +107,8 @@ public final class RepositorioMusicas {
     private RepositorioMusicas(Context app) {
         this.app = app;
         this.acervo = AcervoMusicas.de(app);
+        // Baixou ou removeu: a origem e o que aparece com o servidor fora mudam
+        Downloads.de(app).ouvir(this::refazer);
     }
 
     // ---- Avisos ----
@@ -161,16 +170,19 @@ public final class RepositorioMusicas {
         if (audio == null) audio = acervo.musicas();
         if (textos == null) textos = acervo.textosDeAlbum();
         Map<String, AcervoMusicas.TextoAlbum> txt = textos;
-        // HD desligado: as músicas dele somem até ligar (como os vídeos)
+        // HD desligado: as músicas dele somem até ligar (como os vídeos). Servidor fora (D9): só as baixadas
         Map<String, Boolean> montada = new HashMap<>();
+        Map<String, String> baixadas = Downloads.de(app).baixadas();
+        EstadoServidor estado = EstadoServidor.de(app);
         List<AcervoMusicas.Musica> todas = new ArrayList<>();
         for (AcervoMusicas.Musica m : audio) {
             Boolean ok = montada.get(m.pasta);
             if (ok == null) {
-                ok = new File(m.pasta).isDirectory();
+                ok = ArquivosDaBiblioteca.local(m.pasta) ? new File(m.pasta).isDirectory()
+                        : estado.conectado(Servidores.idDo(m.pasta)) && Servidores.de(app).doCaminho(m.pasta) != null;
                 montada.put(m.pasta, ok);
             }
-            if (ok) todas.add(m);
+            if (ok || baixadas.containsKey(m.caminho)) todas.add(m);
         }
         Collator ordem = collator();
         for (AcervoMusicas.Musica m : todas) {
@@ -194,6 +206,7 @@ public final class RepositorioMusicas {
             aplicarTexto(a, txt);
             for (AcervoMusicas.Musica m : d.musicas) {
                 Musica musica = musica(m, a);
+                musica.origem = origem(m.caminho, baixadas);
                 a.musicas.add(musica);
                 r.musicas.put(musica.id, musica);
                 // Faixa de outro artista (coletânea, participação): também conta para ele
@@ -213,6 +226,7 @@ public final class RepositorioMusicas {
                     if (dele == null || !dele.contains(a)) adicionar(r.albunsDoArtista, chave, a);
                 }
             }
+            a.origem = ModeloMusicas.daMaioria(a.musicas);
             r.albuns.add(a);
             r.albunsPorId.put(a.id, a);
         }
@@ -275,6 +289,7 @@ public final class RepositorioMusicas {
             v.video = true;
             v.posicaoSegundos = t.posicaoSegundos;
             v.assistido = t.assistido;
+            v.origem = ArquivosDaBiblioteca.local(t.id) ? ModeloMusicas.Origem.APARELHO : ModeloMusicas.Origem.SERVIDOR;
             a.musicas.add(v);
         }
         for (Album a : porColecao.values()) {
@@ -290,6 +305,7 @@ public final class RepositorioMusicas {
             String editada = capaEditada(a.id);
             if (editada != null) a.capa = editada;
             a.formato = real.formatoDoClipe(primeiro.id);
+            a.origem = ModeloMusicas.daMaioria(a.musicas);
             if (!a.soltos) aplicarTexto(a, txt);
             r.colecoesDeVideo.add(a);
             r.albunsPorId.put(a.id, a);
@@ -362,6 +378,12 @@ public final class RepositorioMusicas {
         musica.capa = a.capa;
         musica.cor = a.cor;
         return musica;
+    }
+
+    /** D16: a baixada vale antes do servidor (a cópia toca sem rede). */
+    static ModeloMusicas.Origem origem(String caminho, Map<String, String> baixadas) {
+        if (ArquivosDaBiblioteca.local(caminho)) return ModeloMusicas.Origem.APARELHO;
+        return baixadas.containsKey(caminho) ? ModeloMusicas.Origem.BAIXADA : ModeloMusicas.Origem.SERVIDOR;
     }
 
     private static <T> void adicionar(Map<String, List<T>> mapa, String chave, T item) {
@@ -558,6 +580,7 @@ public final class RepositorioMusicas {
         }
         String editada = capaEditada("playlist:" + p.id);
         if (editada != null) lista.capa = editada;
+        lista.origem = ModeloMusicas.daMaioria(lista.musicas);
         return lista;
     }
 

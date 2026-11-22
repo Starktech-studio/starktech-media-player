@@ -42,6 +42,10 @@
     <string name="st_coletanea_escolher">Escolher</string>
     <string name="st_coletanea_tirar">Tirar</string>
     <string name="st_coletanea_tmdb">Voltar ao TMDB</string>
+    <!-- Coletânea de desenhos (ajuste de 22/11/2026): como filmes ou como série, com episódios -->
+    <string name="st_campo_exibicao">Mostrar como</string>
+    <string name="st_exibicao_filmes">Como filmes</string>
+    <string name="st_exibicao_serie">Como série (episódios)</string>
 
     <!-- Janela de escolha -->
     <string name="st_coletanea_janela_titulo">Mover para a coletânea</string>

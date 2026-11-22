@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import br.com.starktechstudio.mediaplayer.dados.Modelo.Tipo;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Titulo;
 import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 
@@ -142,6 +143,12 @@ public class ColetaneaArtistaActivity extends AppCompatActivity {
             finish();
             return;
         }
+        if (titulo.tipo == Tipo.SERIE) {
+            // Coletânea de desenhos que passou a "Como série" no Editar (ajuste de 22/11/2026): a tela da série no lugar
+            Navegacao.abrirTitulo(this, id, true);
+            finish();
+            return;
+        }
         mostrarTopoDaPagina(titulo);
         recarregarCapas();
     }
@@ -172,6 +179,7 @@ public class ColetaneaArtistaActivity extends AppCompatActivity {
             azuis.add(false);
         }
         PecasDetalhe.chips(chips, textos, azuis, tv);
+        PecasDetalhe.origem(chips, titulo.origem, tv);
 
         boolean temTexto = titulo.sinopse != null && !titulo.sinopse.isEmpty();
         sinopse.setText(titulo.sinopse);

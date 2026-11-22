@@ -12,6 +12,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,12 +25,14 @@ import com.archos.mediacenter.video.R;
 import java.util.ArrayList;
 import java.util.List;
 
+import br.com.starktechstudio.mediaplayer.dados.ModeloMusicas;
 import br.com.starktechstudio.mediaplayer.dados.ModeloMusicas.Album;
 import br.com.starktechstudio.mediaplayer.dados.ModeloMusicas.Artista;
 import br.com.starktechstudio.mediaplayer.dados.ModeloMusicas.Musica;
 import br.com.starktechstudio.mediaplayer.dados.ModeloMusicas.Playlist;
 import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 import br.com.starktechstudio.mediaplayer.dados.RepositorioMusicas;
+import br.com.starktechstudio.mediaplayer.musica.Downloads;
 import br.com.starktechstudio.mediaplayer.musica.Tocador;
 
 /**
@@ -41,6 +44,11 @@ import br.com.starktechstudio.mediaplayer.musica.Tocador;
  * Artista: Tocar tudo e Aleatório. Playlist: Tocar, Aleatório, Renomear e Apagar. OK ou toque numa faixa toca
  * a partir dela (vídeo: abre o player); segurar uma música abre o menu dela. A barra "Tocando agora" fica
  * embaixo.
+ *
+ * <p>2.0: selo de origem no topo (D16: Servidor, Baixada ou Aparelho, o da maioria; só com algum servidor cadastrado)
+ * e, no tablet e no celular (D12), Baixar no álbum, no artista (Músicas) e na playlist, só as do servidor que faltam; com
+ * a fila andando, "Baixando 3 de 12" e Cancelar downloads. No álbum (de áudio e em vídeo) e na playlist, o selo com o
+ * tempo total ("1 h 15 min"); no artista, não.
  */
 public class ColecaoMusicaActivity extends AppCompatActivity {
 
@@ -183,6 +191,7 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
         super.onResume();
         repositorio.ouvir(aoMudar);
         RepositorioBiblioteca.atual(this).ouvir(aoMudar);
+        Downloads.de(this).ouvir(aoMudar);
         Tocador.de(this).ouvir(aoTocar);
         barra.ligar();
         mostrar();
@@ -192,6 +201,7 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
     protected void onPause() {
         repositorio.deixarDeOuvir(aoMudar);
         RepositorioBiblioteca.atual(this).deixarDeOuvir(aoMudar);
+        Downloads.de(this).deixarDeOuvir(aoMudar);
         Tocador.de(this).deixarDeOuvir(aoTocar);
         barra.desligar();
         super.onPause();
@@ -225,9 +235,9 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
             return;
         }
         musicas = new ArrayList<>(a.musicas);
+        // O tempo total saiu da linha e virou selo (ajuste de 21/11/2026)
         String linha = juntar(PecasMusica.artistaDoAlbum(this, a), a.ano == null ? null : String.valueOf(a.ano),
-                getResources().getQuantityString(a.video ? R.plurals.st_n_videos : R.plurals.st_n_musicas, a.musicas.size(), a.musicas.size()),
-                a.duracaoMs() > 0 ? PecasMusica.duracaoLonga(a.duracaoMs()) : null);
+                getResources().getQuantityString(a.video ? R.plurals.st_n_videos : R.plurals.st_n_musicas, a.musicas.size(), a.musicas.size()));
         List<Button> botoes = new ArrayList<>();
         if (a.video) {
             botoes.add(botaoAssistir());
@@ -238,6 +248,7 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
             Button playlist = PecasMusica.botao(this, R.string.st_musicas_adicionar_playlist, R.drawable.st_ic_playlist_nova, false);
             playlist.setOnClickListener(v -> MenuMusicaActivity.abrirEscolherPlaylist(this, ids(musicas)));
             botoes.add(playlist);
+            botoesDeDownload(musicas, botoes);
         }
         if (a.idArtista != null && repositorio.artista(a.idArtista) != null) {
             Button artista = PecasMusica.botao(this, R.string.st_musicas_ir_artista, R.drawable.st_ic_shows, false);
@@ -248,7 +259,9 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
         List<String> selos = new ArrayList<>();
         selos.add(getString(a.video ? R.string.st_musicas_selo_album_video : R.string.st_musicas_selo_album));
         if (a.formato != null) selos.add(a.formato);
-        cabecalho(PecasMusica.album(this, a.nome), linha, selos, texto(a.resumo, a.descricao), a.capa, a.cor,
+        seloDeTempo(selos, a.musicas);
+        cabecalho(PecasMusica.album(this, a.nome), linha, selos, PecasDetalhe.origemAMostrar(this, a.origem),
+                texto(a.resumo, a.descricao), a.capa, a.cor,
                 a.video ? R.drawable.st_ic_assistir : R.drawable.st_ic_disco, false, botoes);
         faixas.atualizar(musicas, !a.video);
         aviso.setVisibility(View.GONE);
@@ -294,13 +307,17 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
         } else {
             botoes.add(botaoTocar(R.string.st_musicas_ouvir, false));
             botoes.add(botaoTocar(R.string.st_musicas_aleatorio, true));
+            botoesDeDownload(deAudioDoArtista, botoes);
         }
         botoes.add(botaoTrocarCapa(a.id, PecasMusica.artista(this, a.nome), a.nome));
         List<String> selos = new ArrayList<>();
         if (a.musicas > 0) selos.add(juntar(getString(R.string.st_musicas_selo_musicas), a.formatoMusicas));
         if (a.videos > 0) selos.add(juntar(getString(R.string.st_musicas_selo_videos), a.formatoVideos));
-        cabecalho(PecasMusica.artista(this, a.nome), LinhaArtistaAdapter.contagens(this, a), selos, texto(a.resumo, a.descricao),
-                a.foto, a.cor, R.drawable.st_ic_shows, true, botoes);
+        List<Musica> doArtista = new ArrayList<>(deAudioDoArtista);
+        doArtista.addAll(todosOsVideos);
+        cabecalho(PecasMusica.artista(this, a.nome), LinhaArtistaAdapter.contagens(this, a), selos,
+                PecasDetalhe.origemAMostrar(this, ModeloMusicas.daMaioria(doArtista)),
+                texto(a.resumo, a.descricao), a.foto, a.cor, R.drawable.st_ic_shows, true, botoes);
 
         List<CapaMusicaAdapter.Capa> capas = new ArrayList<>();
         for (Album album : videos ? deVideo : deAudio) {
@@ -311,12 +328,13 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
                     album.capa, album.cor, album.video ? R.drawable.st_ic_assistir : R.drawable.st_ic_disco, false,
                     () -> TelasMusica.abrirAlbum(this, album.id),
                     album.video ? () -> assistir(album.musicas.get(0).id)
-                            : () -> Tocador.de(this).tocar(album.musicas, 0, false)));
+                            : () -> Tocador.de(this).tocar(album.musicas, 0, false))
+                    .comOrigem(album.video ? null : PecasDetalhe.origemAMostrar(this, album.origem)));
         }
         List<Musica> cards = videos && soltos != null ? soltos.musicas : new ArrayList<>();
         // Só refaz as seções se mudaram (a biblioteca avisa muito durante a atualização)
         StringBuilder assinatura = new StringBuilder().append(abaDoArtista).append(';');
-        for (CapaMusicaAdapter.Capa c : capas) assinatura.append(c.id).append('|').append(c.linha).append('|').append(c.imagem).append(';');
+        for (CapaMusicaAdapter.Capa c : capas) assinatura.append(c.id).append('|').append(c.linha).append('|').append(c.imagem).append('|').append(c.origem).append(';');
         for (Musica v : cards) assinatura.append(v.id).append('|').append(v.titulo).append('|').append(v.posicaoSegundos).append(v.assistido).append(';');
         if (!assinatura.toString().equals(assinaturaDasSecoes)) {
             assinaturaDasSecoes = assinatura.toString();
@@ -375,16 +393,15 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
             return;
         }
         musicas = new ArrayList<>(p.musicas);
-        long total = 0;
-        for (Musica m : p.musicas) total += m.duracaoMs;
         int fora = p.total - p.musicas.size();
+        // O tempo total saiu da linha e virou selo (ajuste de 21/11/2026)
         String linha = juntar(getResources().getQuantityString(R.plurals.st_n_musicas, p.musicas.size(), p.musicas.size()),
-                total > 0 ? PecasMusica.duracaoLonga(total) : null,
                 fora > 0 ? getResources().getQuantityString(R.plurals.st_musicas_fora, fora, fora) : null);
         List<Button> botoes = new ArrayList<>();
         if (!musicas.isEmpty()) {
             botoes.add(botaoTocar(R.string.st_musicas_tocar, false));
             botoes.add(botaoTocar(R.string.st_musicas_aleatorio, true));
+            botoesDeDownload(musicas, botoes);
         }
         Button renomear = PecasMusica.botao(this, R.string.st_musicas_renomear, R.drawable.st_ic_editar, false);
         renomear.setOnClickListener(v -> NomePlaylistActivity.abrirRenomear(this, p.id, p.nome));
@@ -395,10 +412,22 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
         botoes.add(botaoTrocarCapa("playlist:" + p.id, p.nome, null));
         List<String> selos = new ArrayList<>();
         selos.add(getString(R.string.st_musicas_selo_playlist));
-        cabecalho(p.nome, linha, selos, null, p.capa, p.cor, R.drawable.st_ic_fila, false, botoes);
+        seloDeTempo(selos, p.musicas);
+        cabecalho(p.nome, linha, selos, PecasDetalhe.origemAMostrar(this, p.origem), null, p.capa, p.cor, R.drawable.st_ic_fila,
+                false, botoes);
         faixas.atualizar(musicas);
         aviso.setText(R.string.st_musicas_playlist_vazia);
         aviso.setVisibility(musicas.isEmpty() ? View.VISIBLE : View.GONE);
+    }
+
+    /**
+     * Selo com o tempo de tudo o que a coleção tem, músicas e vídeos ("15 min", "1 h 15 min"), junto dos outros (ajuste
+     * de 21/11/2026); a duração que não se sabe conta 0, e sem nenhuma conhecida o selo não aparece. Só no álbum e na
+     * playlist: a página do artista não tem.
+     */
+    private static void seloDeTempo(List<String> selos, List<Musica> itens) {
+        long total = ModeloMusicas.duracaoTotalMs(itens);
+        if (total > 0) selos.add(PecasMusica.duracaoLonga(total));
     }
 
     private Button botaoTocar(int texto, boolean aleatorio) {
@@ -408,6 +437,44 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
             Tocador.de(this).tocar(musicas, aleatorio ? (int) (Math.random() * musicas.size()) : 0, aleatorio);
         });
         return botao;
+    }
+
+    /**
+     * Downloads (2.0, D12, só fora da TV): com alguma da coleção na fila, "Baixando 3 de 12" (sem ação) e Cancelar
+     * downloads; senão, Baixar se falta alguma do servidor. Tudo baixado ou nada do servidor: nenhum botão.
+     */
+    private void botoesDeDownload(List<Musica> daColecao, List<Button> botoes) {
+        if (tv) return;
+        Downloads downloads = Downloads.de(this);
+        List<String> faltam = new ArrayList<>();
+        boolean naFila = false;
+        for (Musica m : daColecao) {
+            if (m.video) continue;
+            if (downloads.naFila(m.id)) naFila = true;
+            else if (m.origem == ModeloMusicas.Origem.SERVIDOR) faltam.add(m.id);
+        }
+        if (naFila) {
+            int[] andamento = downloads.andamento();
+            int total = Math.max(andamento[1], 1);
+            Button baixando = PecasMusica.botao(this, R.string.st_musicas_baixar, R.drawable.st_ic_baixar, false);
+            baixando.setText(getString(R.string.st_musicas_baixando, Math.max(andamento[0], 1), total));
+            baixando.setEnabled(false);
+            botoes.add(baixando);
+            Button cancelar = PecasMusica.botao(this, R.string.st_musicas_cancelar_downloads, R.drawable.st_ic_fechar, false);
+            cancelar.setOnClickListener(v -> {
+                downloads.cancelar();
+                Toast.makeText(this, R.string.st_musicas_downloads_cancelados, Toast.LENGTH_SHORT).show();
+            });
+            botoes.add(cancelar);
+        } else if (!faltam.isEmpty()) {
+            Button baixar = PecasMusica.botao(this, R.string.st_musicas_baixar, R.drawable.st_ic_baixar, false);
+            baixar.setOnClickListener(v -> {
+                int entraram = downloads.baixar(faltam);
+                Toast.makeText(this, getResources().getQuantityString(R.plurals.st_musicas_n_na_fila, entraram, entraram),
+                        Toast.LENGTH_SHORT).show();
+            });
+            botoes.add(baixar);
+        }
     }
 
     /** Vídeos (1.5.1): do primeiro, no player de vídeo; ele segue a sequência sozinho. */
@@ -457,11 +524,11 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
      * Capa (a foto redonda do artista), nome, linha de dados, os selos, a descrição (3 linhas e "Ver mais")
      * e os botões, com o foco no primeiro (TV).
      */
-    private void cabecalho(String nome, String linha, List<String> selos, @Nullable String descricao, @Nullable String imagem,
-                           int cor, int icone, boolean redonda, List<Button> botoes) {
+    private void cabecalho(String nome, String linha, List<String> selos, ModeloMusicas.Origem origem, @Nullable String descricao,
+                           @Nullable String imagem, int cor, int icone, boolean redonda, List<Button> botoes) {
         // A biblioteca avisa muitas vezes durante a atualização: só refaz o topo se mudou
         StringBuilder assinatura = new StringBuilder(nome).append('|').append(linha).append('|').append(imagem)
-                .append('|').append(selos).append('|').append(descricao);
+                .append('|').append(selos).append('|').append(origem).append('|').append(descricao);
         for (Button b : botoes) assinatura.append('|').append(b.getText());
         if (assinatura.toString().equals(assinaturaDoTopo)) return;
         assinaturaDoTopo = assinatura.toString();
@@ -483,14 +550,14 @@ public class ColecaoMusicaActivity extends AppCompatActivity {
         textos.addView(titulo);
         textos.addView(PecasMusica.linha(this, linha, R.font.st_inter_semibold, 21, R.color.st_texto_secundario),
                 PecasMusica.comTopo(Medidas.px(this, 12)));
-        if (!selos.isEmpty()) {
-            LinearLayout chips = new LinearLayout(this);
-            chips.setOrientation(LinearLayout.HORIZONTAL);
-            List<Boolean> azuis = new ArrayList<>();
-            for (int i = 0; i < selos.size(); i++) azuis.add(i == 0);
-            PecasDetalhe.chips(chips, selos, azuis, tv);
-            textos.addView(chips, PecasMusica.comTopo(Medidas.px(this, 14)));
-        }
+        LinearLayout chips = new LinearLayout(this);
+        chips.setOrientation(LinearLayout.HORIZONTAL);
+        List<Boolean> azuis = new ArrayList<>();
+        for (int i = 0; i < selos.size(); i++) azuis.add(i == 0);
+        PecasDetalhe.chips(chips, selos, azuis, tv);
+        // D16: Servidor, Baixada ou Aparelho, no fim dos selos
+        PecasDetalhe.origem(chips, origem, tv);
+        textos.addView(chips, PecasMusica.comTopo(Medidas.px(this, 14)));
         Button verMais = null;
         if (descricao != null) {
             TextView texto = Textos.novo(this, descricao, R.font.st_inter_medium, 19, R.color.st_texto_secundario);

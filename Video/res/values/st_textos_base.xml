@@ -33,6 +33,8 @@
     <string name="st_hd_situacao">Situação do HD externo</string>
     <string name="st_hd_conectado">HD externo</string>
     <string name="st_hd_desconectado">Sem HD</string>
+    <string name="st_selo_servidor">Servidor</string>
+    <string name="st_selo_servidor_fora">Servidor fora</string>
 
     <!-- Telas ainda não feitas (EmConstrucaoActivity) -->
     <string name="st_em_construcao">Em construção</string>

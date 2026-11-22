@@ -124,6 +124,12 @@ public class SerieTabletActivity extends AppCompatActivity {
             finish();
             return;
         }
+        if (serie.ehColetanea()) {
+            // Coletânea de desenhos que voltou a "Como filmes" no Editar (ajuste de 22/11/2026): a tela dela no lugar
+            Navegacao.abrirCapa(this, serie);
+            finish();
+            return;
+        }
         temporadas = repositorio.temporadas(id);
         proximo = PecasDetalhe.proximoEpisodio(temporadas);
 
@@ -140,6 +146,7 @@ public class SerieTabletActivity extends AppCompatActivity {
         List<Boolean> azuis = new ArrayList<>();
         for (int i = 0; i < textos.size(); i++) azuis.add(false);
         PecasDetalhe.chips(chips, textos, azuis, false);
+        PecasDetalhe.origem(chips, serie.origem, false);
         sinopse.setText(serie.sinopse);
         sinopse.setVisibility(serie.sinopse == null || serie.sinopse.isEmpty() ? View.GONE : View.VISIBLE);
         verMais.setVisibility(View.GONE);

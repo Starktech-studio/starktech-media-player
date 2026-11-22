@@ -166,6 +166,33 @@ public final class Preferencias {
         arquivo(contexto).edit().putBoolean(CHAVE_SO_NAO_ASSISTIDOS, ligado).apply();
     }
 
+    private static final String CHAVE_SO_BAIXADAS = "so_baixadas";
+
+    /** Filtro "Só baixadas" das sub-abas de Músicas (2.0, D14); vale para todas. */
+    public static boolean soBaixadas(Context contexto) {
+        return arquivo(contexto).getBoolean(CHAVE_SO_BAIXADAS, false);
+    }
+
+    public static void definirSoBaixadas(Context contexto, boolean ligado) {
+        arquivo(contexto).edit().putBoolean(CHAVE_SO_BAIXADAS, ligado).apply();
+    }
+
+    private static final String CHAVE_DESTINO_DOWNLOADS = "destino_downloads";
+
+    /**
+     * Onde baixar as músicas do servidor (2.0, D11): a raiz do armazenamento escolhido (cartão ou pendrive); nula =
+     * a memória interna, de fábrica.
+     */
+    @Nullable
+    public static String destinoDownloads(Context contexto) {
+        return arquivo(contexto).getString(CHAVE_DESTINO_DOWNLOADS, null);
+    }
+
+    public static void definirDestinoDownloads(Context contexto, @Nullable String raiz) {
+        if (raiz == null) arquivo(contexto).edit().remove(CHAVE_DESTINO_DOWNLOADS).apply();
+        else arquivo(contexto).edit().putString(CHAVE_DESTINO_DOWNLOADS, raiz).apply();
+    }
+
     private static final String CHAVE_PEDIU_ACESSO = "pediu_acesso_arquivos";
 
     /** True só na primeira chamada: o acesso a todos os arquivos é pedido sozinho uma vez. */

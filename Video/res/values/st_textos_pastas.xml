@@ -97,4 +97,37 @@
     <string name="st_atualizando_biblioteca">Atualizando a biblioteca…</string>
     <string name="st_videos_sem_permissao">Sem permissão para ler os vídeos do aparelho. Permita o acesso nas configurações do Android.</string>
     <string name="st_sem_pastas_dica">Nenhuma pasta ainda. Toque em Adicionar pasta para escolher onde estão os vídeos.</string>
+
+    <!-- Servidor em casa (2.0, D6): Adicionar servidor, grupo em Pastas, Editar e Remover servidor -->
+    <string name="st_adicionar_servidor">Adicionar servidor</string>
+    <string name="st_editar_servidor">Editar servidor</string>
+    <string name="st_remover_servidor">Remover servidor</string>
+    <string name="st_servidor_em_casa">Servidor em casa</string>
+    <string name="st_servidor_fora_de_alcance">Fora de alcance</string>
+    <string name="st_servidor_digite_a_senha">Digite a senha de novo</string>
+    <string name="st_servidor_linha" translatable="false">%1$s / %2$s</string>
+    <string name="st_servidor_dica">O IP fixo do servidor e o usuário e a senha do Samba. A senha fica guardada só neste aparelho, cifrada.</string>
+    <string name="st_servidor_dica_editar">Troque o que mudou. A senha guardada continua se o campo ficar vazio.</string>
+    <string name="st_servidor_ip">IP do servidor</string>
+    <string name="st_servidor_ip_exemplo" translatable="false">192.168.0.10</string>
+    <string name="st_servidor_usuario">Usuário</string>
+    <string name="st_servidor_senha">Senha</string>
+    <string name="st_servidor_senha_guardada">Senha guardada</string>
+    <string name="st_servidor_compartilhamento">Compartilhamento</string>
+    <string name="st_servidor_entrar">Entrar</string>
+    <string name="st_servidor_entrando">Entrando no servidor…</string>
+    <string name="st_servidor_sem_ip">Digite o IP do servidor.</string>
+    <string name="st_servidor_ip_invalido">IP inválido. Use só números e pontos, como 192.168.0.10.</string>
+    <string name="st_servidor_sem_compartilhamento">Digite o compartilhamento.</string>
+    <string name="st_servidor_nao_responde">O servidor não respondeu. Confira o IP e se ele está ligado e na mesma rede.</string>
+    <string name="st_servidor_senha_recusada">Usuário ou senha não conferem.</string>
+    <string name="st_servidor_nao_abriu">Não deu para abrir o servidor. Tente de novo.</string>
+    <string name="st_servidor_escolha_compartilhamento">Escolha o compartilhamento</string>
+    <string name="st_servidor_sem_compartilhamentos">Nenhum compartilhamento neste servidor</string>
+    <string name="st_servidor_salvo">Servidor salvo</string>
+    <string name="st_servidor_nao_salvou">Não deu para salvar o servidor.</string>
+    <string name="st_servidor_removido">Servidor removido: %1$s</string>
+    <string name="st_remover_servidor_titulo">Remover o servidor?</string>
+    <string name="st_remover_servidor_dica">%1$s sai da biblioteca, com a senha e as pastas dele. Os arquivos continuam no servidor; as músicas baixadas ficam no aparelho.</string>
+    <string name="st_pasta_downloads_recusada">Essa é a pasta de downloads de Músicas: as músicas dela já entram pelo servidor.</string>
 </resources>

@@ -43,6 +43,7 @@ import br.com.starktechstudio.mediaplayer.dados.Modelo.TipoFaixa;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Titulo;
 import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 import br.com.starktechstudio.mediaplayer.dados.RepositorioReal;
+import br.com.starktechstudio.mediaplayer.motor.ArquivosDaBiblioteca;
 import br.com.starktechstudio.mediaplayer.motor.Capitulos;
 import br.com.starktechstudio.mediaplayer.motor.CapitulosDoArquivo;
 import br.com.starktechstudio.mediaplayer.motor.Faixas;
@@ -61,6 +62,10 @@ import br.com.starktechstudio.mediaplayer.musica.Tocador;
  * vídeo, o título fica assistido e, com "Próximo episódio automático" ligado, o episódio dá lugar ao
  * seguinte ({@link #definirAoPassarEpisodio}). O zoom guardado vale ao abrir, na TV e no tablet
  * ({@link #ZOOM_OPCOES}).
+ *
+ * <p>2.0: o vídeo do servidor em casa abre pelo endereço {@code smb://} ({@link ArquivosDaBiblioteca}; o Nova toca pelo
+ * proxy local, sem baixar). A legenda ao lado dele vem pela cópia prévia do Nova ({@link #trazerLegendasDoServidor}), no
+ * lugar do índice de mídia; os capítulos, só pelo motor. Servidor fora de alcance ao abrir: aviso e não abre.
  */
 public final class Reproducao implements Player.Listener {
 
@@ -367,8 +372,17 @@ public final class Reproducao implements Player.Listener {
         aplicarEstiloDaLegenda();
         atrasoLegendaMs = repositorio.atrasoLegenda(id);
         if (atrasoLegendaMs != 0) player.setSubtitleDelay(atrasoLegendaMs);
-        trazerLegendasDoIndice();
-        player.setVideoURI(Uri.fromFile(new File(caminho)), null);
+        ArquivosDaBiblioteca arquivos = ArquivosDaBiblioteca.de(contexto);
+        Uri endereco = arquivos.servidorAoAlcance(caminho) ? arquivos.uri(caminho) : null;
+        if (endereco == null) {
+            // Servidor em casa fora de alcance (ou removido): o aviso dele e volta, sem o "não abriu" genérico
+            Toast.makeText(contexto, R.string.st_servidor_fora_ao_abrir, Toast.LENGTH_LONG).show();
+            relogio.post(tela::finish);
+            return;
+        }
+        if (ArquivosDaBiblioteca.local(caminho)) trazerLegendasDoIndice();
+        else trazerLegendasDoServidor(endereco);
+        player.setVideoURI(endereco, null);
         // Depois de abrir: setVideoURI apaga a posição pedida antes (começava sempre do zero)
         if (posicaoPedida > 0) player.seekTo(posicaoPedida * 1000);
         naTela = this;
@@ -408,6 +422,34 @@ public final class Reproducao implements Player.Listener {
         fase.compareAndSet(0, 2);
     }
 
+    /**
+     * Legenda ao lado do vídeo no servidor: o motor recebe o http do proxy e não lista a pasta, então a cópia prévia do
+     * Nova ({@code preFetchHTTPSubtitlesAndPrepareUpnpSubs}) traz as legendas da pasta para a pasta de legendas do app;
+     * quando terminam, o player procura de novo. Sem esperar: a abertura não depende delas.
+     */
+    private void trazerLegendasDoServidor(Uri endereco) {
+        new com.archos.mediacenter.video.browser.subtitlesmanager.SubtitleManager(contexto,
+                new com.archos.mediacenter.video.browser.subtitlesmanager.SubtitleManager.Listener() {
+                    @Override
+                    public void onAbort() {
+                    }
+
+                    @Override
+                    public void onError(Uri uri, Exception e) {
+                        Log.w(LOG, "legendas do servidor: " + e.getClass().getSimpleName());
+                    }
+
+                    @Override
+                    public void onSuccess(Uri uri) {
+                        if (player != null) player.checkSubtitles();
+                    }
+
+                    @Override
+                    public void onNoSubtitlesFound(Uri uri) {
+                    }
+                }).preFetchHTTPSubtitlesAndPrepareUpnpSubs(endereco, endereco);
+    }
+
     /** Avisado quando os capítulos chegam depois de abrir (marcas, botões e lista). */
     public void definirAoMudarCapitulos(Runnable aoMudar) {
         this.aoMudarCapitulos = aoMudar;
@@ -442,11 +484,13 @@ public final class Reproducao implements Player.Listener {
     /** Capítulos pelo leitor do motor, fora da tela (quando o player não trouxe). */
     private void lerCapitulos() {
         final String arquivo = caminho;
+        final String endereco = ArquivosDaBiblioteca.de(contexto).endereco(caminho);
         new Thread(() -> {
             Capitulos lidos = Capitulos.nenhum();
             IMediaMetadataRetriever leitor = MediaFactory.createMetadataRetriever(contexto);
             try {
-                leitor.setDataSource(arquivo);
+                if (endereco == null) throw new IOException("servidor removido");
+                leitor.setDataSource(endereco);
                 lidos = Capitulos.doLeitor(leitor);
             } catch (Exception e) {
                 // tenta direto do arquivo, abaixo
@@ -457,8 +501,8 @@ public final class Reproducao implements Player.Listener {
                     // nada a fazer
                 }
             }
-            // Reserva: direto do arquivo (MKV, MP4), sem o motor
-            if (lidos.vazio()) lidos = CapitulosDoArquivo.ler(arquivo);
+            // Reserva: direto do arquivo (MKV, MP4), sem o motor; no servidor, só o motor
+            if (lidos.vazio() && ArquivosDaBiblioteca.local(arquivo)) lidos = CapitulosDoArquivo.ler(arquivo);
             if (lidos.vazio()) {
                 relogio.post(this::usarMarcas);
                 return;

@@ -22,7 +22,6 @@ import com.archos.mediacenter.video.R;
 import com.archos.medialib.AndroidMediaPlayer;
 import com.archos.medialib.IMediaPlayer;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -36,6 +35,7 @@ import br.com.starktechstudio.mediaplayer.dados.Modelo.Episodio;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Tipo;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Titulo;
 import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
+import br.com.starktechstudio.mediaplayer.motor.ArquivosDaBiblioteca;
 
 /**
  * Prévia em vídeo de Novidades na TV (D3), ligada ao item expandido ({@link DestaqueTv.Expansao}):
@@ -291,7 +291,11 @@ final class PreviaVideoTv implements DestaqueTv.Expansao, TextureView.SurfaceTex
                 novo.setOnErrorListener(this);
                 novo.setOnSeekCompleteListener(this);
                 novo.setOnVideoSizeChangedListener(this);
-                novo.setDataSource(aplicacao, Uri.fromFile(new File(caminho)));
+                // 2.0: do servidor em casa, pelo endereço smb:// (o player do Nova faz a ponte); fora de alcance, fica a imagem
+                ArquivosDaBiblioteca arquivos = ArquivosDaBiblioteca.de(aplicacao);
+                Uri endereco = arquivos.servidorAoAlcance(caminho) ? arquivos.uri(caminho) : null;
+                if (endereco == null) throw new IOException("servidor fora de alcance");
+                novo.setDataSource(aplicacao, endereco);
                 novo.setSurface(superficie);
                 novo.setVolume(0f, 0f);
                 inicioAplicado = inicioMs == 0 || novo.setStartTime(inicioMs);

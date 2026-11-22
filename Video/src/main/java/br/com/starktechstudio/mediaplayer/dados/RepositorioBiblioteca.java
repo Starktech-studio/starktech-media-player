@@ -111,7 +111,8 @@ public interface RepositorioBiblioteca {
 
     /**
      * Aba Desenhos (1.8.0, D7 e D9), em ordem alfabética: os filmes de desenho soltos, no lugar de 2 ou mais
-     * da mesma coletânea a capa dela, e os desenhos com episódios ({@link Titulo#desenho}).
+     * da mesma coletânea a capa dela, e os desenhos com episódios ({@link Titulo#desenho}), entre eles as
+     * coletâneas mostradas como série ({@link #coletaneaComoSerie}).
      */
     List<Titulo> desenhos();
 
@@ -120,6 +121,15 @@ public interface RepositorioBiblioteca {
      * o TMDB diz. Restaurar original também desfaz. Para saber a atual: {@link Titulo#colecaoNome}.
      */
     void definirColetanea(String idFilme, String nome);
+
+    /**
+     * Coletânea de desenhos (ajuste de 22/11/2026): "Como série (episódios)" no Editar dela — os desenhos viram
+     * os episódios de uma série, com o mesmo id; sem a escolha, "Como filmes" (o padrão). Só nas de desenhos.
+     */
+    boolean coletaneaComoSerie(String idColetanea);
+
+    /** Grava a escolha de {@link #coletaneaComoSerie} e refaz a biblioteca na hora (chamar fora da tela). Restaurar original volta a "Como filmes". */
+    void definirColetaneaComoSerie(String idColetanea, boolean comoSerie);
 
     // ---- Shows por artista e por grupo (D7) ----
 
@@ -282,8 +292,35 @@ public interface RepositorioBiblioteca {
 
     void definirTipoPasta(String idPasta, TipoPasta tipo);
 
-    /** Adicionar pasta (D15): {@code caminho} de verdade; nome igual a Filmes, Séries ou Shows já vem com o tipo. */
-    void adicionarPasta(Origem origem, String caminho);
+    /**
+     * Adicionar pasta (D15): {@code caminho} de verdade ({@code servidor:<id>/…} no servidor em casa); nome igual a
+     * Filmes, Séries ou Shows já vem com o tipo. false = recusada (a pasta de downloads de Músicas, 2.0).
+     */
+    boolean adicionarPasta(Origem origem, String caminho);
+
+    // ---- Servidor em casa (2.0) ----
+
+    /** Servidores cadastrados, na ordem em que entraram, com o estado guardado (sem rede). */
+    List<Modelo.Servidor> servidores();
+
+    /** Algum servidor ao alcance agora (selo do Início do tablet), pelo estado guardado. */
+    boolean servidorConectado();
+
+    /**
+     * Algum servidor cadastrado, ao alcance ou não (D16, ajuste de 21/11/2026): sem ele, as capas de Músicas e os
+     * detalhes não mostram a origem.
+     */
+    boolean temServidor();
+
+    /**
+     * Cadastra ({@code id} &lt; 0) ou edita o servidor; {@code senha} nula na edição = mantém a guardada. A senha
+     * vai cifrada para o banco e, aberta, só para a memória do Nova. Nulo = não gravou.
+     */
+    @Nullable
+    Modelo.Servidor salvarServidor(long id, String ip, String compartilhamento, String usuario, @Nullable String senha);
+
+    /** Remove o servidor, a senha e as pastas dele (os vídeos e as músicas dele saem da biblioteca). */
+    void removerServidor(long id);
 
     /** Tira a pasta da biblioteca (os vídeos dela saem; os arquivos ficam onde estão). */
     void removerPasta(String idPasta);

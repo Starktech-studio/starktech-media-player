@@ -34,6 +34,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * resolução, faixas de áudio e legenda, capítulos — numa abertura só do arquivo. O quadro do vídeo
  * (miniatura) é outro passo, depois do TMDB e só para quem ficou sem imagem ({@link #miniaturas}):
  * é a parte lenta (num HD USB com arquivos de vários GB, segundos por vídeo) e atrasava os capítulos.
+ *
+ * <p>2.0: a lista vem pela camada dos arquivos ({@link ArquivosDaBiblioteca}), do aparelho e do servidor em casa;
+ * no servidor, tamanho e data vêm da listagem e "sumiu" é decidido pela listagem da rodada (servidor fora não
+ * apaga nada). A leitura técnica e o quadro abrem pelo endereço ({@code smb://} passa pelo proxy do Nova); as
+ * reservas do Android e dos capítulos em Java leem só o arquivo do aparelho.
  */
 public final class Varredura {
 
@@ -88,7 +93,16 @@ public final class Varredura {
      * biblioteca veio sem nenhum, com o armazenamento dela montado (erro de leitura no HD).
      */
     public static boolean listar(Context contexto, Aviso aviso) {
-        return atualizarLista(contexto, Acervo.de(contexto), Pastas.de(contexto).lista(), aviso);
+        return listar(contexto, aviso, true);
+    }
+
+    /** {@code comServidor} false: as pastas do servidor ficam como estão nesta rodada (D8: voltar ao app antes de 30 min). */
+    public static boolean listar(Context contexto, Aviso aviso, boolean comServidor) {
+        List<Pastas.Pasta> pastas = Pastas.de(contexto).lista();
+        Set<String> pular = new HashSet<>();
+        if (!comServidor) for (Pastas.Pasta p : pastas) if (!ArquivosDaBiblioteca.local(p.caminho)) pular.add(p.caminho);
+        return atualizarLista(contexto, Acervo.de(contexto), pastas,
+                Classificador.varrer(pastas, ArquivosDaBiblioteca.de(contexto), pular), aviso);
     }
 
     /**
@@ -99,7 +113,8 @@ public final class Varredura {
      * nada (some de vez só ao tirar a pasta ou quando ela voltar a ter vídeos). Devolve true se vale
      * tentar de novo.
      */
-    private static boolean atualizarLista(Context contexto, Acervo acervo, List<Pastas.Pasta> pastas, Aviso aviso) {
+    private static boolean atualizarLista(Context contexto, Acervo acervo, List<Pastas.Pasta> pastas,
+                                          Classificador.Varrido varrido, Aviso aviso) {
         Map<String, Acervo.Video> antes = new HashMap<>();
         for (Acervo.Video v : acervo.videos()) antes.put(v.caminho, v);
 
@@ -116,14 +131,14 @@ public final class Varredura {
         // 1.8.0 (risco 1 do plano 009): vídeo que passou de filme a episódio (ou o contrário) perde a linha do TMDB
         List<String> semTmdb = new ArrayList<>();
         Set<String> achados = new HashSet<>();
-        for (Classificador.Item item : Classificador.varrer(pastas)) {
+        for (Classificador.Item item : varrido.itens) {
             achados.add(item.caminho);
-            File arquivo = new File(item.caminho);
+            ArquivosDaBiblioteca.Entrada arquivo = dadosDoArquivo(item.caminho, varrido);
             Pastas.Pasta pasta = pastaDe(pastas, item.caminho);
             conta(contas, pasta == null ? "" : pasta.caminho)[0]++;
             Acervo.Video velho = antes.get(item.caminho);
             // Listado, mas sem os dados do arquivo (erro de leitura no HD): o que já tem fica como está
-            if (velho != null && !arquivo.exists()) continue;
+            if (velho != null && arquivo == null) continue;
             Acervo.Video v = new Acervo.Video();
             v.caminho = item.caminho;
             v.pasta = pasta == null ? "" : pasta.caminho;
@@ -136,8 +151,8 @@ public final class Varredura {
             v.artista = item.artista;
             v.grupo = item.grupo;
             v.motivo = item.motivo;
-            v.tamanho = arquivo.length();
-            v.modificado = arquivo.lastModified();
+            v.tamanho = arquivo == null ? 0 : arquivo.tamanho;
+            v.modificado = arquivo == null ? 0 : arquivo.modificado;
             boolean mesmoArquivo = velho != null && velho.tamanho == v.tamanho && velho.modificado == v.modificado;
             v.adicionado = velho != null ? velho.adicionado : agora;
             if (mesmoArquivo) copiarDadosTecnicos(velho, v);
@@ -152,7 +167,7 @@ public final class Varredura {
             Pastas.Pasta dona = pastaDe(pastas, v.caminho);
             boolean saiu = !cadastradas.contains(v.pasta) || dona == null || Classificador.foraDosVideos(dona);
             boolean pastaSemNenhum = conta(contas, v.pasta)[0] == 0;
-            if (saiu || (!pastaSemNenhum && sumiu(v))) {
+            if (saiu || (!pastaSemNenhum && sumiu(v, varrido))) {
                 remover.add(v.caminho);
                 conta(contas, v.pasta)[2]++;
             } else {
@@ -195,6 +210,26 @@ public final class Varredura {
             contas.put(pasta, conta);
         }
         return conta;
+    }
+
+    /**
+     * Tamanho e data do arquivo listado: do aparelho, pelo próprio arquivo (nulo se ele não existe: erro de
+     * leitura no HD); do servidor, da listagem da rodada.
+     */
+    private static ArquivosDaBiblioteca.Entrada dadosDoArquivo(String caminho, Classificador.Varrido varrido) {
+        if (!ArquivosDaBiblioteca.local(caminho)) return varrido.arquivos.get(caminho);
+        File arquivo = new File(caminho);
+        if (!arquivo.exists()) return null;
+        return new ArquivosDaBiblioteca.Entrada(caminho, arquivo.getName(), false, arquivo.length(), arquivo.lastModified());
+    }
+
+    /**
+     * Sumiu de verdade. Do servidor (2.0): não veio na listagem e nenhuma pasta acima dele deixou de abrir
+     * nesta rodada (servidor fora, erro de leitura: fica); subpasta renomeada também conta.
+     */
+    static boolean sumiu(Acervo.Video v, Classificador.Varrido varrido) {
+        if (!ArquivosDaBiblioteca.local(v.caminho)) return !varrido.dentroDeQuemNaoAbriu(v.caminho);
+        return sumiu(v);
     }
 
     /**
@@ -257,8 +292,9 @@ public final class Varredura {
         Acervo acervo = Acervo.de(contexto);
         List<Acervo.Video> faltam = new ArrayList<>();
         List<Acervo.Video> reler = new ArrayList<>();
+        ArquivosDaBiblioteca arquivos = ArquivosDaBiblioteca.de(contexto);
         for (Acervo.Video v : semLeitura(acervo)) {
-            if (!new File(v.caminho).isFile()) continue;
+            if (!arquivos.disponivel(v.caminho)) continue;
             if (jaTentou(v)) reler.add(v);
             else faltam.add(v);
         }
@@ -373,7 +409,7 @@ public final class Varredura {
         Acervo acervo = Acervo.de(contexto);
         Acervo.Video v = acervo.video(caminho);
         if (v == null || !faltaLer(v) || leiturasAbertas(lendo, SystemClock.elapsedRealtime()) >= MAXIMO_PRESAS
-                || !new File(v.caminho).isFile()) return false;
+                || !ArquivosDaBiblioteca.de(contexto).disponivel(v.caminho)) return false;
         return lerComLimite(contexto, acervo, caminho, aviso, true);
     }
 
@@ -407,7 +443,8 @@ public final class Varredura {
         try {
             Acervo.Video v = acervo.video(caminho);
             if (v == null || !faltaLer(v)) return;
-            if (v.capitulos.vazio()) {
+            // A reserva em Java lê o arquivo do aparelho; no servidor, só o motor (pelo proxy)
+            if (v.capitulos.vazio() && ArquivosDaBiblioteca.local(caminho)) {
                 Capitulos reserva = CapitulosDoArquivo.ler(caminho);
                 if (!reserva.vazio()) {
                     Log.i(LOG, new File(caminho).getName() + ": " + reserva.quantidade() + " capítulos lidos do arquivo (Java)");
@@ -483,7 +520,9 @@ public final class Varredura {
         IMediaMetadataRetriever leitor = null;
         try {
             leitor = MediaFactory.createMetadataRetriever(contexto);
-            leitor.setDataSource(caminho);
+            String endereco = ArquivosDaBiblioteca.de(contexto).endereco(caminho);
+            if (endereco == null) return v; // servidor removido
+            leitor.setDataSource(endereco);
             v.capitulos = Capitulos.doLeitor(leitor);
             v.duracaoMs = numero(leitor.extractMetadata(IMediaMetadataRetriever.METADATA_KEY_DURATION));
             v.largura = (int) numero(leitor.extractMetadata(IMediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
@@ -543,8 +582,9 @@ public final class Varredura {
         if (pasta == null) return;
         Acervo acervo = Acervo.de(contexto);
         List<Acervo.Video> faltam = new ArrayList<>();
+        ArquivosDaBiblioteca arquivos = ArquivosDaBiblioteca.de(contexto);
         for (Acervo.Video v : acervo.videos()) {
-            if (v.miniatura != null || v.duracaoMs <= 0 || comImagem.contains(v.caminho) || !new File(v.caminho).isFile()) continue;
+            if (v.miniatura != null || v.duracaoMs <= 0 || comImagem.contains(v.caminho) || !arquivos.disponivel(v.caminho)) continue;
             faltam.add(v);
         }
         int feitas = 0;
@@ -566,7 +606,7 @@ public final class Varredura {
         File pasta = pastaMiniaturas(contexto);
         Acervo acervo = Acervo.de(contexto);
         Acervo.Video v = acervo.video(caminho);
-        if (pasta == null || v == null || v.duracaoMs <= 0 || !new File(caminho).isFile()) return false;
+        if (pasta == null || v == null || v.duracaoMs <= 0 || !ArquivosDaBiblioteca.de(contexto).disponivel(caminho)) return false;
         if (v.miniatura != null && new File(v.miniatura).isFile()) return false;
         v.miniatura = "";
         comLimite(() -> gravarQuadro(contexto, v, pasta), caminho);
@@ -587,8 +627,11 @@ public final class Varredura {
 
     private static void gravarQuadro(Context contexto, Acervo.Video v, File pasta) {
         long momentoUs = (long) (v.duracaoMs * PONTO_MINIATURA) * 1000L;
-        Bitmap quadro = quadroDoMotor(contexto, v.caminho, momentoUs);
-        if (quadro == null) quadro = quadroDoAndroid(v.caminho, momentoUs);
+        String endereco = ArquivosDaBiblioteca.de(contexto).endereco(v.caminho);
+        if (endereco == null) return; // servidor removido
+        Bitmap quadro = quadroDoMotor(contexto, endereco, momentoUs);
+        // A reserva do Android lê só o arquivo do aparelho; no servidor, só o motor
+        if (quadro == null && ArquivosDaBiblioteca.local(v.caminho)) quadro = quadroDoAndroid(v.caminho, momentoUs);
         if (quadro == null) return;
         String gravada = gravarMiniatura(quadro, pasta, v.caminho);
         if (gravada != null) v.miniatura = gravada;

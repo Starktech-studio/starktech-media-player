@@ -40,7 +40,7 @@ import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 
 /**
  * Série na TV (tv-serie.dc.html): fundo da série atrás (bloco de cor na F1, véu e degradê); no
- * topo, Séries, TV Shows ou Desenhos marcada ({@link TopoSecaoTv}, pela pasta); capa, rótulo ("Série"
+ * topo, só a marca e o relógio (2.0, D1: nada com foco; a saída é o Voltar); capa, rótulo ("Série"
  * ou "Desenho"), título, chips (temporadas, episódios, qualidade), a descrição da série (até 3 linhas,
  * como no Detalhe; sem descrição, nada no lugar), botão do próximo episódio ("Continuar · Episódio 3"),
  * Editar e Favoritar só com o ícone; as temporadas em
@@ -65,7 +65,6 @@ public class SerieTvActivity extends AppCompatActivity {
     private Button principal;
     private ImageButton editar;
     private ImageButton favoritar;
-    private TopoSecaoTv topo;
     private LinearLayout pilulasTemporada;
     private LinearLayout episodios;
     private Episodio proximo;
@@ -93,10 +92,9 @@ public class SerieTvActivity extends AppCompatActivity {
         pilulasTemporada = findViewById(R.id.st_serie_temporadas);
         episodios = findViewById(R.id.st_serie_episodios);
 
-        topo = new TopoSecaoTv(this);
-
         editar.setOnClickListener(v -> Navegacao.abrirEditar(this, id));
-        findViewById(R.id.st_botao_configuracoes).setOnClickListener(v -> Navegacao.abrirConfiguracoes(this));
+        // 2.0 (D1): sem nada com foco no topo, o ↑ dos botões (principal, Editar, Favoritar) fica parado
+        for (View botao : new View[]{principal, editar, favoritar}) botao.setNextFocusUpId(botao.getId());
         principal.setOnClickListener(v -> {
             if (proximo != null) Navegacao.abrirReproducao(this, proximo.id, Navegacao.DE_ONDE_PAROU);
         });
@@ -123,14 +121,15 @@ public class SerieTvActivity extends AppCompatActivity {
             finish();
             return;
         }
+        if (serie.ehColetanea()) {
+            // Coletânea de desenhos que voltou a "Como filmes" no Editar (ajuste de 22/11/2026): a tela dela no lugar
+            Navegacao.abrirCapa(this, serie);
+            finish();
+            return;
+        }
         temporadas = repositorio.temporadas(id);
         proximo = PecasDetalhe.proximoEpisodio(temporadas);
 
-        // Topo: Séries, TV Shows ou Desenhos marcada; ↑ dos botões (principal, Editar, Favoritar) vai a ela,
-        // ↓ das pílulas ao botão principal (sem episódio a ver, a Editar)
-        topo.marcar(Navegacao.abaDoTitulo(serie),
-                proximo != null ? R.id.st_serie_principal : R.id.st_serie_editar);
-        for (View botao : new View[]{principal, editar, favoritar}) botao.setNextFocusUpId(topo.idAtiva());
         rotulo.setText(PecasDetalhe.rotuloTipo(serie.desenho ? Tipo.DESENHO : Tipo.SERIE));
 
         fundo.setBackground(PecasDetalhe.fundoDoTitulo(this, serie.corFundo));
@@ -146,6 +145,7 @@ public class SerieTvActivity extends AppCompatActivity {
         List<Boolean> azuis = new ArrayList<>();
         for (int i = 0; i < textos.size(); i++) azuis.add(false);
         PecasDetalhe.chips(chips, textos, azuis, true);
+        PecasDetalhe.origem(chips, serie.origem, true);
         sinopse.setText(serie.sinopse);
         sinopse.setVisibility(serie.sinopse == null || serie.sinopse.isEmpty() ? View.GONE : View.VISIBLE);
 

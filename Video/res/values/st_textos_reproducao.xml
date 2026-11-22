@@ -66,4 +66,6 @@
     <string name="st_legenda_zerar">Zerar o atraso</string>
     <string name="st_expandir">Expandir</string>
     <string name="st_volume">Volume %1$d%%</string>
+    <!-- 2.0: vídeo do servidor em casa -->
+    <string name="st_servidor_fora_ao_abrir">Servidor em casa fora de alcance. Confira se ele está ligado e na mesma rede.</string>
 </resources>

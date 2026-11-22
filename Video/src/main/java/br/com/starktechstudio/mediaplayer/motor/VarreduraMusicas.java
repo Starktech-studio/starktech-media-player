@@ -21,6 +21,11 @@ import java.util.Set;
  * mudaram ({@link TagsMusica}, {@link CapasMusica}) e tira as que sumiram de verdade. Como na varredura de
  * vídeo, HD desligado ou com erro de leitura não apaga nada: a música só sai se a pasta saiu da biblioteca
  * (ou deixou de ser de Músicas) ou se o arquivo sumiu com a pasta dele legível.
+ *
+ * <p>2.0: a lista vem pela camada dos arquivos ({@link ArquivosDaBiblioteca}), do aparelho e do servidor em casa.
+ * No servidor, tamanho e data vêm da listagem, as tags são lidas por trechos ({@link TagsMusica#lerDoServidor}) e
+ * a capa pela imagem da pasta antes da gravada; "sumiu" pela listagem da rodada (servidor fora não apaga nada).
+ * A pasta de downloads de Músicas ({@link Pastas#PASTA_DOWNLOADS}) fica fora: as baixadas são do servidor.
  */
 public final class VarreduraMusicas {
 
@@ -31,8 +36,27 @@ public final class VarreduraMusicas {
 
     private VarreduraMusicas() {}
 
+    /** O que a listagem de uma pasta de Músicas achou. */
+    static final class Lista {
+        final List<ArquivosDaBiblioteca.Entrada> musicas = new ArrayList<>();
+        /** Imagem da pasta de cada álbum (servidor), pela pasta. */
+        final Map<String, ArquivosDaBiblioteca.Entrada> imagens = new HashMap<>();
+        final Set<String> naoAbriram = new HashSet<>();
+
+        boolean dentroDeQuemNaoAbriu(String caminho) {
+            for (String pasta : naoAbriram) if (caminho.equals(pasta) || Pastas.dentro(caminho, pasta)) return true;
+            return false;
+        }
+    }
+
     /** Devolve true se vale tentar de novo: uma pasta com músicas veio sem nenhuma, com o armazenamento montado. */
     public static boolean atualizar(Context contexto, Varredura.Aviso aviso) {
+        return atualizar(contexto, aviso, true);
+    }
+
+    /** {@code comServidor} false: as pastas do servidor ficam como estão nesta rodada (D8). */
+    public static boolean atualizar(Context contexto, Varredura.Aviso aviso, boolean comServidor) {
+        ArquivosDaBiblioteca camada = ArquivosDaBiblioteca.de(contexto);
         List<Pastas.Pasta> pastas = Pastas.de(contexto).lista();
         AcervoMusicas acervo = AcervoMusicas.de(contexto);
         Map<String, AcervoMusicas.Musica> antes = new HashMap<>();
@@ -47,22 +71,28 @@ public final class VarreduraMusicas {
         long agora = System.currentTimeMillis();
         boolean mudou = false;
 
+        Lista rodada = new Lista();
         for (Pastas.Pasta pasta : pastas) {
             if (pasta.tipo != Pastas.Tipo.MUSICAS) continue;
-            List<File> arquivos = new ArrayList<>();
-            listar(new File(pasta.caminho), cadastradas, new HashSet<>(), 0, arquivos);
-            achadosPorPasta.put(pasta.caminho, arquivos.size());
-            for (File arquivo : arquivos) {
-                String caminho = arquivo.getAbsolutePath();
+            Lista lista = new Lista();
+            if (!comServidor && !ArquivosDaBiblioteca.local(pasta.caminho)) lista.naoAbriram.add(pasta.caminho);
+            else listar(camada, pasta.caminho, cadastradas, new HashSet<>(), 0, lista);
+            rodada.naoAbriram.addAll(lista.naoAbriram);
+            achadosPorPasta.put(pasta.caminho, lista.musicas.size());
+            for (ArquivosDaBiblioteca.Entrada entrada : lista.musicas) {
+                String caminho = entrada.caminho;
+                boolean local = ArquivosDaBiblioteca.local(caminho);
+                File arquivo = local ? new File(caminho) : null;
                 achados.add(caminho);
                 AcervoMusicas.Musica velha = antes.get(caminho);
                 // Listado, mas sem os dados do arquivo (erro de leitura no HD): o que já tem fica
-                if (velha != null && !arquivo.exists()) continue;
-                long tamanho = arquivo.length();
-                long modificado = arquivo.lastModified();
+                if (velha != null && local && !arquivo.exists()) continue;
+                long tamanho = local ? arquivo.length() : entrada.tamanho;
+                long modificado = local ? arquivo.lastModified() : entrada.modificado;
                 if (velha != null && velha.tamanho == tamanho && velha.modificado == modificado
                         && velha.lido == AcervoMusicas.LEITURA && pasta.caminho.equals(velha.pasta)) continue;
-                AcervoMusicas.Musica nova = ler(arquivo, pasta.caminho, capas);
+                AcervoMusicas.Musica nova = local ? ler(arquivo, pasta.caminho, capas)
+                        : lerDoServidor(camada, entrada, pasta.caminho, capas, lista.imagens.get(ArquivosDaBiblioteca.acima(caminho)));
                 nova.tamanho = tamanho;
                 nova.modificado = modificado;
                 nova.adicionado = velha != null ? velha.adicionado : agora;
@@ -84,7 +114,7 @@ public final class VarreduraMusicas {
             boolean saiu = !cadastradas.contains(m.pasta) || dona == null || dona.tipo != Pastas.Tipo.MUSICAS;
             Integer achadas = achadosPorPasta.get(m.pasta);
             boolean pastaSemNenhuma = achadas == null || achadas == 0;
-            if (saiu || (!pastaSemNenhuma && sumiu(m))) remover.add(m.caminho);
+            if (saiu || (!pastaSemNenhuma && sumiu(m, rodada))) remover.add(m.caminho);
             else if (pastaSemNenhuma) semNenhuma.add(m.pasta);
         }
         if (!gravar.isEmpty() || !remover.isEmpty()) {
@@ -130,6 +160,71 @@ public final class VarreduraMusicas {
         return m;
     }
 
+    /** Música do servidor: tags por trechos; capa pela imagem da pasta e, sem ela, pela gravada na música. */
+    private static AcervoMusicas.Musica lerDoServidor(ArquivosDaBiblioteca camada, ArquivosDaBiblioteca.Entrada entrada,
+                                                      String pasta, CapasMusica capas, ArquivosDaBiblioteca.Entrada imagem) {
+        String relativo = entrada.caminho.substring(pasta.length() + 1);
+        TagsMusica.Tags tags = TagsMusica.lerDoServidor(camada, entrada.caminho, entrada.tamanho, relativo, imagem == null);
+        AcervoMusicas.Musica m = deTags(entrada.caminho, pasta, tags);
+        try {
+            m.capa = capas.capaDoServidor(camada, entrada.caminho, tags.album, imagem, tags.capa);
+        } catch (RuntimeException | OutOfMemoryError e) {
+            Log.w(LOG, "capa: não deu para ler " + entrada.nome);
+        }
+        return m;
+    }
+
+    private static AcervoMusicas.Musica deTags(String caminho, String pasta, TagsMusica.Tags tags) {
+        AcervoMusicas.Musica m = new AcervoMusicas.Musica();
+        m.caminho = caminho;
+        m.pasta = pasta;
+        m.titulo = tags.titulo;
+        m.artista = tags.artista;
+        m.artistaAlbum = tags.artistaAlbum;
+        m.album = tags.album;
+        m.faixa = tags.faixa;
+        m.disco = tags.disco;
+        m.ano = tags.ano;
+        m.genero = tags.genero;
+        m.duracaoMs = tags.duracaoMs;
+        m.lido = AcervoMusicas.LEITURA;
+        return m;
+    }
+
+    /**
+     * As músicas da pasta e das subpastas pela camada dos arquivos (menos as cadastradas à parte, as escondidas e
+     * a pasta de downloads); pasta que não abriu vai para {@link Lista#naoAbriram}.
+     */
+    static void listar(ArquivosDaBiblioteca camada, String dir, Set<String> cadastradas, Set<String> vistas,
+                       int profundidade, Lista saida) {
+        if (profundidade > PROFUNDIDADE_MAXIMA) return;
+        if (ArquivosDaBiblioteca.local(dir)) {
+            if (Pastas.deDownloads(dir)) return;
+            try {
+                if (!vistas.add(new File(dir).getCanonicalPath())) return; // link que volta para trás
+            } catch (IOException e) {
+                saida.naoAbriram.add(dir);
+                return;
+            }
+        }
+        List<ArquivosDaBiblioteca.Entrada> itens = camada.listar(dir);
+        if (itens == null) {
+            saida.naoAbriram.add(dir);
+            return;
+        }
+        if (!ArquivosDaBiblioteca.local(dir)) {
+            ArquivosDaBiblioteca.Entrada imagem = CapasMusica.imagemEntre(itens);
+            if (imagem != null) saida.imagens.put(dir, imagem);
+        }
+        for (ArquivosDaBiblioteca.Entrada item : itens) {
+            if (item.pasta) {
+                if (!cadastradas.contains(item.caminho)) listar(camada, item.caminho, cadastradas, vistas, profundidade + 1, saida);
+            } else if (Nomes.ehAudio(item.nome)) {
+                saida.musicas.add(item);
+            }
+        }
+    }
+
     /** As músicas da pasta e das subpastas (menos as cadastradas à parte e as escondidas). */
     private static void listar(File dir, Set<String> cadastradas, Set<String> vistas, int profundidade, List<File> saida) {
         if (profundidade > PROFUNDIDADE_MAXIMA) return;
@@ -158,6 +253,12 @@ public final class VarreduraMusicas {
             if (Pastas.dentro(caminho, p.caminho) && (melhor == null || p.caminho.length() > melhor.caminho.length())) melhor = p;
         }
         return melhor;
+    }
+
+    /** Do servidor (2.0): não veio na listagem e nenhuma pasta acima dela deixou de abrir nesta rodada. */
+    static boolean sumiu(AcervoMusicas.Musica m, Lista rodada) {
+        if (!ArquivosDaBiblioteca.local(m.caminho)) return !rodada.dentroDeQuemNaoAbriu(m.caminho);
+        return sumiu(m);
     }
 
     /** O arquivo sumiu de verdade: não existe e a pasta mais próxima acima dele que existe lista algo. */

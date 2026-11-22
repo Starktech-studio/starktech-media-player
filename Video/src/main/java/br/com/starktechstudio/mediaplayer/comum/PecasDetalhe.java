@@ -30,6 +30,8 @@ import br.com.starktechstudio.mediaplayer.dados.Modelo.Episodio;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Temporada;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Tipo;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Titulo;
+import br.com.starktechstudio.mediaplayer.dados.ModeloMusicas;
+import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 
 /**
  * Partes iguais do Detalhe e da Série, na TV e no tablet (tv-detalhe, tablet-detalhe, tv-serie):
@@ -148,6 +150,69 @@ public final class PecasDetalhe {
             azuis.add(i < chipsVideo);
         }
         chips(alvo, textos, azuis, tv);
+        origem(alvo, titulo.origem, tv);
+    }
+
+    /**
+     * Selo de origem (2.0, D16), no fim dos chips: ícone, nome e cor. Servidor em ciano ({@code server}), Baixada em
+     * verde ({@code download}), Aparelho em azul claro ({@code hard-drive}: HD externo e memória interna). Sem
+     * servidor cadastrado, nada ({@link #origemAMostrar}).
+     */
+    public static void origem(LinearLayout alvo, ModeloMusicas.Origem origem, boolean tv) {
+        Context contexto = alvo.getContext();
+        origem = origemAMostrar(contexto, origem);
+        if (origem == null) return;
+        Resources res = contexto.getResources();
+        int ph = res.getDimensionPixelSize(tv ? R.dimen.st_tv_selo_padding_h : R.dimen.st_tablet_detalhe_chip_padding_h);
+        int pv = res.getDimensionPixelSize(tv ? R.dimen.st_tv_selo_padding_v : R.dimen.st_tablet_detalhe_chip_padding_v);
+        int espaco = res.getDimensionPixelSize(tv ? R.dimen.st_tv_detalhe_chip_espaco : R.dimen.st_tablet_detalhe_chip_espaco);
+        float tamanho = res.getDimension(tv ? R.dimen.st_tv_texto_selo : R.dimen.st_tablet_texto_detalhe_chip);
+        TextView chip = new TextView(contexto);
+        chip.setText(nomeDaOrigem(origem));
+        chip.setTypeface(ResourcesCompat.getFont(contexto, R.font.st_inter_bold));
+        chip.setIncludeFontPadding(false);
+        chip.setSingleLine(true);
+        chip.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        chip.setTextSize(TypedValue.COMPLEX_UNIT_PX, tamanho);
+        int cor = ContextCompat.getColor(contexto, corDaOrigem(origem));
+        chip.setTextColor(cor);
+        chip.setBackgroundResource(origem == ModeloMusicas.Origem.SERVIDOR ? R.drawable.st_selo_origem_servidor
+                : origem == ModeloMusicas.Origem.BAIXADA ? R.drawable.st_selo_origem_baixada : R.drawable.st_selo_origem_aparelho);
+        chip.setCompoundDrawablePadding(Math.round(tamanho / 3));
+        Icones.noTexto(chip, iconeDaOrigem(origem), Math.round(tamanho * 1.1f), cor);
+        chip.setPadding(ph, pv, ph, pv);
+        chip.setContentDescription(contexto.getString(R.string.st_dt_origem) + ": " + contexto.getString(nomeDaOrigem(origem)));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        if (alvo.getChildCount() > 0) lp.setMarginStart(espaco);
+        alvo.addView(chip, lp);
+    }
+
+    /**
+     * A origem que a capa de Músicas e o selo dos detalhes mostram (ajuste de 21/11/2026): só com algum servidor
+     * cadastrado; sem ele, nula (nada aparece). Cadastrar ou remover o servidor avisa a biblioteca, e as telas refazem.
+     */
+    @androidx.annotation.Nullable
+    public static ModeloMusicas.Origem origemAMostrar(Context contexto, @androidx.annotation.Nullable ModeloMusicas.Origem origem) {
+        if (origem == null) return null;
+        return ModeloMusicas.origemAMostrar(origem, RepositorioBiblioteca.atual(contexto).temServidor());
+    }
+
+    @StringRes
+    public static int nomeDaOrigem(ModeloMusicas.Origem origem) {
+        return origem == ModeloMusicas.Origem.SERVIDOR ? R.string.st_origem_servidor
+                : origem == ModeloMusicas.Origem.BAIXADA ? R.string.st_origem_baixada : R.string.st_origem_aparelho;
+    }
+
+    @androidx.annotation.DrawableRes
+    public static int iconeDaOrigem(ModeloMusicas.Origem origem) {
+        return origem == ModeloMusicas.Origem.SERVIDOR ? R.drawable.st_ic_servidor
+                : origem == ModeloMusicas.Origem.BAIXADA ? R.drawable.st_ic_baixar : R.drawable.st_ic_hd;
+    }
+
+    @androidx.annotation.ColorRes
+    public static int corDaOrigem(ModeloMusicas.Origem origem) {
+        return origem == ModeloMusicas.Origem.SERVIDOR ? R.color.st_ciano
+                : origem == ModeloMusicas.Origem.BAIXADA ? R.color.st_origem_baixada : R.color.st_origem_aparelho;
     }
 
     /** Chips com os textos dados; {@code azuis} marca os que ficam em azul (mesmo tamanho da lista). */

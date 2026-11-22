@@ -7,6 +7,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -14,6 +15,7 @@ import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
+import androidx.core.widget.ImageViewCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.archos.mediacenter.video.R;
@@ -21,10 +23,14 @@ import com.archos.mediacenter.video.R;
 import java.util.ArrayList;
 import java.util.List;
 
+import br.com.starktechstudio.mediaplayer.dados.ModeloMusicas;
+
 /**
  * Grade de capas quadradas de Músicas (1.5): artistas (foto redonda), álbuns e playlists, com o nome e a
  * linha de baixo embaixo da capa. TV: foco com a borda na capa e aumento de 6 % ({@link FocoTv}); tablet:
- * toque. OK ou toque abre; segurar faz a ação do item (tocar o álbum, o artista ou a playlist).
+ * toque. OK ou toque abre; segurar faz a ação do item (tocar o álbum, o artista ou a playlist). 2.0 (D16): com
+ * {@link Capa#origem}, um ícone pequeno no canto de cima da capa, na cor da origem, sem texto; sem servidor
+ * cadastrado, quem monta a capa passa nula ({@link PecasDetalhe#origemAMostrar}) e nenhuma capa tem o ícone.
  */
 public class CapaMusicaAdapter extends RecyclerView.Adapter<CapaMusicaAdapter.Item> {
 
@@ -42,6 +48,9 @@ public class CapaMusicaAdapter extends RecyclerView.Adapter<CapaMusicaAdapter.It
         public final Runnable abrir;
         @Nullable
         public final Runnable segurar;
+        /** 2.0 (D16): servidor, baixada ou aparelho, no canto da capa; nula = sem ícone (Nova playlist). */
+        @Nullable
+        public ModeloMusicas.Origem origem;
 
         public Capa(String id, String nome, String linha, @Nullable String imagem, int cor, @DrawableRes int icone,
                     boolean redonda, Runnable abrir, @Nullable Runnable segurar) {
@@ -54,6 +63,12 @@ public class CapaMusicaAdapter extends RecyclerView.Adapter<CapaMusicaAdapter.It
             this.redonda = redonda;
             this.abrir = abrir;
             this.segurar = segurar;
+        }
+
+        /** A origem do canto (D16). */
+        public Capa comOrigem(@Nullable ModeloMusicas.Origem origem) {
+            this.origem = origem;
+            return this;
         }
     }
 
@@ -91,7 +106,7 @@ public class CapaMusicaAdapter extends RecyclerView.Adapter<CapaMusicaAdapter.It
         for (int i = 0; i < a.size(); i++) {
             Capa x = a.get(i);
             Capa y = b.get(i);
-            if (!x.id.equals(y.id) || !x.nome.equals(y.nome) || !x.linha.equals(y.linha)
+            if (!x.id.equals(y.id) || !x.nome.equals(y.nome) || !x.linha.equals(y.linha) || x.origem != y.origem
                     || (x.imagem == null ? y.imagem != null : !x.imagem.equals(y.imagem))) return false;
         }
         return true;
@@ -163,6 +178,7 @@ public class CapaMusicaAdapter extends RecyclerView.Adapter<CapaMusicaAdapter.It
             // A borda de foco da TV fica na capa, não no texto
             capa.setDuplicateParentStateEnabled(true);
             if (Aparelho.ehTv(contexto)) capa.setForeground(ContextCompat.getDrawable(contexto, R.drawable.st_foco_tv));
+            if (c.origem != null) origemNoCanto(contexto, capa, c.origem, medida);
             caixa.addView(capa, new LinearLayout.LayoutParams(medida, medida));
             nome.setText(c.nome);
             linha.setText(c.linha);
@@ -174,7 +190,25 @@ public class CapaMusicaAdapter extends RecyclerView.Adapter<CapaMusicaAdapter.It
             LinearLayout.LayoutParams lpLinha = new LinearLayout.LayoutParams(medida, ViewGroup.LayoutParams.WRAP_CONTENT);
             lpLinha.topMargin = Medidas.px(contexto, 6);
             caixa.addView(linha, lpLinha);
-            caixa.setContentDescription(c.nome + ", " + c.linha);
+            caixa.setContentDescription(c.origem == null ? c.nome + ", " + c.linha
+                    : c.nome + ", " + c.linha + ", " + contexto.getString(PecasDetalhe.nomeDaOrigem(c.origem)));
+        }
+
+        /** O ícone da origem (D16) no canto de cima, sobre o véu escuro dos selos de imagem; a capa redonda, mais para dentro. */
+        private static void origemNoCanto(Context contexto, FrameLayout capa, ModeloMusicas.Origem origem, int medida) {
+            ImageView icone = new ImageView(contexto);
+            icone.setImageResource(PecasDetalhe.iconeDaOrigem(origem));
+            ImageViewCompat.setImageTintList(icone, ContextCompat.getColorStateList(contexto, PecasDetalhe.corDaOrigem(origem)));
+            icone.setBackgroundResource(R.drawable.st_selo_veu);
+            int lado = Math.max(Medidas.px(contexto, 30), medida / 7);
+            int folga = lado / 5;
+            icone.setPadding(folga, folga, folga, folga);
+            icone.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(lado, lado, Gravity.TOP | Gravity.END);
+            int margem = capa.getClipToOutline() ? medida / 8 : Medidas.px(contexto, 10);
+            lp.topMargin = margem;
+            lp.setMarginEnd(margem);
+            capa.addView(icone, lp);
         }
     }
 }

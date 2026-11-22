@@ -39,8 +39,8 @@ import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 
 /**
  * Detalhe do filme ou do show na TV (tv-detalhe.dc.html): fundo do título atrás (bloco de cor
- * na F1, véu 72 % e degradê); no topo, as seções com a do título marcada ({@link TopoSecaoTv}:
- * ↑ do conteúdo vai a ela, OK leva à aba) e Configurações;
+ * na F1, véu 72 % e degradê); no topo, só a marca e o relógio (2.0, D1: nada com foco; o ↑ do alto do
+ * conteúdo fica parado e a saída é o Voltar);
  * capa, tipo e origem dos dados, chips, sinopse, progresso com "Marcar como assistido", botões
  * Continuar, Do início, Capítulos, Áudio e legendas, Editar e Favoritar (os dois só com o ícone),
  * dados técnicos e a fileira de
@@ -53,7 +53,6 @@ import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 public class DetalheTvActivity extends AppCompatActivity {
 
     private RepositorioBiblioteca repositorio;
-    private TopoSecaoTv topo;
     private String id;
     private Titulo titulo;
     private List<Capitulo> capitulos;
@@ -112,7 +111,6 @@ public class DetalheTvActivity extends AppCompatActivity {
         fileiraCapitulos = findViewById(R.id.st_fileira_capitulos);
         View editar = findViewById(R.id.st_detalhe_editar);
         Button faixas = findViewById(R.id.st_detalhe_faixas);
-        topo = new TopoSecaoTv(this);
 
         Resources res = getResources();
         Icones.noTexto(origemDados, R.drawable.st_ic_check, res.getDimensionPixelSize(R.dimen.st_tv_detalhe_selo_icone));
@@ -123,7 +121,6 @@ public class DetalheTvActivity extends AppCompatActivity {
         Icones.noTexto(faixas, R.drawable.st_ic_legendas, icone);
 
         editar.setOnClickListener(v -> Navegacao.abrirEditar(this, id));
-        findViewById(R.id.st_botao_configuracoes).setOnClickListener(v -> Navegacao.abrirConfiguracoes(this));
         // Sempre de onde parou: "Do início" é o outro botão (sem posição guardada, dá no mesmo)
         principal.setOnClickListener(v -> Navegacao.abrirReproducao(this, id, Navegacao.DE_ONDE_PAROU));
         doInicio.setOnClickListener(v -> Navegacao.abrirReproducao(this, id, Navegacao.DO_INICIO));
@@ -144,10 +141,13 @@ public class DetalheTvActivity extends AppCompatActivity {
         for (int botao : botoes) findViewById(botao).setNextFocusUpId(R.id.st_detalhe_marcar);
 
         estrelas.preparar(true, this::aoEscolherNota);
-        // Nas pontas da nota, ← e → saem para os vizinhos; ↓ vai ao botão principal (↑: em carregar)
+        // Nas pontas da nota, ← e → saem para os vizinhos; ↓ vai ao botão principal
         estrelas.setNextFocusLeftId(R.id.st_detalhe_marcar);
         estrelas.setNextFocusRightId(R.id.st_detalhe_favoritar);
         estrelas.setNextFocusDownId(R.id.st_detalhe_principal);
+        // 2.0 (D1): sem nada com foco no topo, o ↑ de "Marcar como assistido" e das estrelas fica parado
+        marcar.setNextFocusUpId(R.id.st_detalhe_marcar);
+        estrelas.setNextFocusUpId(R.id.st_detalhe_nota);
 
         adapterCapitulos = new CapituloAdapter(true, c -> Navegacao.abrirReproducao(this, id, c.numero));
         fileiraCapitulos.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -219,9 +219,6 @@ public class DetalheTvActivity extends AppCompatActivity {
         capitulos = repositorio.capitulos(id);
         DadosTecnicos tecnicos = repositorio.dadosTecnicos(id);
 
-        topo.marcar(Navegacao.abaDoTipo(titulo.tipo), R.id.st_detalhe_principal);
-        marcar.setNextFocusUpId(topo.idAtiva());
-        estrelas.setNextFocusUpId(topo.idAtiva());
         fundo.setBackground(PecasDetalhe.fundoDoTitulo(this, titulo.corFundo));
         Imagens.fundoDaPagina(fundo, titulo.imagemFundo());
         float canto = getResources().getDimension(R.dimen.st_tv_detalhe_capa_canto);

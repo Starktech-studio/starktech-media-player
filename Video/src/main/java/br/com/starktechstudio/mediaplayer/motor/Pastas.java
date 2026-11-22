@@ -20,12 +20,19 @@ import java.util.Map;
  * maiúscula, minúscula e acento — ou fica em branco ("escolha o tipo"); o usuário pode trocar.
  * Um arquivo pertence à pasta cadastrada mais próxima acima dele. Pasta de Músicas fica fora da
  * varredura de vídeo ({@link Classificador}) e é lida pela {@link VarreduraMusicas}.
+ *
+ * <p>2.0: pasta do servidor em casa com a origem {@link Origem#SERVIDOR} e o caminho
+ * {@code servidor:<id>/…} ({@link Servidores}). A pasta de downloads de Músicas ({@link #PASTA_DOWNLOADS}) e o
+ * que está dentro dela não entram: duplicariam as músicas do servidor.
  */
 public final class Pastas {
 
     public enum Tipo { FILMES, SERIES, TVSHOWS, DESENHOS, SHOWS, STANDUP, MUSICAS, IGNORAR }
 
-    public enum Origem { HD_EXTERNO, INTERNO }
+    public enum Origem { HD_EXTERNO, INTERNO, SERVIDOR }
+
+    /** D11: pasta das músicas baixadas do servidor, dentro do armazenamento escolhido. */
+    public static final String PASTA_DOWNLOADS = "Music/StarkTech Media Player";
 
     /** Uma pasta cadastrada; {@link #tipo} nulo = ainda sem tipo ("escolha o tipo"). */
     public static final class Pasta {
@@ -96,9 +103,20 @@ public final class Pastas {
         return carregar().get(caminho);
     }
 
-    /** Cadastra a pasta com o tipo reconhecido pelo nome; já cadastrada, fica como está. */
+    /** true = a pasta de downloads de Músicas ou uma pasta dentro dela (D11). */
+    public static boolean deDownloads(String caminho) {
+        if (caminho == null || Servidores.doServidor(caminho)) return false;
+        String limpo = semBarraNoFim(caminho);
+        return limpo.endsWith("/" + PASTA_DOWNLOADS) || limpo.contains("/" + PASTA_DOWNLOADS + "/");
+    }
+
+    /**
+     * Cadastra a pasta com o tipo reconhecido pelo nome; já cadastrada, fica como está. Nula para a pasta de
+     * downloads de Músicas ({@link #deDownloads}).
+     */
     public synchronized Pasta adicionar(String caminho, Origem origem) {
         String limpo = semBarraNoFim(caminho);
+        if (deDownloads(limpo)) return null;
         Pasta existente = carregar().get(limpo);
         if (existente != null) return existente;
         Pasta nova = new Pasta(limpo, origem, reconhecer(new File(limpo).getName()), false);
@@ -118,6 +136,16 @@ public final class Pastas {
         banco.getWritableDatabase().delete(BancoStarkTech.PASTA, BancoStarkTech.CAMINHO + " = ?", new String[]{caminho});
     }
 
+    /** Tira as pastas de um servidor removido; devolve os caminhos tirados. */
+    public synchronized List<String> removerDoServidor(long id) {
+        List<String> tiradas = new ArrayList<>();
+        for (Pasta p : new ArrayList<>(carregar().values())) {
+            if (Servidores.idDo(p.caminho) == id) tiradas.add(p.caminho);
+        }
+        for (String caminho : tiradas) remover(caminho);
+        return tiradas;
+    }
+
     /** Pasta cadastrada mais próxima acima do arquivo; nula se o arquivo está fora de todas. */
     public synchronized Pasta pastaDoArquivo(String caminhoArquivo) {
         Pasta melhor = null;
@@ -129,7 +157,7 @@ public final class Pastas {
         return melhor;
     }
 
-    static boolean dentro(String caminhoArquivo, String pasta) {
+    public static boolean dentro(String caminhoArquivo, String pasta) {
         return caminhoArquivo.startsWith(pasta + "/");
     }
 

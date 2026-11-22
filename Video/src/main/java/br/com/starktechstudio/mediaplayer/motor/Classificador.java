@@ -8,6 +8,7 @@ import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -261,6 +262,70 @@ public final class Classificador {
         return Item.episodio(caminho, serie.titulo, serie.ano, temporada, episodio, tituloDoEpisodio(limpo, fimDoCodigo));
     }
 
+    // ---- Coletânea de desenhos "Como série (episódios)" (ajuste de 22/11/2026) ----
+
+    /** "01 - Nome", "1. Nome", "01": o número na frente do nome (até 3 algarismos; o ano, com 4, não conta). */
+    private static final Pattern NUMERO_NA_FRENTE = Pattern.compile("^(\\d{1,3})(?!\\d)");
+    /** "Ep 2", "Ep.02", "Episódio 2", "episodio_2". */
+    private static final Pattern EP = Pattern.compile("(?:^|[\\s._-])(?:ep\\.?|epis[oó]dio)[\\s._-]*(\\d{1,3})(?!\\d)");
+
+    /** O número de episódio achado no nome do arquivo e o nome que vem depois dele. */
+    public static final class NumeroNoNome {
+        /** -1 = sem número. */
+        public final int numero;
+        /** O que vem depois do número ("01 - A flauta" → "A flauta"); nulo se nada ou sem número. */
+        public final String nome;
+
+        NumeroNoNome(int numero, String nome) {
+            this.numero = numero;
+            this.nome = nome;
+        }
+    }
+
+    /**
+     * O número de episódio no nome do arquivo, pelo que a varredura já reconhece: "S01E02", "1x02", o número
+     * na frente ("01 - Nome"), "E02", "Ep 2" / "Episódio 2" e "Parte 2". Sem nenhum deles, -1.
+     */
+    public static NumeroNoNome numeroNoNome(String nomeArquivo) {
+        String limpo = Nomes.limpar(Nomes.semExtensao(nomeArquivo == null ? "" : nomeArquivo));
+        String minusculo = limpo.toLowerCase(Locale.ROOT);
+        for (Pattern padrao : new Pattern[]{S_E, N_X_N}) {
+            Matcher codigo = padrao.matcher(minusculo);
+            if (codigo.find()) return new NumeroNoNome(Integer.parseInt(codigo.group(2)), tituloDoEpisodio(limpo, codigo.end()));
+        }
+        for (Pattern padrao : new Pattern[]{NUMERO_NA_FRENTE, SO_E, EP, PARTE}) {
+            Matcher codigo = padrao.matcher(minusculo);
+            if (codigo.find()) return new NumeroNoNome(Integer.parseInt(codigo.group(1)), tituloDoEpisodio(limpo, codigo.end()));
+        }
+        return new NumeroNoNome(-1, null);
+    }
+
+    /**
+     * Os números dos episódios de uma coletânea mostrada como série, na mesma ordem dos arquivos dados: o
+     * número do nome ({@link #numeroNoNome}) vale; os arquivos sem número vêm depois do maior número achado,
+     * pela ordem alfabética dos nomes (todos sem número: 1, 2, 3… na ordem alfabética).
+     */
+    public static int[] numerarEpisodios(List<String> nomesDosArquivos) {
+        int[] numeros = new int[nomesDosArquivos.size()];
+        List<Integer> semNumero = new ArrayList<>();
+        int maior = 0;
+        for (int i = 0; i < numeros.length; i++) {
+            numeros[i] = numeroNoNome(nomesDosArquivos.get(i)).numero;
+            if (numeros[i] < 0) semNumero.add(i);
+            else maior = Math.max(maior, numeros[i]);
+        }
+        Collator alfabetica = Collator.getInstance(Locale.forLanguageTag("pt-BR"));
+        alfabetica.setStrength(Collator.PRIMARY);
+        Collections.sort(semNumero, (a, b) -> {
+            String nomeA = nomesDosArquivos.get(a);
+            String nomeB = nomesDosArquivos.get(b);
+            int c = alfabetica.compare(nomeA, nomeB);
+            return c != 0 ? c : nomeA.compareTo(nomeB);
+        });
+        for (int indice : semNumero) numeros[indice] = ++maior;
+        return numeros;
+    }
+
     // ---- Shows ----
 
     private static Item show(String caminho, String[] partes) {
@@ -421,6 +486,73 @@ public final class Classificador {
             percorrer(new File(pasta.caminho), pasta, cadastradas, new HashSet<>(), 0, itens);
         }
         return itens;
+    }
+
+    /**
+     * Resultado da varredura pela camada dos arquivos (2.0): os itens, a entrada da listagem de cada arquivo
+     * (tamanho e data, sem pedido por arquivo no servidor) e as pastas que não abriram nesta rodada (servidor
+     * fora de alcance, erro de leitura): o que está dentro delas não sumiu.
+     */
+    public static final class Varrido {
+        public final List<Item> itens = new ArrayList<>();
+        public final Map<String, ArquivosDaBiblioteca.Entrada> arquivos = new HashMap<>();
+        public final Set<String> naoAbriram = new HashSet<>();
+
+        /** true = o caminho está dentro de uma pasta que não abriu nesta rodada. */
+        public boolean dentroDeQuemNaoAbriu(String caminho) {
+            for (String pasta : naoAbriram) if (caminho.equals(pasta) || Pastas.dentro(caminho, pasta)) return true;
+            return false;
+        }
+    }
+
+    /**
+     * Como {@link #varrer(List)}, pela camada dos arquivos: a pasta do aparelho e a do servidor em casa. Pastas
+     * em {@code pular} (servidor fora da rodada) contam como não abertas, sem rede.
+     */
+    public static Varrido varrer(List<Pastas.Pasta> pastas, ArquivosDaBiblioteca arquivos, Set<String> pular) {
+        Set<String> cadastradas = new HashSet<>();
+        for (Pastas.Pasta p : pastas) cadastradas.add(p.caminho);
+        Varrido saida = new Varrido();
+        for (Pastas.Pasta pasta : pastas) {
+            if (foraDosVideos(pasta)) continue;
+            if (pular != null && pular.contains(pasta.caminho)) {
+                saida.naoAbriram.add(pasta.caminho);
+                continue;
+            }
+            percorrer(arquivos, pasta.caminho, pasta, cadastradas, new HashSet<>(), 0, saida);
+        }
+        return saida;
+    }
+
+    private static void percorrer(ArquivosDaBiblioteca arquivos, String dir, Pastas.Pasta pasta, Set<String> cadastradas,
+                                  Set<String> vistas, int profundidade, Varrido saida) {
+        if (profundidade > PROFUNDIDADE_MAXIMA) return;
+        if (ArquivosDaBiblioteca.local(dir)) {
+            try {
+                if (!vistas.add(new File(dir).getCanonicalPath())) return; // link que volta para trás
+            } catch (IOException e) {
+                saida.naoAbriram.add(dir);
+                return;
+            }
+        }
+        List<ArquivosDaBiblioteca.Entrada> itens = arquivos.listar(dir);
+        if (itens == null) {
+            saida.naoAbriram.add(dir);
+            return;
+        }
+        for (ArquivosDaBiblioteca.Entrada item : itens) {
+            if (item.pasta) {
+                if (!cadastradas.contains(item.caminho)) {
+                    percorrer(arquivos, item.caminho, pasta, cadastradas, vistas, profundidade + 1, saida);
+                }
+            } else {
+                Item classificado = classificar(item.caminho, pasta);
+                if (classificado != null) {
+                    saida.itens.add(classificado);
+                    saida.arquivos.put(item.caminho, item);
+                }
+            }
+        }
     }
 
     /**

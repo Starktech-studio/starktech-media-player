@@ -34,7 +34,14 @@ import java.util.Set;
  */
 public final class Edicoes {
 
-    public enum Campo { TITULO, TITULO_ORIGINAL, TIPO, ANO, DURACAO, GENEROS, SINOPSE, CAPA, FUNDO, COLECAO, ARTISTA }
+    /**
+     * EXIBICAO (ajuste de 22/11/2026): coletânea de desenhos mostrada como série ({@link #COMO_SERIE}); sem ela,
+     * como filmes. Fica fora do {@code Modelo.Campo}: não aparece nos campos do Editar nem em "corrigidos à mão".
+     */
+    public enum Campo { TITULO, TITULO_ORIGINAL, TIPO, ANO, DURACAO, GENEROS, SINOPSE, CAPA, FUNDO, COLECAO, ARTISTA, EXIBICAO }
+
+    /** Valor de {@link Campo#EXIBICAO}: a coletânea de desenhos vira uma série, com os desenhos como episódios. */
+    public static final String COMO_SERIE = "SERIE";
 
     public static final String PREFIXO_COR = "cor:";
     public static final String PREFIXO_ARQUIVO = "arquivo:";

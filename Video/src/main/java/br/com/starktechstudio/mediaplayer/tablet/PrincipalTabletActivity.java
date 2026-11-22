@@ -189,12 +189,20 @@ public class PrincipalTabletActivity extends AppCompatActivity implements Navega
                 topoInicio.getPaddingEnd(), topoInicio.getPaddingBottom());
     }
 
+    /**
+     * HD externo ligado: "HD externo". Sem HD e com servidor em casa cadastrado (2.0), o servidor pelo estado guardado:
+     * "Servidor" ao alcance ou "Servidor fora ✕". Sem nenhum: "Sem HD ✕".
+     */
     private void atualizarSeloHd() {
-        boolean conectado = repositorio.hdConectado();
+        boolean hd = repositorio.hdConectado();
+        boolean comServidor = !hd && !repositorio.servidores().isEmpty();
+        boolean conectado = hd || comServidor && repositorio.servidorConectado();
         int cor = ContextCompat.getColor(this, conectado ? R.color.st_selo_hd_texto : R.color.st_selo_sem_hd_texto);
         seloHd.setBackgroundResource(conectado ? R.drawable.st_selo_hd : R.drawable.st_selo_sem_hd);
+        seloHdIcone.setImageResource(comServidor ? R.drawable.st_ic_servidor : R.drawable.st_ic_hd);
         ImageViewCompat.setImageTintList(seloHdIcone, ColorStateList.valueOf(cor));
-        seloHdTexto.setText(conectado ? R.string.st_hd_conectado : R.string.st_hd_desconectado);
+        seloHdTexto.setText(hd ? R.string.st_hd_conectado : comServidor
+                ? (conectado ? R.string.st_selo_servidor : R.string.st_selo_servidor_fora) : R.string.st_hd_desconectado);
         seloHdTexto.setTextColor(cor);
         seloHdFechar.setVisibility(conectado ? View.GONE : View.VISIBLE);
     }

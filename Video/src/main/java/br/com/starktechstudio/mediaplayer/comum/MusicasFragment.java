@@ -28,8 +28,10 @@ import com.archos.mediacenter.video.R;
 import java.util.ArrayList;
 import java.util.List;
 
+import br.com.starktechstudio.mediaplayer.dados.ModeloMusicas;
 import br.com.starktechstudio.mediaplayer.dados.ModeloMusicas.Album;
 import br.com.starktechstudio.mediaplayer.dados.ModeloMusicas.Artista;
+import br.com.starktechstudio.mediaplayer.dados.ModeloMusicas.Musica;
 import br.com.starktechstudio.mediaplayer.dados.ModeloMusicas.Playlist;
 import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 import br.com.starktechstudio.mediaplayer.dados.RepositorioMusicas;
@@ -42,6 +44,10 @@ import br.com.starktechstudio.mediaplayer.musica.Tocador;
  * pasta de Músicas, a permissão ou as músicas. Na TV, a sub-aba em foco é a mostrada. OK ou toque abre;
  * segurar toca (o álbum, todas do artista ou a playlist). Desligada de fábrica: aparece no menu depois de
  * ligada em Configurações &gt; Navegação ou ao adicionar uma pasta de Músicas.
+ *
+ * <p>2.0: filtro "Só baixadas" no topo (D14, só fora da TV, que não baixa: D12), para as três sub-abas e o Tocar
+ * tudo aleatório; aparece com alguma baixada ou com ele ligado. Cada capa traz no canto o ícone da origem (D16), só com
+ * algum servidor cadastrado.
  */
 public class MusicasFragment extends Fragment {
 
@@ -59,6 +65,9 @@ public class MusicasFragment extends Fragment {
     private TextView aviso;
     private Button permitir;
     private Button tudoAleatorio;
+    /** 2.0 (D14): "Só baixadas", só fora da TV; nulo na TV. */
+    @Nullable
+    private Button soBaixadas;
     private RecyclerView grade;
     private CapaMusicaAdapter capas;
     /** 1.7 (D1): Artistas em linhas. */
@@ -107,6 +116,18 @@ public class MusicasFragment extends Fragment {
                 tv ? Medidas.TITULO_PAGINA_TV : Medidas.TITULO_PAGINA_TABLET, R.color.st_texto);
         titulo.setLetterSpacing(-0.02f);
         linhaTitulo.addView(titulo, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        if (!tv) {
+            soBaixadas = (Button) inflater.inflate(R.layout.st_tablet_filtro_lista, linhaTitulo, false);
+            soBaixadas.setText(R.string.st_musicas_so_baixadas);
+            soBaixadas.setOnClickListener(v -> {
+                Preferencias.definirSoBaixadas(v.getContext(), !Preferencias.soBaixadas(v.getContext()));
+                mostrar();
+                grade.scrollToPosition(0);
+            });
+            LinearLayout.LayoutParams lpFiltro = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lpFiltro.setMarginEnd(getResources().getDimensionPixelSize(R.dimen.st_tablet_capa_espaco));
+            linhaTitulo.addView(soBaixadas, lpFiltro);
+        }
         indicador = new IndicadorAtualizacao(contexto, RepositorioBiblioteca.atual(contexto));
         linhaTitulo.addView(indicador.view);
         pagina.addView(linhaTitulo, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -142,7 +163,8 @@ public class MusicasFragment extends Fragment {
         // Tocar tudo aleatório (1.6, D1a): a coleção inteira de áudio, sorteada
         tudoAleatorio = PecasMusica.botao(contexto, R.string.st_musicas_tocar_tudo_aleatorio, R.drawable.st_ic_aleatorio, false);
         tudoAleatorio.setOnClickListener(v -> {
-            List<br.com.starktechstudio.mediaplayer.dados.ModeloMusicas.Musica> todas = RepositorioMusicas.de(contexto).todasAsMusicas();
+            List<Musica> todas = RepositorioMusicas.de(contexto).todasAsMusicas();
+            if (filtrando()) todas = ModeloMusicas.soBaixadas(todas);
             if (!todas.isEmpty()) Tocador.de(contexto).tocar(todas, (int) (Math.random() * todas.size()), true);
         });
         LinearLayout.LayoutParams lpTudo = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -286,10 +308,15 @@ public class MusicasFragment extends Fragment {
         List<CapaMusicaAdapter.Capa> lista = new ArrayList<>();
         List<Artista> artistas = null;
         String textoAviso = null;
+        List<Musica> todas = repositorio.todasAsMusicas();
+        boolean filtrar = filtrando();
+        boolean temBaixada = soBaixadas != null && ModeloMusicas.temBaixada(todas);
         if (!temPasta && repositorio.vazio()) {
             textoAviso = getString(R.string.st_musicas_sem_pasta);
         } else if (!podeLer) {
             textoAviso = getString(R.string.st_musicas_sem_permissao);
+        } else if (filtrar && !temBaixada) {
+            textoAviso = getString(R.string.st_musicas_sem_baixadas);
         } else if (ativa == PLAYLISTS) {
             lista = playlists(repositorio);
             if (lista.size() == 1) textoAviso = getString(R.string.st_musicas_sem_playlists);
@@ -297,26 +324,54 @@ public class MusicasFragment extends Fragment {
             textoAviso = getString(R.string.st_musicas_vazia);
         } else if (ativa == ARTISTAS) {
             artistas = repositorio.artistas();
+            if (filtrar) artistas = comBaixadas(repositorio, artistas);
         } else {
             lista = albuns(repositorio);
         }
         aviso.setText(textoAviso);
         aviso.setVisibility(textoAviso == null ? View.GONE : View.VISIBLE);
         permitir.setVisibility(temPasta && !podeLer ? View.VISIBLE : View.GONE);
-        tudoAleatorio.setVisibility(podeLer && !repositorio.todasAsMusicas().isEmpty() ? View.VISIBLE : View.GONE);
+        tudoAleatorio.setVisibility(podeLer && !todas.isEmpty() && (!filtrar || temBaixada) ? View.VISIBLE : View.GONE);
+        mostrarFiltro(filtrar, podeLer && (temBaixada || filtrar));
         usarLinhas(artistas != null);
         if (artistas != null) linhasDeArtistas.atualizar(artistas);
         else capas.atualizar(lista);
     }
 
+    /** 2.0 (D14): o filtro "Só baixadas" ligado, fora da TV. */
+    private boolean filtrando() {
+        return soBaixadas != null && Preferencias.soBaixadas(requireContext());
+    }
+
+    /** "Só baixadas" (D14): ligado, em azul e com ✓; aparece com alguma baixada ou com ele ligado. */
+    private void mostrarFiltro(boolean ligado, boolean visivel) {
+        if (soBaixadas == null) return;
+        soBaixadas.setVisibility(visivel ? View.VISIBLE : View.GONE);
+        soBaixadas.setSelected(ligado);
+        soBaixadas.setTextColor(ContextCompat.getColor(requireContext(), ligado ? R.color.st_azul : R.color.st_texto_secundario));
+        if (ligado) Icones.noTexto(soBaixadas, R.drawable.st_ic_check, Math.round(soBaixadas.getTextSize()));
+        else soBaixadas.setCompoundDrawablesRelative(null, null, null, null);
+    }
+
+    /** Os artistas com alguma música baixada (D14), na mesma ordem. */
+    private static List<Artista> comBaixadas(RepositorioMusicas repositorio, List<Artista> artistas) {
+        List<Artista> lista = new ArrayList<>();
+        for (Artista a : artistas) if (ModeloMusicas.temBaixada(repositorio.musicasDoArtista(a.id))) lista.add(a);
+        return lista;
+    }
+
     private List<CapaMusicaAdapter.Capa> albuns(RepositorioMusicas repositorio) {
         List<CapaMusicaAdapter.Capa> lista = new ArrayList<>();
+        boolean filtrar = filtrando();
         for (Album a : repositorio.albuns()) {
+            if (filtrar && !ModeloMusicas.temBaixada(a.musicas)) continue;
+            List<Musica> tocar = filtrar ? ModeloMusicas.soBaixadas(a.musicas) : a.musicas;
             String linha = PecasMusica.artistaDoAlbum(requireContext(), a) + (a.ano == null ? "" : " · " + a.ano);
             lista.add(new CapaMusicaAdapter.Capa(a.id, PecasMusica.album(requireContext(), a.nome), linha, a.capa, a.cor,
                     R.drawable.st_ic_disco, false,
                     () -> TelasMusica.abrirAlbum(requireActivity(), a.id),
-                    () -> Tocador.de(requireContext()).tocar(a.musicas, 0, false)));
+                    () -> Tocador.de(requireContext()).tocar(tocar, 0, false))
+                    .comOrigem(PecasDetalhe.origemAMostrar(requireContext(), a.origem)));
         }
         return lista;
     }
@@ -327,12 +382,16 @@ public class MusicasFragment extends Fragment {
         lista.add(new CapaMusicaAdapter.Capa("playlist:nova", getString(R.string.st_musicas_nova_playlist), "",
                 null, ContextCompat.getColor(requireContext(), R.color.st_cartao), R.drawable.st_ic_mais, false,
                 () -> NomePlaylistActivity.abrirNova(requireActivity(), new ArrayList<>()), null));
+        boolean filtrar = filtrando();
         for (Playlist p : repositorio.playlists()) {
+            if (filtrar && !ModeloMusicas.temBaixada(p.musicas)) continue;
+            List<Musica> tocar = filtrar ? ModeloMusicas.soBaixadas(p.musicas) : p.musicas;
             lista.add(new CapaMusicaAdapter.Capa("playlist:" + p.id, p.nome,
                     getResources().getQuantityString(R.plurals.st_n_musicas, p.musicas.size(), p.musicas.size()),
                     p.capa, p.cor, R.drawable.st_ic_fila, false,
                     () -> TelasMusica.abrirPlaylist(requireActivity(), p.id),
-                    p.musicas.isEmpty() ? null : () -> Tocador.de(requireContext()).tocar(p.musicas, 0, false)));
+                    tocar.isEmpty() ? null : () -> Tocador.de(requireContext()).tocar(tocar, 0, false))
+                    .comOrigem(p.musicas.isEmpty() ? null : PecasDetalhe.origemAMostrar(requireContext(), p.origem)));
         }
         return lista;
     }

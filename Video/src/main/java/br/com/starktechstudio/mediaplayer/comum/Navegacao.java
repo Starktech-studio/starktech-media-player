@@ -178,27 +178,6 @@ public final class Navegacao {
         }
     }
 
-    /** Aba onde o tipo de título aparece (seção marcada no topo do Detalhe da TV). */
-    public static Aba abaDoTipo(Tipo tipo) {
-        if (tipo == Tipo.SERIE) return Aba.SERIES;
-        if (tipo == Tipo.DESENHO) return Aba.DESENHOS;
-        if (tipo == Tipo.SHOW) return Aba.SHOWS;
-        if (tipo == Tipo.STANDUP) return Aba.STANDUP;
-        return Aba.FILMES;
-    }
-
-    /**
-     * Aba onde o título aparece: a do tipo ({@link #abaDoTipo}) e, na série, a da pasta — Desenhos no
-     * desenho com episódios (1.8.0), TV Shows na série de TV Shows, Séries nas outras.
-     */
-    public static Aba abaDoTitulo(Titulo titulo) {
-        if (titulo.tipo == Tipo.SERIE) {
-            if (titulo.desenho) return Aba.DESENHOS;
-            if (titulo.tvShow) return Aba.TVSHOWS;
-        }
-        return abaDoTipo(titulo.tipo);
-    }
-
     /** Conteúdo de cada aba: Início, Filmes, Séries, TV Shows, Desenhos e Stand-up (F3), Shows, Músicas (1.1.1, sem motor) e Ajustes (fase I). */
     public static Fragment conteudoDaAba(Context contexto, Aba aba) {
         switch (aba) {

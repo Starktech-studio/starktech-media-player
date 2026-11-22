@@ -8,9 +8,11 @@ import android.graphics.BitmapFactory;
 
 import androidx.annotation.Nullable;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -24,11 +26,16 @@ import java.util.UUID;
  * "front", "album" ou a única imagem que houver). Vira uma cópia reduzida em {@code files/musicas/capas/},
  * uma por pasta e álbum: a do arquivo pode estar no HD, que sai, e a da pasta pode não ser legível sem o
  * acesso a todos os arquivos na próxima vez.
+ *
+ * <p>2.0: no servidor em casa, a imagem da pasta vale antes da gravada na música (a da pasta já veio na
+ * listagem; a gravada pede ler mais da música pela rede).
  */
 public final class CapasMusica {
 
     /** Lado maior da cópia, em px. */
     static final int LADO = 600;
+    /** Imagem de pasta do servidor maior que isto não é baixada para virar capa. */
+    private static final long IMAGEM_MAXIMA = 20L * 1024 * 1024;
     /** Nomes preferidos da imagem na pasta, sem extensão. */
     private static final String[] NOMES = {"cover", "folder", "front", "album", "capa", "albumart"};
 
@@ -72,6 +79,83 @@ public final class CapasMusica {
         } finally {
             imagem.recycle();
         }
+    }
+
+    /** Capa já feita do álbum desta pasta (do aparelho ou do servidor); nula se ainda não há. */
+    @Nullable
+    public String jaFeita(String pastaDoAlbum, @Nullable String album) {
+        File destino = arquivoDa(pastaDoAlbum, album);
+        return destino.isFile() && destino.length() > 0 ? destino.getAbsolutePath() : null;
+    }
+
+    /**
+     * Capa do álbum de uma música do servidor (2.0): a cópia já feita; senão a imagem da pasta ({@code daPasta},
+     * da listagem), lida pela rede; senão a gravada na música. Nula se não há nenhuma.
+     */
+    @Nullable
+    public String capaDoServidor(ArquivosDaBiblioteca arquivos, String musica, @Nullable String album,
+                                 @Nullable ArquivosDaBiblioteca.Entrada daPasta, @Nullable byte[] embutida) {
+        String pastaDoAlbum = ArquivosDaBiblioteca.acima(musica);
+        if (pastaDoAlbum == null) return null;
+        String feita = jaFeita(pastaDoAlbum, album);
+        if (feita != null) return feita;
+        Bitmap imagem = null;
+        if (daPasta != null && daPasta.tamanho > 0 && daPasta.tamanho <= IMAGEM_MAXIMA) {
+            byte[] dados = baixar(arquivos, daPasta.caminho, daPasta.tamanho);
+            if (dados != null) imagem = reduzir(dados);
+        }
+        if (imagem == null && embutida != null) imagem = reduzir(embutida);
+        if (imagem == null) return null;
+        File destino = arquivoDa(pastaDoAlbum, album);
+        try {
+            gravar(imagem, destino);
+            return destino.getAbsolutePath();
+        } catch (IOException e) {
+            return null;
+        } finally {
+            imagem.recycle();
+        }
+    }
+
+    @Nullable
+    private static byte[] baixar(ArquivosDaBiblioteca arquivos, String caminho, long tamanho) {
+        try (InputStream entrada = arquivos.abrir(caminho, 0)) {
+            ByteArrayOutputStream saida = new ByteArrayOutputStream((int) Math.min(tamanho, Integer.MAX_VALUE));
+            byte[] bloco = new byte[64 * 1024];
+            int lidos;
+            while ((lidos = entrada.read(bloco)) > 0) {
+                saida.write(bloco, 0, lidos);
+                if (saida.size() > IMAGEM_MAXIMA) return null;
+            }
+            return saida.toByteArray();
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    /** A imagem da pasta entre os itens da listagem do servidor (mesma escolha de {@link #imagemDaPasta}). */
+    @Nullable
+    public static ArquivosDaBiblioteca.Entrada imagemEntre(List<ArquivosDaBiblioteca.Entrada> itens) {
+        List<ArquivosDaBiblioteca.Entrada> imagens = new ArrayList<>();
+        List<String> nomes = new ArrayList<>();
+        for (ArquivosDaBiblioteca.Entrada e : itens) {
+            if (!e.pasta && !e.nome.startsWith(".") && Nomes.ehImagem(e.nome)) {
+                imagens.add(e);
+                nomes.add(e.nome);
+            }
+        }
+        int escolhida = preferida(nomes);
+        return escolhida < 0 ? null : imagens.get(escolhida);
+    }
+
+    /** Índice da imagem de nome preferido ou, sem ela, da única que houver; -1 se nenhuma serve. */
+    static int preferida(List<String> nomes) {
+        for (String preferido : NOMES) {
+            for (int i = 0; i < nomes.size(); i++) {
+                if (Nomes.semExtensao(nomes.get(i)).toLowerCase(Locale.ROOT).equals(preferido)) return i;
+            }
+        }
+        return nomes.size() == 1 ? 0 : -1;
     }
 
     /** Apaga as cópias que nenhum álbum usa mais. */

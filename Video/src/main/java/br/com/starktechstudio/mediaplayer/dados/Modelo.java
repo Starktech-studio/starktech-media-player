@@ -40,8 +40,8 @@ public final class Modelo {
     /** Tipo escolhido para uma pasta; NENHUM = "escolha o tipo". */
     public enum TipoPasta { FILMES, SERIES, TVSHOWS, DESENHOS, SHOWS, STANDUP, MUSICAS, IGNORAR, NENHUM }
 
-    /** Origem de uma pasta. */
-    public enum Origem { HD_EXTERNO, INTERNO }
+    /** Origem de uma pasta; SERVIDOR (2.0) = o servidor em casa. */
+    public enum Origem { HD_EXTERNO, INTERNO, SERVIDOR }
 
     /** Faixa de áudio ou de legenda. */
     public enum TipoFaixa { AUDIO, LEGENDA }
@@ -188,15 +188,20 @@ public final class Modelo {
         public int numeroShows;
         /** Capa de coletânea ou de artista: todos os filmes ou shows dela já assistidos. */
         public boolean todosAssistidos;
+        /** De onde vem o arquivo (2.0, D16): servidor em casa ou aparelho; coleção e série, a da maioria. */
+        public ModeloMusicas.Origem origem = ModeloMusicas.Origem.APARELHO;
 
         /** Coletânea e artista: todos os títulos dela; o resto: ele mesmo (série: todos os episódios). */
         public boolean tudoAssistido() {
             return ehColetanea() || ehArtista() ? todosAssistidos : assistido;
         }
 
-        /** Capa de coletânea na aba Filmes: abre a lista de filmes, não o Detalhe. */
+        /**
+         * Capa de coletânea na aba Filmes: abre a lista de filmes, não o Detalhe. A de desenhos "Como série"
+         * (ajuste de 22/11/2026) é uma série, com o id da coletânea: abre a tela da série.
+         */
         public boolean ehColetanea() {
-            return id != null && id.startsWith(COLETANEA);
+            return id != null && id.startsWith(COLETANEA) && tipo != Tipo.SERIE;
         }
 
         /** Capa de artista na aba Shows: abre os shows dele, não o Detalhe. */
@@ -260,6 +265,7 @@ public final class Modelo {
             t.idColetanea = idColetanea;
             t.colecaoCapa = colecaoCapa;
             t.colecaoFundo = colecaoFundo;
+            t.origem = origem;
             t.numeroFilmes = numeroFilmes;
             t.artista = artista;
             t.grupo = grupo;
@@ -441,6 +447,20 @@ public final class Modelo {
         }
     }
 
+    /** Servidor em casa (2.0): IP e compartilhamento, ligado ou não (estado guardado, sem rede na tela). */
+    public static final class Servidor {
+        public long id;
+        public String ip;
+        public String compartilhamento;
+        /** Vazio = sem usuário. */
+        public String usuario;
+        public boolean conectado;
+        /** A senha guardada não abriu (backup noutro aparelho): pede de novo no Editar servidor. */
+        public boolean precisaDaSenha;
+        /** Caminho da raiz na biblioteca ({@code servidor:<id>}). */
+        public String raiz;
+    }
+
     /** Pasta da biblioteca, com o tipo escolhido. {@link #id}: o caminho de verdade. */
     public static final class Pasta {
         public String id;
@@ -453,6 +473,8 @@ public final class Modelo {
         public int videos;
         public int series;
         public int episodios;
+        /** Abre agora: do aparelho, a pasta existe; do servidor (2.0), o estado guardado, sem rede. */
+        public boolean aoAlcance;
 
         public TipoPasta tipo;
 
@@ -466,6 +488,7 @@ public final class Modelo {
             p.videos = videos;
             p.series = series;
             p.episodios = episodios;
+            p.aoAlcance = aoAlcance;
             p.tipo = tipo;
             return p;
         }

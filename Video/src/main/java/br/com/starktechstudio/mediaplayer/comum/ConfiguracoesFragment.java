@@ -41,18 +41,24 @@ import java.util.List;
 import java.util.Locale;
 
 import br.com.starktechstudio.mediaplayer.comum.Navegacao.Aba;
+import br.com.starktechstudio.mediaplayer.dados.Modelo;
 import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
 import br.com.starktechstudio.mediaplayer.motor.ArquivosDoAparelho;
 import br.com.starktechstudio.mediaplayer.motor.Atualizador;
 import br.com.starktechstudio.mediaplayer.motor.Cache;
+import br.com.starktechstudio.mediaplayer.musica.Downloads;
+import br.com.starktechstudio.mediaplayer.tv.PainelMarcaTv;
 
 /**
  * Configurações (D16, sem desenho; no padrão de Pastas), salvas no aparelho ({@link Preferencias}).
- * Lista curta de seções (App, Biblioteca, Início, só na TV, Legendas, Navegação, Player, Séries e Shows), e cada
- * uma abre a própria subtela; seções e opções em ordem alfabética. Voltar retorna da subtela à lista,
- * com o foco da TV na seção de onde veio; no tablet há também o botão Voltar. Opção de dois valores:
- * OK ou toque troca na hora; com mais valores, abre um seletor em janela. O que só existe na TV não
- * aparece no tablet (D12). TV: tela aberta pelo botão do topo; tablet: aba Ajustes (título
+ * Lista em grupos com título (ajuste de 21/11/2026): no topo, em destaque, Biblioteca de mídia (Pastas da biblioteca,
+ * cada servidor em casa com Conectado / Fora de alcance, Adicionar servidor e a seção Biblioteca); depois, em ordem
+ * alfabética, Aparência e navegação (Início, só na TV, Navegação e Shows), Músicas (só fora da TV), Reprodução
+ * (Legendas, Player e Séries) e Sistema (App). Cada seção abre a própria subtela; nos grupos, as seções em ordem
+ * alfabética, e as opções também. Voltar retorna da subtela à lista, com o foco da TV na seção de onde veio; no tablet
+ * há também o botão Voltar. Opção de dois valores: OK ou toque troca na hora; com mais valores, abre um seletor em
+ * janela. O que só existe na TV não aparece no tablet (D12). TV: tela aberta pelo botão do topo, com o painel da marca
+ * à direita ({@link PainelMarcaTv}: logo, versão instalada e as novidades dela); tablet: aba Ajustes (título
  * "Configurações").
  */
 public class ConfiguracoesFragment extends Fragment {
@@ -79,8 +85,28 @@ public class ConfiguracoesFragment extends Fragment {
         }
     }
 
+    /**
+     * Grupos da lista, com título (ajuste de 21/11/2026): {@link #BIBLIOTECA} em destaque no topo; os outros em ordem
+     * alfabética do título ({@link #compararGrupos}).
+     */
+    private enum Grupo {
+        BIBLIOTECA(R.string.st_cfg_titulo_biblioteca_midia),
+        APARENCIA(R.string.st_cfg_titulo_aparencia),
+        MUSICAS(R.string.st_cfg_grupo_musicas),
+        REPRODUCAO(R.string.st_cfg_titulo_reproducao),
+        SISTEMA(R.string.st_cfg_titulo_sistema);
+
+        @StringRes
+        final int titulo;
+
+        Grupo(@StringRes int titulo) {
+            this.titulo = titulo;
+        }
+    }
+
     /** Uma seção: a linha na lista de seções e a subtela, que fica montada mesmo escondida. */
     private static final class Secao {
+        final Grupo grupo;
         @DrawableRes
         final int icone;
         @StringRes
@@ -91,7 +117,8 @@ public class ConfiguracoesFragment extends Fragment {
         View linha;
         LinearLayout corpo;
 
-        Secao(@DrawableRes int icone, @StringRes int nome, @StringRes int dica) {
+        Secao(Grupo grupo, @DrawableRes int icone, @StringRes int nome, @StringRes int dica) {
+            this.grupo = grupo;
             this.icone = icone;
             this.nome = nome;
             this.dica = dica;
@@ -104,6 +131,22 @@ public class ConfiguracoesFragment extends Fragment {
     /** Tamanho do cache, ao lado de Limpar o cache (1.5). */
     @Nullable
     private TextView valorCache;
+    /** Configurações › Músicas (2.0, só fora da TV): onde baixar e o espaço das baixadas. */
+    @Nullable
+    private TextView valorDestino;
+    @Nullable
+    private TextView valorBaixadas;
+    private final Runnable aoMudarDownloads = this::medirBaixadas;
+    /** Biblioteca de mídia: as linhas dos servidores em casa, refeitas quando a lista ou o estado deles muda. */
+    private LinearLayout servidoresNaLista;
+    @Nullable
+    private String assinaturaDosServidores;
+    /** Adicionar servidor: o foco da TV vem para cá quando o servidor em foco sai da lista. */
+    private View adicionarServidor;
+    private final Runnable aoMudarBiblioteca = this::mostrarServidores;
+    /** TV: logo, versão instalada e novidades, à direita da lista. */
+    @Nullable
+    private PainelMarcaTv painelMarca;
     private final List<Secao> secoes = new ArrayList<>();
     /** Índice em {@link #secoes}; -1 = a lista de seções. */
     private int secaoAberta = -1;
@@ -165,10 +208,10 @@ public class ConfiguracoesFragment extends Fragment {
         adicionar(pagina, dica, Medidas.px(contexto, 6));
 
         // Largura de leitura confortável: até 1100 px do desenho
+        int larguraConteudo = Math.min(getResources().getDisplayMetrics().widthPixels, Medidas.px(contexto, 1100));
         LinearLayout conteudo = new LinearLayout(contexto);
         conteudo.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout.LayoutParams lpConteudo = new LinearLayout.LayoutParams(Math.min(
-                getResources().getDisplayMetrics().widthPixels, Medidas.px(contexto, 1100)), ViewGroup.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams lpConteudo = new LinearLayout.LayoutParams(larguraConteudo, ViewGroup.LayoutParams.WRAP_CONTENT);
         lpConteudo.topMargin = Medidas.px(contexto, 32);
         pagina.addView(conteudo, lpConteudo);
 
@@ -193,11 +236,22 @@ public class ConfiguracoesFragment extends Fragment {
         rolagem.addView(pagina, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         mostrarAberta();
-        if (tv) {
-            View primeira = secaoAberta >= 0 ? secoes.get(secaoAberta).corpo : secoes.get(0).linha;
-            primeira.post(() -> primeira.requestFocus(View.FOCUS_DOWN));
-        }
-        return rolagem;
+        if (!tv) return rolagem;
+        View primeira = secaoAberta >= 0 ? secoes.get(secaoAberta).corpo : listaDeSecoes;
+        primeira.post(() -> primeira.requestFocus(View.FOCUS_DOWN));
+
+        // TV (ajuste de 21/11/2026): a lista rola à esquerda; à direita, parado, o painel da marca na área que ficava vazia
+        LinearLayout tela = new LinearLayout(contexto);
+        tela.setOrientation(LinearLayout.HORIZONTAL);
+        tela.setBaselineAligned(false);
+        tela.addView(rolagem, new LinearLayout.LayoutParams(larguraConteudo + 2 * lateral, ViewGroup.LayoutParams.MATCH_PARENT));
+        painelMarca = new PainelMarcaTv(contexto, versaoInstalada(contexto));
+        LinearLayout.LayoutParams lpPainel = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        lpPainel.gravity = Gravity.CENTER_VERTICAL;
+        lpPainel.setMarginStart(Medidas.px(contexto, 24));
+        lpPainel.setMarginEnd(lateral);
+        tela.addView(painelMarca.view, lpPainel);
+        return tela;
     }
 
     @Override
@@ -221,6 +275,23 @@ public class ConfiguracoesFragment extends Fragment {
         valorPastaImagens.setText(pasta == null ? getString(R.string.st_pasta_imagens_nenhuma)
                 : ArquivosDoAparelho.exibir(contexto, pasta));
         pastaImagens.setContentDescription(getString(R.string.st_cfg_pasta_imagens) + ", " + valorPastaImagens.getText());
+        if (!tv) {
+            Downloads.de(contexto).ouvir(aoMudarDownloads);
+            mostrarDestino();
+            medirBaixadas();
+        }
+        // Volta do Adicionar ou do Editar servidor; o estado (Conectado / Fora de alcance) chega pelo aviso da biblioteca
+        RepositorioBiblioteca.atual(contexto).ouvir(aoMudarBiblioteca);
+        mostrarServidores();
+        if (painelMarca != null) painelMarca.ligar();
+    }
+
+    @Override
+    public void onPause() {
+        if (!tv) Downloads.de(requireContext()).deixarDeOuvir(aoMudarDownloads);
+        RepositorioBiblioteca.atual(requireContext()).deixarDeOuvir(aoMudarBiblioteca);
+        if (painelMarca != null) painelMarca.desligar();
+        super.onPause();
     }
 
     @Override
@@ -238,20 +309,33 @@ public class ConfiguracoesFragment extends Fragment {
         definirBiblioteca();
         if (tv) definirInicio();
         definirLegendas();
+        if (!tv) definirMusicas();
         definirNavegacao();
         definirPlayer();
         definirSeries();
         definirShows();
 
         Collator ordem = Collator.getInstance(Locale.forLanguageTag("pt-BR"));
-        Collections.sort(secoes, (a, b) -> ordem.compare(getString(a.nome), getString(b.nome)));
+        // A ordem das seções é a da lista: o grupo (Biblioteca de mídia primeiro) e, nele, o nome
+        Collections.sort(secoes, (a, b) -> {
+            int grupo = compararGrupos(ordem, a.grupo, b.grupo);
+            return grupo != 0 ? grupo : ordem.compare(getString(a.nome), getString(b.nome));
+        });
+        Grupo grupoAtual = null;
+        LinearLayout alvo = listaDeSecoes;
         for (int i = 0; i < secoes.size(); i++) {
             Secao secao = secoes.get(i);
             final int indice = i;
-            LinearLayout linha = linha(listaDeSecoes, secao.icone, secao.nome, secao.dica);
+            boolean primeiraDoGrupo = secao.grupo != grupoAtual;
+            if (primeiraDoGrupo) {
+                grupoAtual = secao.grupo;
+                alvo = grupoAtual == Grupo.BIBLIOTECA ? destaqueDaBiblioteca(contexto) : tituloDoGrupo(contexto, grupoAtual);
+            }
+            LinearLayout linha = linha(alvo, secao.icone, secao.nome, secao.dica);
             adicionarSeta(linha);
             linha.setOnClickListener(v -> abrir(indice));
             secao.linha = linha;
+            if (primeiraDoGrupo && grupoAtual != Grupo.BIBLIOTECA) mostrarTituloAoFocar(linha, alvo.getChildAt(alvo.getChildCount() - 2));
 
             secao.corpo = new LinearLayout(contexto);
             secao.corpo.setOrientation(LinearLayout.VERTICAL);
@@ -259,6 +343,124 @@ public class ConfiguracoesFragment extends Fragment {
             for (Opcao opcao : secao.opcoes) opcao.montar.em(secao.corpo);
             conteudo.addView(secao.corpo, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         }
+    }
+
+    /** Biblioteca de mídia em cima; os outros grupos pela ordem alfabética do título (pt-BR). */
+    private int compararGrupos(Collator ordem, Grupo a, Grupo b) {
+        if (a == b) return 0;
+        if (a == Grupo.BIBLIOTECA) return -1;
+        if (b == Grupo.BIBLIOTECA) return 1;
+        return ordem.compare(getString(a.titulo), getString(b.titulo));
+    }
+
+    /**
+     * Título de um grupo da lista, no padrão dos rótulos de Pastas (Inter 900 em caixa alta, #94a3b8); as linhas do
+     * grupo vêm logo abaixo, na própria lista.
+     */
+    private LinearLayout tituloDoGrupo(Context contexto, Grupo grupo) {
+        TextView titulo = Textos.rotulo(contexto, getString(grupo.titulo), 16);
+        titulo.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.topMargin = listaDeSecoes.getChildCount() > 0 ? Medidas.px(contexto, 40) : 0;
+        lp.setMarginStart(Medidas.px(contexto, 4));
+        listaDeSecoes.addView(titulo, lp);
+        return listaDeSecoes;
+    }
+
+    /**
+     * Biblioteca de mídia, em destaque no topo (painel azul, como o "Como organizar" de Pastas): o título em azul, a
+     * dica, Pastas da biblioteca, os servidores em casa (cada um com Conectado / Fora de alcance, OK ou toque abre o
+     * Editar servidor), Adicionar servidor e, por último, a seção Biblioteca (quem chama põe a linha dela).
+     */
+    private LinearLayout destaqueDaBiblioteca(Context contexto) {
+        LinearLayout painel = new LinearLayout(contexto);
+        painel.setOrientation(LinearLayout.VERTICAL);
+        painel.setBackgroundResource(R.drawable.st_fundo_como_organizar);
+        int folga = Medidas.px(contexto, 22);
+        painel.setPadding(folga, Medidas.px(contexto, 22), folga, folga);
+        TextView titulo = Textos.rotulo(contexto, getString(Grupo.BIBLIOTECA.titulo), 16);
+        titulo.setTextColor(ContextCompat.getColor(contexto, R.color.st_azul));
+        titulo.setCompoundDrawablePadding(Medidas.px(contexto, 10));
+        Icones.noTexto(titulo, R.drawable.st_ic_pastas, Medidas.px(contexto, 22));
+        painel.addView(titulo);
+        adicionar(painel, Textos.novo(contexto, getString(R.string.st_cfg_titulo_biblioteca_midia_dica), R.font.st_inter_semibold, 17,
+                R.color.st_texto_apagado), Medidas.px(contexto, 6));
+
+        View pastas = acao(painel, R.drawable.st_ic_pastas, R.string.st_cfg_pastas, R.string.st_cfg_pastas_dica,
+                () -> Navegacao.abrirPastas(requireActivity()));
+        adicionarSeta((LinearLayout) pastas);
+        ((LinearLayout.LayoutParams) pastas.getLayoutParams()).topMargin = Medidas.px(contexto, 18);
+        mostrarTituloAoFocar(pastas, titulo);
+
+        servidoresNaLista = new LinearLayout(contexto);
+        servidoresNaLista.setOrientation(LinearLayout.VERTICAL);
+        servidoresNaLista.setVisibility(View.GONE);
+        LinearLayout.LayoutParams lpServidores = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lpServidores.topMargin = Medidas.px(contexto, 12);
+        painel.addView(servidoresNaLista, lpServidores);
+
+        adicionarServidor = acao(painel, R.drawable.st_ic_servidor, R.string.st_adicionar_servidor, R.string.st_cfg_adicionar_servidor_dica,
+                () -> ServidorActivity.abrirNovo(requireActivity()));
+        adicionarSeta((LinearLayout) adicionarServidor);
+
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.topMargin = listaDeSecoes.getChildCount() > 0 ? Medidas.px(contexto, 40) : 0;
+        listaDeSecoes.addView(painel, lp);
+        return painel;
+    }
+
+    /**
+     * Os servidores cadastrados, na ordem em que entraram, com o estado guardado (sem rede): Conectado em verde, Fora de
+     * alcance em vermelho e, com a senha que não abriu neste aparelho, Digite a senha de novo em âmbar, como em Pastas. Só
+     * refaz se mudou; o foco da TV fica no mesmo servidor ou, se ele saiu, vai para Adicionar servidor.
+     */
+    private void mostrarServidores() {
+        if (servidoresNaLista == null || getContext() == null) return;
+        Context contexto = requireContext();
+        List<Modelo.Servidor> servidores = RepositorioBiblioteca.atual(contexto).servidores();
+        StringBuilder assinatura = new StringBuilder();
+        for (Modelo.Servidor s : servidores) {
+            assinatura.append(s.id).append('|').append(s.ip).append('|').append(s.compartilhamento).append('|')
+                    .append(s.conectado).append('|').append(s.precisaDaSenha).append(';');
+        }
+        if (assinatura.toString().equals(assinaturaDosServidores)) return;
+        assinaturaDosServidores = assinatura.toString();
+        View foco = servidoresNaLista.findFocus();
+        Object marca = foco == null ? null : foco.getTag();
+        // Refazer com o foco dentro o perderia: ele passa por Adicionar servidor e volta ao mesmo servidor no fim
+        if (foco != null) adicionarServidor.requestFocus();
+        servidoresNaLista.removeAllViews();
+        for (Modelo.Servidor s : servidores) {
+            LinearLayout linha = linha(servidoresNaLista, R.drawable.st_ic_servidor, getString(R.string.st_servidor_em_casa),
+                    getString(R.string.st_servidor_linha, s.ip, s.compartilhamento));
+            boolean ligado = s.conectado && !s.precisaDaSenha;
+            TextView estado = adicionarValor(linha, getString(s.precisaDaSenha ? R.string.st_servidor_digite_a_senha
+                    : s.conectado ? R.string.st_conectado : R.string.st_servidor_fora_de_alcance));
+            estado.setTextColor(ContextCompat.getColor(contexto, s.precisaDaSenha ? R.color.st_aviso_claro
+                    : ligado ? R.color.st_selo_hd_texto : R.color.st_selo_sem_hd_texto));
+            adicionarSeta(linha);
+            long id = s.id;
+            linha.setTag("servidor:" + id);
+            linha.setOnClickListener(v -> ServidorActivity.abrirEditar(requireActivity(), id));
+            linha.setContentDescription(getString(R.string.st_servidor_em_casa) + ", "
+                    + getString(R.string.st_servidor_linha, s.ip, s.compartilhamento) + ", " + estado.getText());
+        }
+        servidoresNaLista.setVisibility(servidores.isEmpty() ? View.GONE : View.VISIBLE);
+        if (marca != null) {
+            View alvo = servidoresNaLista.findViewWithTag(marca);
+            if (alvo != null) alvo.requestFocus();
+        }
+    }
+
+    /**
+     * TV: o título do grupo fica à vista quando o foco chega à primeira linha dele subindo (a rolagem só mostraria a
+     * linha). Mantém o realce de foco da linha: só pede à rolagem a área do título.
+     */
+    private void mostrarTituloAoFocar(View primeira, View titulo) {
+        if (!tv || titulo == null) return;
+        primeira.setOnFocusChangeListener((v, temFoco) -> {
+            if (temFoco) titulo.post(() -> titulo.requestRectangleOnScreen(new android.graphics.Rect(0, 0, titulo.getWidth(), titulo.getHeight())));
+        });
     }
 
     /**
@@ -272,7 +474,7 @@ public class ConfiguracoesFragment extends Fragment {
         else secoes.get(indice).corpo.setVisibility(View.VISIBLE);
         rolagem.scrollTo(0, 0);
         if (tv) {
-            View alvo = indice >= 0 ? secoes.get(indice).corpo : secoes.get(Math.max(antes, 0)).linha;
+            View alvo = indice >= 0 ? secoes.get(indice).corpo : antes >= 0 ? secoes.get(antes).linha : listaDeSecoes;
             alvo.requestFocus(View.FOCUS_DOWN);
         }
         mostrarAberta();
@@ -292,8 +494,8 @@ public class ConfiguracoesFragment extends Fragment {
         voltarParaSecoes.setEnabled(!naLista);
     }
 
-    private Secao secao(@DrawableRes int icone, @StringRes int nome, @StringRes int dica) {
-        Secao secao = new Secao(icone, nome, dica);
+    private Secao secao(Grupo grupo, @DrawableRes int icone, @StringRes int nome, @StringRes int dica) {
+        Secao secao = new Secao(grupo, icone, nome, dica);
         secoes.add(secao);
         return secao;
     }
@@ -311,7 +513,7 @@ public class ConfiguracoesFragment extends Fragment {
     }
 
     private void definirApp() {
-        Secao secao = secao(R.drawable.st_ic_info, R.string.st_cfg_grupo_app, R.string.st_cfg_grupo_app_dica);
+        Secao secao = secao(Grupo.SISTEMA, R.drawable.st_ic_info, R.string.st_cfg_grupo_app, R.string.st_cfg_grupo_app_dica);
         opcaoAcao(secao, R.drawable.st_ic_ajuda, R.string.st_cfg_uso, R.string.st_cfg_uso_dica,
                 () -> Navegacao.abrirInformacoesUso(requireActivity()));
         opcaoAcao(secao, R.drawable.st_ic_info, R.string.st_cfg_sobre, R.string.st_cfg_sobre_dica,
@@ -358,11 +560,10 @@ public class ConfiguracoesFragment extends Fragment {
         }, "StarkTechCache").start();
     }
 
+    /** Atualização e pasta de imagens; Pastas da biblioteca e o servidor em casa ficam direto no destaque do topo. */
     private void definirBiblioteca() {
         Context contexto = requireContext();
-        Secao secao = secao(R.drawable.st_ic_pastas, R.string.st_cfg_grupo_biblioteca, R.string.st_cfg_grupo_biblioteca_dica);
-        opcaoAcao(secao, R.drawable.st_ic_pastas, R.string.st_cfg_pastas, R.string.st_cfg_pastas_dica,
-                () -> Navegacao.abrirPastas(requireActivity()));
+        Secao secao = secao(Grupo.BIBLIOTECA, R.drawable.st_ic_atualizar, R.string.st_cfg_grupo_biblioteca, R.string.st_cfg_grupo_biblioteca_dica);
         opcaoAcao(secao, R.drawable.st_ic_atualizar, R.string.st_atualizar_biblioteca, R.string.st_cfg_atualizar_dica, () -> {
             RepositorioBiblioteca.atual(contexto).atualizarAgora();
             Toast.makeText(contexto, R.string.st_atualizando_biblioteca, Toast.LENGTH_SHORT).show();
@@ -387,7 +588,7 @@ public class ConfiguracoesFragment extends Fragment {
 
     /** Só na TV: o Início do tablet não tem Novidades. */
     private void definirInicio() {
-        Secao secao = secao(R.drawable.st_ic_inicio, R.string.st_cfg_grupo_inicio, R.string.st_cfg_grupo_inicio_dica);
+        Secao secao = secao(Grupo.APARENCIA, R.drawable.st_ic_inicio, R.string.st_cfg_grupo_inicio, R.string.st_cfg_grupo_inicio_dica);
         opcaoValor(secao, R.drawable.st_ic_assistir, R.string.st_cfg_previa_video, R.string.st_cfg_previa_video_dica,
                 Preferencias.Item.PREVIA_VIDEO);
         opcaoValor(secao, R.drawable.st_ic_atualizar, R.string.st_cfg_troca_novidades, R.string.st_cfg_troca_novidades_dica,
@@ -395,7 +596,7 @@ public class ConfiguracoesFragment extends Fragment {
     }
 
     private void definirLegendas() {
-        Secao secao = secao(R.drawable.st_ic_legendas, R.string.st_cfg_grupo_legendas, R.string.st_cfg_grupo_legendas_dica);
+        Secao secao = secao(Grupo.REPRODUCAO, R.drawable.st_ic_legendas, R.string.st_cfg_grupo_legendas, R.string.st_cfg_grupo_legendas_dica);
         int icone = R.drawable.st_ic_legendas;
         opcaoValor(secao, icone, R.string.st_cfg_legenda, R.string.st_cfg_legenda_dica, Preferencias.Item.LEGENDA);
         opcaoValor(secao, icone, R.string.st_cfg_tamanho_legenda, R.string.st_cfg_tamanho_legenda_dica, Preferencias.Item.TAMANHO_LEGENDA);
@@ -408,16 +609,115 @@ public class ConfiguracoesFragment extends Fragment {
         opcaoValor(secao, icone, R.string.st_cfg_posicao_legenda, R.string.st_cfg_posicao_legenda_dica, Preferencias.Item.POSICAO_LEGENDA);
     }
 
+    /**
+     * Músicas (2.0, só fora da TV, D12): onde baixar (a memória interna de fábrica, ou um cartão / pendrive), o
+     * espaço das baixadas e Remover todas as baixadas, com confirmação.
+     */
+    private void definirMusicas() {
+        Secao secao = secao(Grupo.MUSICAS, R.drawable.st_ic_musicas, R.string.st_cfg_grupo_musicas, R.string.st_cfg_grupo_musicas_dica);
+        opcao(secao, R.string.st_cfg_onde_baixar, this::ondeBaixar);
+        opcao(secao, R.string.st_cfg_espaco_baixadas, this::espacoBaixadas);
+        opcaoAcao(secao, R.drawable.st_ic_lixeira, R.string.st_cfg_remover_baixadas, R.string.st_cfg_remover_baixadas_dica,
+                this::confirmarRemoverBaixadas);
+    }
+
+    private void ondeBaixar(LinearLayout corpo) {
+        Context contexto = corpo.getContext();
+        LinearLayout linha = linha(corpo, R.drawable.st_ic_pastas, R.string.st_cfg_onde_baixar, R.string.st_cfg_onde_baixar_dica);
+        valorDestino = adicionarValor(linha, "");
+        valorDestino.setEllipsize(TextUtils.TruncateAt.END);
+        valorDestino.setMaxWidth(Medidas.px(contexto, 360));
+        adicionarSeta(linha);
+        linha.setOnClickListener(v -> {
+            List<ArquivosDoAparelho.Raiz> raizes = ArquivosDoAparelho.raizes(contexto);
+            if (raizes.isEmpty()) return;
+            String[] nomes = new String[raizes.size()];
+            for (int i = 0; i < nomes.length; i++) nomes[i] = NavegadorPastasActivity.nomeDaRaiz(contexto, raizes.get(i), raizes);
+            abrirSeletor(getString(R.string.st_cfg_onde_baixar), nomes, indiceDoDestino(contexto, raizes), escolhido -> {
+                ArquivosDoAparelho.Raiz r = raizes.get(escolhido);
+                // A memória interna é a de fábrica: guarda nada
+                Preferencias.definirDestinoDownloads(contexto, r.removivel ? r.pasta.getAbsolutePath() : null);
+                Downloads.de(contexto).destinoMudou();
+                mostrarDestino();
+            });
+        });
+    }
+
+    /** O destino de agora na lista de raízes; o que sumiu (cartão tirado) conta como a memória interna. */
+    private static int indiceDoDestino(Context contexto, List<ArquivosDoAparelho.Raiz> raizes) {
+        String atual = Downloads.de(contexto).raiz().getAbsolutePath();
+        int interno = 0;
+        for (int i = 0; i < raizes.size(); i++) {
+            String raiz = raizes.get(i).pasta.getAbsolutePath();
+            if (raiz.equals(atual)) return i;
+            if (!raizes.get(i).removivel) interno = i;
+        }
+        return interno;
+    }
+
+    private void mostrarDestino() {
+        TextView alvo = valorDestino;
+        if (alvo == null) return;
+        Context contexto = alvo.getContext();
+        List<ArquivosDoAparelho.Raiz> raizes = ArquivosDoAparelho.raizes(contexto);
+        String nome = raizes.isEmpty() ? getString(R.string.st_armazenamento_interno)
+                : NavegadorPastasActivity.nomeDaRaiz(contexto, raizes.get(indiceDoDestino(contexto, raizes)), raizes);
+        alvo.setText(nome);
+        ((View) alvo.getParent()).setContentDescription(getString(R.string.st_cfg_onde_baixar) + ", " + nome);
+    }
+
+    /** Só mostra: "1,2 GB · 34 músicas". */
+    private void espacoBaixadas(LinearLayout corpo) {
+        LinearLayout linha = linha(corpo, R.drawable.st_ic_hd, R.string.st_cfg_espaco_baixadas, R.string.st_cfg_espaco_baixadas_dica);
+        linha.setClickable(false);
+        valorBaixadas = adicionarValor(linha, "");
+        medirBaixadas();
+    }
+
+    private void medirBaixadas() {
+        TextView alvo = valorBaixadas;
+        if (alvo == null || getContext() == null) return;
+        Context contexto = alvo.getContext();
+        Downloads downloads = Downloads.de(contexto);
+        int quantas = downloads.baixadas().size();
+        String texto = getResources().getQuantityString(R.plurals.st_cfg_n_baixadas, quantas, quantas,
+                Formatter.formatShortFileSize(contexto, downloads.espacoUsado()));
+        alvo.setText(texto);
+        ((View) alvo.getParent()).setContentDescription(getString(R.string.st_cfg_espaco_baixadas) + ", " + texto);
+    }
+
+    /** Janela no padrão do Menu da capa, com o foco em Cancelar; Remover apaga as cópias (as do servidor ficam). */
+    private void confirmarRemoverBaixadas() {
+        Context contexto = requireContext();
+        Dialog janela = janelaDoMenu(getString(R.string.st_cfg_remover_baixadas_titulo));
+        TextView aviso = janela.findViewById(R.id.st_menu_dica);
+        aviso.setText(R.string.st_cfg_remover_baixadas_dica);
+        aviso.setVisibility(View.VISIBLE);
+        LinearLayout opcoes = janela.findViewById(R.id.st_menu_opcoes);
+        View cancelar = OpcaoMenu.adicionar(opcoes, R.drawable.st_ic_fechar, getString(R.string.st_cancelar), janela::dismiss);
+        OpcaoMenu.adicionar(opcoes, R.drawable.st_ic_lixeira, getString(R.string.st_remover), () -> {
+            janela.dismiss();
+            Downloads.de(contexto).removerTodas();
+            Toast.makeText(contexto, R.string.st_cfg_baixadas_removidas, Toast.LENGTH_SHORT).show();
+        });
+        janela.setOnDismissListener(d -> {
+            if (seletor == janela) seletor = null;
+        });
+        seletor = janela;
+        janela.show();
+        cancelar.requestFocus();
+    }
+
     /** Quais abas aparecem no nav. Início e Ajustes ficam sempre: sem eles, não dá para voltar aqui. */
     private void definirNavegacao() {
-        Secao secao = secao(R.drawable.st_ic_capitulos, R.string.st_cfg_grupo_navegacao, R.string.st_cfg_grupo_navegacao_dica);
+        Secao secao = secao(Grupo.APARENCIA, R.drawable.st_ic_capitulos, R.string.st_cfg_grupo_navegacao, R.string.st_cfg_grupo_navegacao_dica);
         for (Aba aba : Aba.values()) {
             if (aba.itemDoNav != null) opcaoValor(secao, aba.icone, aba.nome, R.string.st_cfg_navegacao_dica, aba.itemDoNav);
         }
     }
 
     private void definirPlayer() {
-        Secao secao = secao(R.drawable.st_ic_assistir, R.string.st_cfg_grupo_player, R.string.st_cfg_grupo_player_dica);
+        Secao secao = secao(Grupo.REPRODUCAO, R.drawable.st_ic_assistir, R.string.st_cfg_grupo_player, R.string.st_cfg_grupo_player_dica);
         opcaoValor(secao, R.drawable.st_ic_audio, R.string.st_cfg_audio, R.string.st_cfg_audio_dica, Preferencias.Item.AUDIO);
         opcaoValor(secao, R.drawable.st_ic_do_inicio, R.string.st_cfg_retomar, R.string.st_cfg_retomar_dica, Preferencias.Item.RETOMAR);
         opcao(secao, R.string.st_cfg_zoom, this::zoom);
@@ -439,13 +739,13 @@ public class ConfiguracoesFragment extends Fragment {
     }
 
     private void definirSeries() {
-        Secao secao = secao(R.drawable.st_ic_series, R.string.st_cfg_grupo_series, R.string.st_cfg_grupo_series_dica);
+        Secao secao = secao(Grupo.REPRODUCAO, R.drawable.st_ic_series, R.string.st_cfg_grupo_series, R.string.st_cfg_grupo_series_dica);
         opcaoValor(secao, R.drawable.st_ic_series, R.string.st_cfg_proximo_episodio, R.string.st_cfg_proximo_episodio_dica,
                 Preferencias.Item.PROXIMO_EPISODIO);
     }
 
     private void definirShows() {
-        Secao secao = secao(R.drawable.st_ic_shows, R.string.st_cfg_grupo_shows, R.string.st_cfg_grupo_shows_dica);
+        Secao secao = secao(Grupo.APARENCIA, R.drawable.st_ic_shows, R.string.st_cfg_grupo_shows, R.string.st_cfg_grupo_shows_dica);
         opcaoValor(secao, R.drawable.st_ic_shows, R.string.st_cfg_shows_por_grupo, R.string.st_cfg_shows_por_grupo_dica,
                 Preferencias.Item.SHOWS_POR_GRUPO);
     }
@@ -453,22 +753,28 @@ public class ConfiguracoesFragment extends Fragment {
     // ---- Versão ----
 
     /**
-     * Versão instalada e versão disponível no GitHub, com o aviso do que isso quer dizer (D11). O botão é
-     * quem recebe o foco da TV: Verificar ou, com versão nova, Baixar e instalar. Com "Atualizar
-     * automaticamente" ligado, já procura ao montar a tela.
+     * Versão instalada e versão disponível no GitHub, com o aviso do que isso quer dizer (D11). Tablet: o botão é quem
+     * recebe o toque (Verificar ou, com versão nova, Baixar e instalar). TV (ajustes de 21/11/2026): a versão instalada
+     * fica no painel da marca, à direita; a linha Versão disponível inteira recebe o foco, com o mesmo realce das outras
+     * linhas, e OK faz o que o botão diz (o botão só mostra). Com "Atualizar automaticamente" ligado, já procura ao
+     * montar a tela.
      */
     private void versao(LinearLayout lista) {
         Context contexto = lista.getContext();
         String numero = versaoInstalada(contexto);
-        LinearLayout instalada = linha(lista, R.drawable.st_ic_info, R.string.st_cfg_versao_instalada, R.string.st_cfg_versao_dica);
-        adicionarValor(instalada, numero);
-        instalada.setContentDescription(getString(R.string.st_cfg_versao_instalada) + ", " + numero);
-        instalada.setFocusable(false);
-        instalada.setClickable(false);
+        if (!tv) {
+            LinearLayout instalada = linha(lista, R.drawable.st_ic_info, R.string.st_cfg_versao_instalada, R.string.st_cfg_versao_dica);
+            adicionarValor(instalada, numero);
+            instalada.setContentDescription(getString(R.string.st_cfg_versao_instalada) + ", " + numero);
+            instalada.setFocusable(false);
+            instalada.setClickable(false);
+        }
 
         LinearLayout disponivel = linha(lista, R.drawable.st_ic_atualizar, R.string.st_cfg_versao_disponivel, R.string.st_cfg_versao_disponivel_dica);
-        disponivel.setFocusable(false);
-        disponivel.setClickable(false);
+        if (!tv) {
+            disponivel.setFocusable(false);
+            disponivel.setClickable(false);
+        }
         versaoPublicada = adicionarValor(disponivel, getString(R.string.st_versao_sem_valor));
         // A dica é o segundo texto da linha ({@link #linha})
         avisoDeVersao = (TextView) ((LinearLayout) disponivel.getChildAt(1)).getChildAt(1);
@@ -479,10 +785,20 @@ public class ConfiguracoesFragment extends Fragment {
         botaoDeVersao.setContentDescription(getString(R.string.st_versao_verificar_descricao, numero));
         Icones.noTexto(botaoDeVersao, R.drawable.st_ic_atualizar,
                 getResources().getDimensionPixelSize(tv ? R.dimen.st_tv_botao_icone : R.dimen.st_tablet_botao_icone));
-        botaoDeVersao.setOnClickListener(v -> {
+        View.OnClickListener acao = v -> {
             if (versaoParaInstalar != null) Navegacao.abrirAtualizacao(requireActivity(), versaoParaInstalar);
             else verificar();
-        });
+        };
+        if (tv) {
+            // O foco é da linha (fundo claro e borda branca); o botão dentro dela só mostra o que o OK faz
+            botaoDeVersao.setFocusable(false);
+            botaoDeVersao.setClickable(false);
+            botaoDeVersao.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+            disponivel.setOnClickListener(acao);
+            disponivel.setContentDescription(getString(R.string.st_cfg_versao_disponivel) + ", " + getString(R.string.st_versao_verificar_descricao, numero));
+        } else {
+            botaoDeVersao.setOnClickListener(acao);
+        }
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
                 getResources().getDimensionPixelSize(tv ? R.dimen.st_tv_botao_altura : R.dimen.st_tablet_botao_altura));
         lp.setMarginStart(Medidas.px(contexto, 22));
@@ -520,6 +836,9 @@ public class ConfiguracoesFragment extends Fragment {
                 : nova ? getString(R.string.st_versao_nova_titulo, publicada.nome) : getString(R.string.st_versao_atualizado));
         avisoDeVersao.setTextColor(ContextCompat.getColor(requireContext(), nova ? R.color.st_azul : R.color.st_texto_apagado));
         botaoDeVersao.setText(nova ? R.string.st_versao_baixar_instalar : R.string.st_versao_verificar);
+        // TV: quem tem o foco é a linha; a descrição dela acompanha o resultado
+        if (tv) ((View) botaoDeVersao.getParent()).setContentDescription(getString(R.string.st_cfg_versao_disponivel) + ", "
+                + versaoPublicada.getText() + ", " + avisoDeVersao.getText() + ", " + botaoDeVersao.getText());
     }
 
     private static String versaoInstalada(Context contexto) {
@@ -591,24 +910,7 @@ public class ConfiguracoesFragment extends Fragment {
      * fecha a janela; Voltar ou tocar fora fecha sem mudar nada.
      */
     private void abrirSeletor(String nome, String[] nomes, int atual, Escolha escolha) {
-        Resources res = getResources();
-        Dialog janela = new Dialog(requireContext(), tv ? R.style.Theme_StarkTech_Menu_Tv : R.style.Theme_StarkTech_Menu);
-        janela.setContentView(R.layout.st_menu_capa);
-        janela.setCanceledOnTouchOutside(true);
-
-        int padding = res.getDimensionPixelSize(tv ? R.dimen.st_tv_menu_padding : R.dimen.st_tablet_menu_padding);
-        View caixa = janela.findViewById(R.id.st_menu_caixa);
-        ViewGroup.LayoutParams lpCaixa = caixa.getLayoutParams();
-        lpCaixa.width = res.getDimensionPixelSize(tv ? R.dimen.st_tv_menu_largura : R.dimen.st_tablet_menu_largura);
-        caixa.setLayoutParams(lpCaixa);
-        caixa.setPadding(padding, padding, padding, padding);
-
-        int recuo = padding * 2 / 3;
-        TextView cabecalho = janela.findViewById(R.id.st_menu_titulo);
-        cabecalho.setText(nome);
-        cabecalho.setTextSize(TypedValue.COMPLEX_UNIT_PX, res.getDimension(tv ? R.dimen.st_tv_texto_menu_titulo : R.dimen.st_tablet_texto_menu_titulo));
-        cabecalho.setPadding(recuo, padding / 3, recuo, recuo);
-        janela.findViewById(R.id.st_menu_dica).setVisibility(View.GONE);
+        Dialog janela = janelaDoMenu(nome);
 
         // A lista rola se não couber (celular deitado)
         LinearLayout opcoes = janela.findViewById(R.id.st_menu_opcoes);
@@ -638,6 +940,29 @@ public class ConfiguracoesFragment extends Fragment {
         if (tv && marcada != null) marcada.requestFocus();
     }
 
+    /** A janela do Menu da capa com o título (a dica escondida), sem opções; quem chama põe as opções e mostra. */
+    private Dialog janelaDoMenu(String nome) {
+        Resources res = getResources();
+        Dialog janela = new Dialog(requireContext(), tv ? R.style.Theme_StarkTech_Menu_Tv : R.style.Theme_StarkTech_Menu);
+        janela.setContentView(R.layout.st_menu_capa);
+        janela.setCanceledOnTouchOutside(true);
+
+        int padding = res.getDimensionPixelSize(tv ? R.dimen.st_tv_menu_padding : R.dimen.st_tablet_menu_padding);
+        View caixa = janela.findViewById(R.id.st_menu_caixa);
+        ViewGroup.LayoutParams lpCaixa = caixa.getLayoutParams();
+        lpCaixa.width = res.getDimensionPixelSize(tv ? R.dimen.st_tv_menu_largura : R.dimen.st_tablet_menu_largura);
+        caixa.setLayoutParams(lpCaixa);
+        caixa.setPadding(padding, padding, padding, padding);
+
+        int recuo = padding * 2 / 3;
+        TextView cabecalho = janela.findViewById(R.id.st_menu_titulo);
+        cabecalho.setText(nome);
+        cabecalho.setTextSize(TypedValue.COMPLEX_UNIT_PX, res.getDimension(tv ? R.dimen.st_tv_texto_menu_titulo : R.dimen.st_tablet_texto_menu_titulo));
+        cabecalho.setPadding(recuo, padding / 3, recuo, recuo);
+        janela.findViewById(R.id.st_menu_dica).setVisibility(View.GONE);
+        return janela;
+    }
+
     /** Seta à direita: a linha abre outra coisa (subtela ou seletor). */
     private static void adicionarSeta(LinearLayout linha) {
         Context contexto = linha.getContext();
@@ -663,6 +988,11 @@ public class ConfiguracoesFragment extends Fragment {
 
     /** Cartão: ícone azul, nome (Inter 800) e a dica embaixo; na TV, em foco, fundo claro e borda branca. */
     private LinearLayout linha(LinearLayout lista, @DrawableRes int icone, @StringRes int nome, @StringRes int dica) {
+        return linha(lista, icone, getString(nome), getString(dica));
+    }
+
+    /** {@link #linha(LinearLayout, int, int, int)} com os textos prontos (servidor em casa: o IP e o compartilhamento). */
+    private LinearLayout linha(LinearLayout lista, @DrawableRes int icone, String nome, String dica) {
         Context contexto = lista.getContext();
         LinearLayout linha = new LinearLayout(contexto);
         linha.setOrientation(LinearLayout.HORIZONTAL);
@@ -686,16 +1016,16 @@ public class ConfiguracoesFragment extends Fragment {
 
         LinearLayout textos = new LinearLayout(contexto);
         textos.setOrientation(LinearLayout.VERTICAL);
-        TextView nomeDaLinha = Textos.novo(contexto, getString(nome), R.font.st_inter_extrabold, 23, R.color.st_texto);
+        TextView nomeDaLinha = Textos.novo(contexto, nome, R.font.st_inter_extrabold, 23, R.color.st_texto);
         nomeDaLinha.setSingleLine(true);
         nomeDaLinha.setEllipsize(TextUtils.TruncateAt.END);
         textos.addView(nomeDaLinha);
-        adicionar(textos, Textos.novo(contexto, getString(dica), R.font.st_inter_semibold, 17, R.color.st_texto_apagado),
+        adicionar(textos, Textos.novo(contexto, dica, R.font.st_inter_semibold, 17, R.color.st_texto_apagado),
                 Medidas.px(contexto, 4));
         LinearLayout.LayoutParams lpTextos = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         lpTextos.setMarginStart(Medidas.px(contexto, 22));
         linha.addView(textos, lpTextos);
-        linha.setContentDescription(getString(nome));
+        linha.setContentDescription(nome);
 
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         if (lista.getChildCount() > 0) lp.topMargin = Medidas.px(contexto, 12);

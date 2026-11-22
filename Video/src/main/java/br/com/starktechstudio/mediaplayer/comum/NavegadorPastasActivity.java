@@ -125,7 +125,7 @@ public class NavegadorPastasActivity extends AppCompatActivity {
         for (boolean removiveis : new boolean[]{true, false}) {
             for (ArquivosDoAparelho.Raiz r : raizes) {
                 if (r.removivel != removiveis) continue;
-                View item = opcao(r.removivel ? R.drawable.st_ic_hd : R.drawable.st_ic_pastas, nomeDaRaiz(r, raizes), () -> {
+                View item = opcao(r.removivel ? R.drawable.st_ic_hd : R.drawable.st_ic_pastas, nomeDaRaiz(this, r, raizes), () -> {
                     raiz = r;
                     mostrarPasta(r.pasta);
                 });
@@ -137,12 +137,12 @@ public class NavegadorPastasActivity extends AppCompatActivity {
         rolagem.scrollTo(0, 0);
     }
 
-    /** "HD externo (USB)"; com mais de um, o nome do volume junto. */
-    private String nomeDaRaiz(ArquivosDoAparelho.Raiz r, List<ArquivosDoAparelho.Raiz> todas) {
-        if (!r.removivel) return getString(R.string.st_armazenamento_interno);
+    /** "HD externo (USB)"; com mais de um, o nome do volume junto. Também em Configurações › Músicas (2.0, Onde baixar). */
+    static String nomeDaRaiz(Context contexto, ArquivosDoAparelho.Raiz r, List<ArquivosDoAparelho.Raiz> todas) {
+        if (!r.removivel) return contexto.getString(R.string.st_armazenamento_interno);
         int removiveis = 0;
         for (ArquivosDoAparelho.Raiz outra : todas) if (outra.removivel) removiveis++;
-        String nome = getString(R.string.st_hd_externo_usb);
+        String nome = contexto.getString(R.string.st_hd_externo_usb);
         return removiveis > 1 ? nome + " · " + r.pasta.getName() : nome;
     }
 
@@ -160,9 +160,11 @@ public class NavegadorPastasActivity extends AppCompatActivity {
                 Preferencias.definirPastaImagens(this, pasta.getAbsolutePath());
                 Toast.makeText(this, getString(R.string.st_pasta_imagens_escolhida, exibido), Toast.LENGTH_SHORT).show();
             } else {
-                RepositorioBiblioteca.atual(this).adicionarPasta(raiz.removivel ? Origem.HD_EXTERNO : Origem.INTERNO,
+                boolean entrou = RepositorioBiblioteca.atual(this).adicionarPasta(raiz.removivel ? Origem.HD_EXTERNO : Origem.INTERNO,
                         pasta.getAbsolutePath());
-                Toast.makeText(this, getString(R.string.st_pasta_adicionada, exibido), Toast.LENGTH_SHORT).show();
+                // 2.0: a pasta de downloads de Músicas não entra (as músicas dela já vêm pelo servidor)
+                Toast.makeText(this, entrou ? getString(R.string.st_pasta_adicionada, exibido)
+                        : getString(R.string.st_pasta_downloads_recusada), entrou ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
             }
             finish();
         });
@@ -204,8 +206,8 @@ public class NavegadorPastasActivity extends AppCompatActivity {
         opcoes.addView(linha);
     }
 
-    /** Rolagem que não passa de {@code maximo} de altura. */
-    private static final class RolagemLimitada extends ScrollView {
+    /** Rolagem que não passa de {@code maximo} de altura (também a do Adicionar servidor). */
+    static final class RolagemLimitada extends ScrollView {
         private final int maximo;
 
         RolagemLimitada(Context contexto, int maximo) {

@@ -98,6 +98,27 @@
     <string name="st_musicas_apagar_playlist">Apagar a playlist %1$s?</string>
     <string name="st_musicas_apagar_aviso">As músicas continuam na sua coleção.</string>
 
+    <!-- Downloads (2.0, D12 a D14): só no tablet e no celular -->
+    <string name="st_musicas_baixar">Baixar</string>
+    <string name="st_musicas_remover_download">Remover download</string>
+    <string name="st_musicas_baixando">Baixando %1$d de %2$d</string>
+    <string name="st_musicas_cancelar_downloads">Cancelar downloads</string>
+    <string name="st_musicas_downloads_cancelados">Downloads cancelados</string>
+    <string name="st_musicas_download_removido">Download removido</string>
+    <string name="st_musicas_sem_espaco">Sem espaço no aparelho: os downloads pararam.</string>
+    <string name="st_musicas_so_baixadas">Só baixadas</string>
+    <string name="st_musicas_sem_baixadas">Nenhuma música baixada ainda. Num álbum, artista ou playlist do servidor em casa, toque em Baixar.</string>
+    <string name="st_musicas_downloads_canal">Downloads de músicas</string>
+    <plurals name="st_musicas_n_na_fila">
+        <item quantity="one">%d música entrou nos downloads</item>
+        <item quantity="other">%d músicas entraram nos downloads</item>
+    </plurals>
+
+    <!-- Selo de origem (D16) -->
+    <string name="st_origem_aparelho">Aparelho</string>
+    <string name="st_origem_baixada">Baixada</string>
+    <string name="st_origem_servidor">Servidor</string>
+
     <!-- Notificação -->
     <string name="st_musicas_canal">Música tocando</string>
     <string name="st_musicas_capa">Capa</string>
