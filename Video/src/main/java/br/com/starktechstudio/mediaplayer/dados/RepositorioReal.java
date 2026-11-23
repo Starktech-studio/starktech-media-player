@@ -48,6 +48,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import br.com.starktechstudio.mediaplayer.comum.Preferencias;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Campo;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Capitulo;
+import br.com.starktechstudio.mediaplayer.dados.Modelo.DadosDoArquivo;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.DadosTecnicos;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Episodio;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Faixa;
@@ -1259,10 +1260,7 @@ public final class RepositorioReal implements RepositorioBiblioteca {
                 : juntarLista(idiomas.subList(0, Math.min(LEGENDAS_NO_RESUMO, idiomas.size())))
                 + (idiomas.size() > LEGENDAS_NO_RESUMO ? "  +" + (idiomas.size() - LEGENDAS_NO_RESUMO) : "");
         String capitulos = v.capitulos.vazio() ? "Sem capítulos" : v.capitulos.quantidade() + (temNome(v.capitulos) ? ", com nome" : "");
-        Pastas.Pasta pasta = r.pastas.get(v.pasta);
-        // D16: o texto completo da origem
-        String origem = pasta == null ? "Memória interna" : pasta.origem == Pastas.Origem.SERVIDOR ? "Servidor em casa"
-                : pasta.origem == Pastas.Origem.HD_EXTERNO ? "HD externo" : "Memória interna";
+        String origem = origemDe(r, v);
 
         List<String> chips = new ArrayList<>();
         List<String> curtos = new ArrayList<>();
@@ -1296,6 +1294,26 @@ public final class RepositorioReal implements RepositorioBiblioteca {
                 capitulos, origem, chips, curtos, chipsVideo);
         dados.faixasDemais = v.audios.size() > 1 || idiomas.size() > LEGENDAS_NO_RESUMO;
         return dados;
+    }
+
+    /** D16: o texto completo da origem. */
+    private static String origemDe(Retrato r, Acervo.Video v) {
+        Pastas.Pasta pasta = r.pastas.get(v.pasta);
+        return pasta == null ? "Memória interna" : pasta.origem == Pastas.Origem.SERVIDOR ? "Servidor em casa"
+                : pasta.origem == Pastas.Origem.HD_EXTERNO ? "HD externo" : "Memória interna";
+    }
+
+    @Override
+    @Nullable
+    public DadosDoArquivo dadosDoArquivo(String id) {
+        Retrato r = retrato;
+        Acervo.Video v = id == null ? null : r.videos.get(id);
+        if (v == null || v.caminho == null) return null;
+        int barra = v.caminho.lastIndexOf('/');
+        String nome = barra < 0 ? v.caminho : v.caminho.substring(barra + 1);
+        String pasta = barra <= 0 ? "" : v.caminho.substring(0, barra);
+        return new DadosDoArquivo(nome, pasta, origemDe(r, v), v.tamanho, v.duracaoMs, v.largura, v.altura,
+                v.infoVideo, v.audios, v.legendas, v.capitulos.vazio() ? 0 : v.capitulos.quantidade(), temNome(v.capitulos));
     }
 
     @Override

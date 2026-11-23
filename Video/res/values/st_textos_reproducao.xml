@@ -79,4 +79,28 @@
     <string name="st_efeitos_sem_sessao">Sem efeito neste vídeo neste aparelho</string>
     <string name="st_equalizador_falhou">O equalizador não ligou neste vídeo</string>
     <string name="st_volume_extra_falhou">O volume extra não ligou neste vídeo</string>
+
+    <!-- Janela Detalhes do arquivo, no player (2.1.2) -->
+    <string name="st_da_titulo">Detalhes do arquivo</string>
+    <string name="st_da_fechar_dica">Voltar para fechar</string>
+    <string name="st_da_fechar">Fechar</string>
+    <string name="st_da_arquivo">Arquivo</string>
+    <string name="st_da_audio">Áudio</string>
+    <string name="st_da_capitulos">Capítulos</string>
+    <string name="st_da_capitulos_com_nome">%1$d, com nome</string>
+    <string name="st_da_sem_capitulos">Sem capítulos</string>
+    <string name="st_da_decodificacao">Decodificação</string>
+    <string name="st_da_decodificacao_hardware">No aparelho (hardware)</string>
+    <string name="st_da_decodificacao_software">No processador (software)</string>
+    <string name="st_da_duracao">Duração</string>
+    <string name="st_da_formato">Formato</string>
+    <string name="st_da_legendas">Legendas</string>
+    <string name="st_da_sem_legendas">Sem legendas</string>
+    <string name="st_da_origem">Origem</string>
+    <string name="st_da_pasta">Pasta</string>
+    <string name="st_da_quadros">Quadros por segundo</string>
+    <string name="st_da_resolucao">Resolução</string>
+    <string name="st_da_tamanho">Tamanho</string>
+    <string name="st_da_taxa">Taxa média</string>
+    <string name="st_da_video">Vídeo</string>
 </resources>

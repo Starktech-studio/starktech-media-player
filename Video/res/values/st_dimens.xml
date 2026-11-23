@@ -345,6 +345,9 @@
     <dimen name="st_tv_rep_lado_botao_altura">28dp</dimen>
     <dimen name="st_tv_rep_lado_botao_padding">9dp</dimen>
     <dimen name="st_tv_rep_lado_botao_icone">11dp</dimen>
+    <!-- Janela Detalhes do arquivo (2.1.2) -->
+    <dimen name="st_tv_rep_detalhes_largura">600dp</dimen>
+    <dimen name="st_tv_rep_detalhes_padding">20dp</dimen>
     <dimen name="st_tv_texto_rep_titulo">18sp</dimen>
     <dimen name="st_tv_texto_rep_sub">10sp</dimen>
     <dimen name="st_tv_texto_rep_painel_titulo">13sp</dimen>
@@ -375,6 +378,8 @@
     <dimen name="st_tablet_rep_capitulo_largura">176dp</dimen>
     <dimen name="st_tablet_rep_capitulo_altura">99dp</dimen>
     <dimen name="st_tablet_rep_capitulo_espaco">16dp</dimen>
+    <!-- Janela Detalhes do arquivo (2.1.2): margem dos lados (larga no tablet deitado, ver values-w960dp) -->
+    <dimen name="st_tablet_rep_detalhes_margem">24dp</dimen>
     <dimen name="st_tablet_texto_rep_titulo">32sp</dimen>
     <dimen name="st_tablet_texto_rep_sub">16sp</dimen>
     <dimen name="st_tablet_texto_rep_capitulos">15sp</dimen>

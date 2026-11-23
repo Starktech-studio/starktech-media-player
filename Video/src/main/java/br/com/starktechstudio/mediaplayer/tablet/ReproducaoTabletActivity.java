@@ -24,6 +24,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -41,6 +42,7 @@ import br.com.starktechstudio.mediaplayer.comum.Animacoes;
 import br.com.starktechstudio.mediaplayer.comum.BarraCapitulosView;
 import br.com.starktechstudio.mediaplayer.comum.BordasSistema;
 import br.com.starktechstudio.mediaplayer.comum.CapituloAdapter;
+import br.com.starktechstudio.mediaplayer.comum.DetalhesDoArquivo;
 import br.com.starktechstudio.mediaplayer.comum.Icones;
 import br.com.starktechstudio.mediaplayer.comum.Navegacao;
 import br.com.starktechstudio.mediaplayer.comum.PecasReproducao;
@@ -59,8 +61,8 @@ import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
  * à esquerda; Cap. anterior, Pausar, Próx. capítulo no centro (os de capítulo somem sem capítulos; no
  * episódio, 1.8.0, também Ep. anterior e Próx. episódio, por fora, e o anterior em dois toques;
  * filme e desenho ganham marcas de 10 em 10 minutos, que usam os mesmos botões;
- * o pulo de Configurações, 10 s de fábrica, só com dois toques nas laterais); "Próximo capítulo em…"
- * e Expandir à direita.
+ * o pulo de Configurações, 10 s de fábrica, só com dois toques nas laterais); "Próximo capítulo em…",
+ * Detalhes (2.1.2: a janela do arquivo, {@link DetalhesDoArquivo}) e Expandir à direita.
  * Um toque mostra ou esconde os controles; à vista, somem no tempo de Configurações (5 s de fábrica)
  * depois de começar a tocar ou do último toque (botões, barra e faixa de capítulos contam) e ficam
  * enquanto Áudio / Legendas estão abertos.
@@ -99,6 +101,8 @@ public class ReproducaoTabletActivity extends AppCompatActivity implements Gesto
     private TextView ajustarLegenda;
     private final DoisToques doisToques = new DoisToques();
     private TextView expandir;
+    private View janelaDetalhes;
+    private OnBackPressedCallback fecharDetalhes;
     private ImageButton pausar;
     private BarraCapitulosView barra;
     private CapituloAdapter adapter;
@@ -181,6 +185,19 @@ public class ReproducaoTabletActivity extends AppCompatActivity implements Gesto
         ligarAleatorio(findViewById(R.id.st_rep_aleatorio), icone);
         Icones.acimaDoTexto(botaoCapitulos, R.drawable.st_ic_capitulos, icone, branco);
         Icones.acimaDoTexto(expandir, R.drawable.st_ic_expandir, icone, branco);
+        TextView detalhes = findViewById(R.id.st_rep_detalhes);
+        Icones.acimaDoTexto(detalhes, R.drawable.st_ic_info, icone, branco);
+        janelaDetalhes = findViewById(R.id.st_rep_detalhes_janela);
+        detalhes.setOnClickListener(v -> abrirDetalhes());
+        janelaDetalhes.setOnClickListener(v -> fecharDetalhes());
+        findViewById(R.id.st_rep_detalhes_fechar).setOnClickListener(v -> fecharDetalhes());
+        fecharDetalhes = new OnBackPressedCallback(false) {
+            @Override
+            public void handleOnBackPressed() {
+                fecharDetalhes();
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, fecharDetalhes);
 
         // Sem capítulos: só Pausar no centro (INTERFACE.md §4); episódio: também Ep. anterior e Próx. episódio (1.8.0)
         boolean comCapitulos = reproducao.temCapitulos();
@@ -380,6 +397,9 @@ public class ReproducaoTabletActivity extends AppCompatActivity implements Gesto
         if (agora) {
             passouPelaMiniatura = true;
             relogio.removeCallbacks(ocultar);
+            // A janela Detalhes não cabe na miniatura
+            janelaDetalhes.setVisibility(View.GONE);
+            fecharDetalhes.setEnabled(false);
             visiveis = false;
             for (View v : new View[]{topo, controles}) {
                 v.animate().cancel();
@@ -590,6 +610,22 @@ public class ReproducaoTabletActivity extends AppCompatActivity implements Gesto
         mostrarAviso(getString(R.string.st_volume, porcento));
     }
 
+    // ---- Detalhes do arquivo (2.1.2) ----
+
+    /** A janela no centro, com os dados da hora; os controles ficam enquanto ela está aberta. */
+    private void abrirDetalhes() {
+        DetalhesDoArquivo.preencher(findViewById(R.id.st_rep_detalhes_grade), DetalhesDoArquivo.linhas(this, reproducao), false);
+        janelaDetalhes.setVisibility(View.VISIBLE);
+        fecharDetalhes.setEnabled(true);
+        relogio.removeCallbacks(ocultar);
+    }
+
+    private void fecharDetalhes() {
+        janelaDetalhes.setVisibility(View.GONE);
+        fecharDetalhes.setEnabled(false);
+        agendarOcultar();
+    }
+
     // ---- Controles que somem ----
 
     private void agendarOcultar() {
@@ -623,6 +659,7 @@ public class ReproducaoTabletActivity extends AppCompatActivity implements Gesto
 
     /** Some com fade e fica INVISIBLE: os toques passam para a área do vídeo (gestos). */
     private void ocultarControles() {
+        if (janelaDetalhes != null && janelaDetalhes.getVisibility() == View.VISIBLE) return;
         visiveis = false;
         relogio.removeCallbacks(ocultar);
         entrarTelaCheia();

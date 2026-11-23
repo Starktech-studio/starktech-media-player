@@ -391,7 +391,7 @@
                     android:visibility="gone" />
             </LinearLayout>
 
-            <!-- Direita: "Próximo: 02 · … em 00:28" e Expandir (tela cheia) -->
+            <!-- Direita: "Próximo: 02 · … em 00:28", Detalhes do arquivo (2.1.2) e Expandir (tela cheia) -->
             <LinearLayout
                 android:layout_width="@dimen/st_tablet_rep_lado_largura"
                 android:layout_height="wrap_content"
@@ -412,6 +412,22 @@
                     android:textSize="@dimen/st_tablet_texto_rep_proximo" />
 
                 <TextView
+                    android:id="@+id/st_rep_detalhes"
+                    style="@style/StarkTech.Texto.Botao"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/st_tablet_rep_botao"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/st_botao_reproducao_tablet"
+                    android:drawablePadding="4dp"
+                    android:gravity="center"
+                    android:minWidth="@dimen/st_tablet_rep_botao"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:text="@string/st_detalhes"
+                    android:textColor="@color/st_texto_secundario"
+                    android:textSize="@dimen/st_tablet_texto_rep_rotulo" />
+
+                <TextView
                     android:id="@+id/st_rep_expandir"
                     style="@style/StarkTech.Texto.Botao"
                     android:layout_width="wrap_content"
@@ -428,4 +444,64 @@
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
+    <!-- Detalhes do arquivo (2.1.2): janela no centro, por cima de tudo; Fechar, Voltar ou um toque fora fecham -->
+    <FrameLayout
+        android:id="@+id/st_rep_detalhes_janela"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/st_veu_70"
+        android:clickable="true"
+        android:focusable="false"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/st_rep_detalhes_cartao"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginStart="@dimen/st_tablet_rep_detalhes_margem"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="@dimen/st_tablet_rep_detalhes_margem"
+            android:layout_marginBottom="24dp"
+            android:background="@drawable/st_fundo_painel_reproducao"
+            android:clickable="true"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    style="@style/StarkTech.Texto.Titulo"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:letterSpacing="0"
+                    android:text="@string/st_da_titulo"
+                    android:textSize="@dimen/st_tablet_texto_rep_sub" />
+
+                <Button
+                    android:id="@+id/st_rep_detalhes_fechar"
+                    style="@style/StarkTech.Botao.Tablet.Secundario"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/st_da_fechar" />
+            </LinearLayout>
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:id="@+id/st_rep_detalhes_grade"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+            </ScrollView>
+        </LinearLayout>
+    </FrameLayout>
 </FrameLayout>

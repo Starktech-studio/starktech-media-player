@@ -27,6 +27,7 @@ import com.archos.mediacenter.video.R;
 import br.com.starktechstudio.mediaplayer.comum.Animacoes;
 import br.com.starktechstudio.mediaplayer.comum.BarraCapitulosView;
 import br.com.starktechstudio.mediaplayer.comum.CapituloAdapter;
+import br.com.starktechstudio.mediaplayer.comum.DetalhesDoArquivo;
 import br.com.starktechstudio.mediaplayer.comum.Icones;
 import br.com.starktechstudio.mediaplayer.comum.Navegacao;
 import br.com.starktechstudio.mediaplayer.comum.PecasReproducao;
@@ -52,7 +53,10 @@ import br.com.starktechstudio.mediaplayer.dados.RepositorioBiblioteca;
  * controles; próxima / anterior do controle remoto = capítulo e, no episódio e no vídeo de música, o vídeo
  * (1.8.0, D5 do plano 009: no episódio, Ep. anterior e Próx. episódio ao lado dos de capítulo; o anterior em
  * dois toques, e no 1º episódio volta ao começo).
- * Voltar fecha a lista de capítulos; depois, recolhe os controles; com eles ocultos, o 1º só avisa e o 2º,
+ * 2.1.2: Capítulos, Áudio e Legendas à esquerda; "Próximo capítulo em…", Zoom e Detalhes à direita. Detalhes abre a
+ * janela do arquivo ({@link DetalhesDoArquivo}) no centro: Voltar ou OK a fecham, e os controles ficam enquanto ela
+ * está aberta.
+ * Voltar fecha a janela Detalhes e a lista de capítulos; depois, recolhe os controles; com eles ocultos, o 1º só avisa e o 2º,
  * em até 3 s, vai para o Detalhe ou, em episódio, para a Série (D4 do plano 004; a posição fica salva).
  */
 public class ReproducaoTvActivity extends AppCompatActivity {
@@ -82,6 +86,9 @@ public class ReproducaoTvActivity extends AppCompatActivity {
     private VerticalGridView lista;
     private CapituloAdapter adapter;
     private OnBackPressedCallback fecharPainel;
+    private View janelaDetalhes;
+    private Button botaoDetalhes;
+    private OnBackPressedCallback fecharDetalhes;
 
     private final Handler relogio = new Handler(Looper.getMainLooper());
     private final Runnable ocultar = this::ocultarControles;
@@ -127,6 +134,8 @@ public class ReproducaoTvActivity extends AppCompatActivity {
         Button audio = findViewById(R.id.st_rep_audio);
         Button legendas = findViewById(R.id.st_rep_legendas);
         Button zoom = findViewById(R.id.st_rep_zoom);
+        botaoDetalhes = findViewById(R.id.st_rep_detalhes);
+        janelaDetalhes = findViewById(R.id.st_rep_detalhes_janela);
         ajustarLegenda = findViewById(R.id.st_rep_ajustar_legenda);
 
         ((TextView) findViewById(R.id.st_rep_titulo)).setText(reproducao.titulo);
@@ -138,6 +147,7 @@ public class ReproducaoTvActivity extends AppCompatActivity {
         Icones.noTexto(legendas, R.drawable.st_ic_legendas, icone);
         Icones.noTexto(zoom, R.drawable.st_ic_zoom, icone);
         Icones.noTexto(botaoCapitulos, R.drawable.st_ic_capitulos, icone);
+        Icones.noTexto(botaoDetalhes, R.drawable.st_ic_info, icone);
         Icones.noTexto(ajustarLegenda, R.drawable.st_ic_ajustar, icone);
         ajustarLegenda.setOnClickListener(v -> Navegacao.abrirAjusteLegenda(this, reproducao.id));
         ligarAleatorio(findViewById(R.id.st_rep_aleatorio), icone);
@@ -156,6 +166,7 @@ public class ReproducaoTvActivity extends AppCompatActivity {
         audio.setOnClickListener(v -> Navegacao.abrirFaixas(this, reproducao.id, TipoFaixa.AUDIO));
         legendas.setOnClickListener(v -> Navegacao.abrirFaixas(this, reproducao.id, TipoFaixa.LEGENDA));
         zoom.setOnClickListener(v -> trocarZoom());
+        botaoDetalhes.setOnClickListener(v -> abrirDetalhes());
         botaoCapitulos.setOnClickListener(v -> {
             if (painel.getVisibility() == View.VISIBLE) fecharPainel();
             else abrirPainel();
@@ -187,6 +198,13 @@ public class ReproducaoTvActivity extends AppCompatActivity {
             }
         };
         getOnBackPressedDispatcher().addCallback(this, fecharPainel);
+        fecharDetalhes = new OnBackPressedCallback(false) {
+            @Override
+            public void handleOnBackPressed() {
+                fecharDetalhes();
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, fecharDetalhes);
 
         reproducao.definirOuvinte(this::atualizar);
         atualizar();
@@ -425,6 +443,29 @@ public class ReproducaoTvActivity extends AppCompatActivity {
         if (focoNoPainel) botaoCapitulos.requestFocus();
     }
 
+    // ---- Detalhes do arquivo (2.1.2) ----
+
+    private boolean detalhesAbertos() {
+        return janelaDetalhes.getVisibility() == View.VISIBLE;
+    }
+
+    /** A janela no centro, com os dados da hora (a decodificação e os quadros por segundo vêm do motor já aberto). */
+    private void abrirDetalhes() {
+        DetalhesDoArquivo.preencher(findViewById(R.id.st_rep_detalhes_grade), DetalhesDoArquivo.linhas(this, reproducao), true);
+        janelaDetalhes.setVisibility(View.VISIBLE);
+        fecharDetalhes.setEnabled(true);
+        relogio.removeCallbacks(ocultar);
+        findViewById(R.id.st_rep_detalhes_cartao).requestFocus();
+    }
+
+    private void fecharDetalhes() {
+        janelaDetalhes.setVisibility(View.GONE);
+        fecharDetalhes.setEnabled(false);
+        primeiroVoltar = 0;
+        botaoDetalhes.requestFocus();
+        agendarOcultar();
+    }
+
     // ---- Voltar duas vezes (D4 do plano 004) ----
 
     private void voltar() {
@@ -504,6 +545,13 @@ public class ReproducaoTvActivity extends AppCompatActivity {
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent evento) {
+        // Janela Detalhes aberta: OK fecha; as setas ficam nela; Voltar, volume e as teclas de mídia seguem
+        if (janelaDetalhes != null && detalhesAbertos() && teclaDeControle(evento.getKeyCode())) {
+            if (evento.getAction() == KeyEvent.ACTION_DOWN && evento.getRepeatCount() == 0 && confirmar(evento.getKeyCode())) {
+                fecharDetalhes();
+            }
+            return true;
+        }
         if (evento.getAction() == KeyEvent.ACTION_DOWN) {
             int tecla = evento.getKeyCode();
             switch (tecla) {
@@ -570,6 +618,11 @@ public class ReproducaoTvActivity extends AppCompatActivity {
         if (!visiveis) mostrarAviso(getString(sentido > 0 ? R.string.st_pulo_mais : R.string.st_pulo_menos, segundos));
     }
 
+    private static boolean confirmar(int tecla) {
+        return tecla == KeyEvent.KEYCODE_DPAD_CENTER || tecla == KeyEvent.KEYCODE_ENTER
+                || tecla == KeyEvent.KEYCODE_NUMPAD_ENTER || tecla == KeyEvent.KEYCODE_BUTTON_A;
+    }
+
     /** Setas e confirmar: com os controles ocultos, só os mostram. Voltar e volume seguem o caminho normal. */
     private static boolean teclaDeControle(int tecla) {
         switch (tecla) {
@@ -604,7 +657,8 @@ public class ReproducaoTvActivity extends AppCompatActivity {
 
     private void ocultarControles() {
         if (!visiveis) return;
-        if (alvoNaBarra >= 0) {
+        // Barra em uso ou janela Detalhes aberta: os controles ficam
+        if (alvoNaBarra >= 0 || detalhesAbertos()) {
             agendarOcultar();
             return;
         }

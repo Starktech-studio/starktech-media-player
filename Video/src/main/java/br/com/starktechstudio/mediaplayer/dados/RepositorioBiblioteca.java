@@ -11,6 +11,7 @@ import java.util.Map;
 
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Campo;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Capitulo;
+import br.com.starktechstudio.mediaplayer.dados.Modelo.DadosDoArquivo;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.DadosTecnicos;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Episodio;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Faixa;
@@ -158,6 +159,10 @@ public interface RepositorioBiblioteca {
     Episodio episodio(String idEpisodio);
 
     DadosTecnicos dadosTecnicos(String idTitulo);
+
+    /** Janela Detalhes do player (2.1.2); nulo se o título não é um arquivo da biblioteca. */
+    @Nullable
+    DadosDoArquivo dadosDoArquivo(String id);
 
     List<PessoaElenco> elenco(String idTitulo);
 

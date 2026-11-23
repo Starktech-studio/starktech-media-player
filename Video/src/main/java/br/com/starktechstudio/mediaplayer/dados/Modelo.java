@@ -574,4 +574,43 @@ public final class Modelo {
             this.chipsVideo = chipsVideo;
         }
     }
+
+    /** Janela Detalhes do player (2.1.2): o que a biblioteca sabe do arquivo. */
+    public static final class DadosDoArquivo {
+        /** Nome do arquivo, com a extensão. */
+        public final String nome;
+        /** Onde ele está: a pasta (no servidor, o caminho dentro dele). */
+        public final String pasta;
+        /** "HD externo", "Memória interna" ou "Servidor em casa". */
+        public final String origem;
+        /** Bytes; 0 = não se sabe. */
+        public final long tamanho;
+        /** 0 = não se sabe. */
+        public final long duracaoMs;
+        public final int largura;
+        public final int altura;
+        /** "H.265 · HDR10"; vazio = não se sabe. */
+        public final String video;
+        public final List<String> audios;
+        public final List<String> legendas;
+        public final int capitulos;
+        public final boolean capitulosComNome;
+
+        public DadosDoArquivo(String nome, String pasta, String origem, long tamanho, long duracaoMs, int largura,
+                              int altura, String video, List<String> audios, List<String> legendas, int capitulos,
+                              boolean capitulosComNome) {
+            this.nome = nome;
+            this.pasta = pasta;
+            this.origem = origem;
+            this.tamanho = tamanho;
+            this.duracaoMs = duracaoMs;
+            this.largura = largura;
+            this.altura = altura;
+            this.video = video == null ? "" : video;
+            this.audios = Collections.unmodifiableList(new ArrayList<>(audios));
+            this.legendas = Collections.unmodifiableList(new ArrayList<>(legendas));
+            this.capitulos = capitulos;
+            this.capitulosComNome = capitulosComNome;
+        }
+    }
 }

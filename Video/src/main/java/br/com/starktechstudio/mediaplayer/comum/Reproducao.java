@@ -36,6 +36,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import br.com.starktechstudio.mediaplayer.dados.Modelo;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Capitulo;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Episodio;
 import br.com.starktechstudio.mediaplayer.dados.Modelo.Faixa;
@@ -344,6 +345,19 @@ public final class Reproducao implements Player.Listener {
     public String nomeDe(String outro) {
         Titulo t = repositorio.titulo(outro);
         return t == null ? null : t.titulo;
+    }
+
+    /** Janela Detalhes (2.1.2): o que a biblioteca sabe do arquivo; nulo fora dela. */
+    @Nullable
+    public Modelo.DadosDoArquivo dadosDoArquivo() {
+        return repositorio.dadosDoArquivo(id);
+    }
+
+    /** A faixa de vídeo como o motor a abriu (decodificação, quadros por segundo); nula antes de abrir. */
+    @Nullable
+    public VideoMetadata.VideoTrack faixaDeVideo() {
+        VideoMetadata meta = faixasDoArquivo;
+        return meta == null ? null : meta.getVideoTrack();
     }
 
     /** A reprodução na tela, se for do título {@code id}. */

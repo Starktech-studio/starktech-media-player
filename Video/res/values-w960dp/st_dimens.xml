@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 StarkTech Studio. Todos os direitos reservados. -->
+<resources>
+    <!-- Janela Detalhes do arquivo do player do tablet (2.1.2): no tablet deitado, mais estreita -->
+    <dimen name="st_tablet_rep_detalhes_margem">120dp</dimen>
+</resources>
