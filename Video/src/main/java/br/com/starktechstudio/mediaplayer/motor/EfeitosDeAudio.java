@@ -28,7 +28,8 @@ import br.com.starktechstudio.mediaplayer.comum.Preferencias;
  *   <li>Equalizador: {@link Equalizer} com os estilos que o aparelho oferece ({@code getPresetName}), com os nomes
  *   conhecidos em pt-BR ({@link #nomeDoEstilo}) e em ordem alfabética ({@link #emOrdem}).</li>
  *   <li>Volume extra: {@link LoudnessEnhancer} (API 19), de 100 % a 200 %, de 10 em 10; o ganho em milibéis é
- *   {@code 20·log10(%/100) × 100} ({@link #ganhoEmMilibeis}: 200 % ≈ 602 mB, +6 dB). Picos: o próprio LoudnessEnhancer
+ *   {@code 15·log2(%/100) × 100} ({@link #ganhoEmMilibeis}: 200 % = 1500 mB, +15 dB; desde a 2.1.1, mais forte que
+ *   os +6 dB da 2.1.0, que mudavam pouco o volume percebido). Picos: o próprio LoudnessEnhancer
  *   passa o som aumentado por um compressor com limitador (o do efeito do Android), que segura o que passaria do
  *   máximo; o app não soma outro.</li>
  * </ul>
@@ -167,13 +168,14 @@ public final class EfeitosDeAudio {
     // ---- Regras (sem Android) ----
 
     /**
-     * % do volume em ganho do LoudnessEnhancer, em milibéis: {@code 20·log10(%/100)} dB × 100, arredondado (110 % = 83,
-     * 150 % = 352, 200 % = 602). 100 % ou menos, 0. Fora de 100–200, vale o limite.
+     * % do volume em ganho do LoudnessEnhancer, em milibéis: {@code 15·log2(%/100)} dB × 100, arredondado (110 % = 206,
+     * 150 % = 877, 200 % = 1500, +15 dB). Curva de volume percebido: cada passo de 10 % soa mais alto que o anterior de
+     * forma clara (a 2.1.0 usava 20·log10, só +6 dB em 200 %). 100 % ou menos, 0. Fora de 100–200, vale o limite.
      */
     public static int ganhoEmMilibeis(int porcento) {
         int nivel = Math.min(NIVEL_MAXIMO, porcento);
         if (nivel <= NIVEL_MINIMO) return 0;
-        return (int) Math.round(2000.0 * Math.log10(nivel / 100.0));
+        return (int) Math.round(1500.0 * Math.log(nivel / 100.0) / Math.log(2.0));
     }
 
     /** Dentro de 100–200 e no passo de 10 mais perto (155 → 160; 154 → 150). */

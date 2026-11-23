@@ -22,7 +22,7 @@ public class EfeitosDeAudioTest {
 
     @Test
     public void ganhoDeCadaPassoEmMilibeis() {
-        int[] esperado = {0, 83, 158, 228, 292, 352, 408, 461, 511, 558, 602};
+        int[] esperado = {0, 206, 395, 568, 728, 877, 1017, 1148, 1272, 1389, 1500};
         for (int i = 0; i < esperado.length; i++) {
             int nivel = 100 + i * 10;
             assertEquals(nivel + " %", esperado[i], EfeitosDeAudio.ganhoEmMilibeis(nivel));
@@ -32,7 +32,7 @@ public class EfeitosDeAudioTest {
     @Test
     public void ganhoSegueAFormula() {
         for (int nivel = 100; nivel <= 200; nivel++) {
-            int formula = (int) Math.round(20 * Math.log10(nivel / 100.0) * 100);
+            int formula = (int) Math.round(15 * (Math.log(nivel / 100.0) / Math.log(2.0)) * 100);
             assertEquals(nivel + " %", formula, EfeitosDeAudio.ganhoEmMilibeis(nivel));
         }
     }
@@ -42,8 +42,8 @@ public class EfeitosDeAudioTest {
         assertEquals(0, EfeitosDeAudio.ganhoEmMilibeis(99));
         assertEquals(0, EfeitosDeAudio.ganhoEmMilibeis(0));
         assertEquals(0, EfeitosDeAudio.ganhoEmMilibeis(-50));
-        assertEquals(602, EfeitosDeAudio.ganhoEmMilibeis(201));
-        assertEquals(602, EfeitosDeAudio.ganhoEmMilibeis(1000));
+        assertEquals(1500, EfeitosDeAudio.ganhoEmMilibeis(201));
+        assertEquals(1500, EfeitosDeAudio.ganhoEmMilibeis(1000));
     }
 
     @Test

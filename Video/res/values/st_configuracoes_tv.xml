@@ -14,11 +14,9 @@
 
     <!-- Painel da marca da TV (ajuste de 21/11/2026): as novidades valem só para a versão abaixo; outra versão mostra
          st_versao_sem_novidades. A cada versão publicada, trocar as duas -->
-    <string name="st_cfg_novidades_versao" translatable="false">2.1.0</string>
+    <string name="st_cfg_novidades_versao" translatable="false">2.1.1</string>
     <string-array name="st_cfg_novidades">
-        <item>Equalizador com os estilos do aparelho, nos vídeos e nas músicas</item>
-        <item>Equalizador e volume extra também no Áudio do player</item>
-        <item>Volume extra de até 200%, com os picos segurados</item>
+        <item>Volume extra mais forte: cada passo de 10% aumenta bem mais o som</item>
     </string-array>
 
     <!-- Seções -->
